@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ic2newera:block/non_metal_processor"
+    },
+    "facing=east": {
+      "model": "ic2newera:block/non_metal_processor",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "ic2newera:block/non_metal_processor",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "ic2newera:block/non_metal_processor",
+      "y": 270
+    }
+  }
+}

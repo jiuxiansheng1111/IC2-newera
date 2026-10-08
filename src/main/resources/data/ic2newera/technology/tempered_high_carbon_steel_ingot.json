@@ -1,0 +1,22 @@
+{
+  "title": "高碳调质钢锭",
+  "description": "使用 IC2 电炉或熔炼配方将高碳钢钢坯加工为对应合金钢材。",
+  "branch": "资源与冶金",
+  "icon": "ic2newera:tempered_high_carbon_steel_ingot",
+  "prerequisites": [
+    "ic2newera:high_carbon_steel_billet"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:tempered_high_carbon_steel_ingot",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "按 IC2 电炉或熔炼配方将高碳钢钢坯加工为合金钢材；具体输入与产物以 JEI 为准。",
+    "此处是简化的游戏内加工规则，不模拟现实热处理；本模组不提供专用热处理机器。"
+  ],
+  "x": 15,
+  "y": 3
+}

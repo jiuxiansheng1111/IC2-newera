@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "ic2newera:item/aluminium_bronze_sword"
+  }
+}

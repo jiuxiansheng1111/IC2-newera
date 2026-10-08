@@ -1,0 +1,1457 @@
+{
+  "materials": [
+    {
+      "id": "nickel",
+      "advanced": false,
+      "stages": {
+        "RAW": "ic2newera:nickel_ore",
+        "IMPURE_DUST": "ic2newera:impure_nickel_dust",
+        "CLEAN_DUST": "ic2newera:nickel_dust",
+        "FINAL_METAL": "ic2newera:nickel_ingot"
+      }
+    },
+    {
+      "id": "chromium",
+      "advanced": false,
+      "stages": {
+        "RAW": "ic2newera:chromium_ore",
+        "IMPURE_DUST": "ic2newera:impure_chromium_dust",
+        "CLEAN_DUST": "ic2newera:chromium_dust",
+        "FINAL_METAL": "ic2newera:chromium_ingot"
+      }
+    },
+    {
+      "id": "titanium",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:titanium_ore",
+        "IMPURE_DUST": "ic2newera:impure_titanium_dust",
+        "CLEAN_DUST": "ic2newera:titanium_dust",
+        "FINAL_METAL": "ic2newera:titanium_ingot"
+      }
+    },
+    {
+      "id": "tungsten",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:tungsten_ore",
+        "IMPURE_DUST": "ic2newera:impure_tungsten_dust",
+        "CLEAN_DUST": "ic2newera:tungsten_dust",
+        "FINAL_METAL": "ic2newera:tungsten_ingot"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "id": "ic2newera:nickel_macerate",
+      "material": "nickel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_nickel_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 5,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:nickel_crush",
+      "material": "nickel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_nickel_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:nickel_wash",
+      "material": "nickel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_nickel_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nickel_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:nickel_legacy_smelting",
+      "material": "nickel",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nickel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:nickel_clean_smelting",
+      "material": "nickel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nickel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:nickel_legacy_blasting",
+      "material": "nickel",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nickel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:nickel_clean_blasting",
+      "material": "nickel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nickel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:chromium_macerate",
+      "material": "chromium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_chromium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 5,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:chromium_crush",
+      "material": "chromium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_chromium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:chromium_wash",
+      "material": "chromium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_chromium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:chromium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:chromium_legacy_smelting",
+      "material": "chromium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:chromium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:chromium_clean_smelting",
+      "material": "chromium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:chromium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:chromium_legacy_blasting",
+      "material": "chromium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:chromium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:chromium_clean_blasting",
+      "material": "chromium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:chromium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:chromium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:titanium_macerate",
+      "material": "titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_titanium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 5,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:titanium_crush",
+      "material": "titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_titanium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:titanium_wash",
+      "material": "titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_titanium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:titanium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:titanium_legacy_smelting",
+      "material": "titanium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:titanium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:titanium_legacy_blasting",
+      "material": "titanium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:titanium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:titanium_industrial_smelt",
+      "material": "titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:electric_blast_furnace",
+        "ic2:blast_induction_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:titanium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:tungsten_macerate",
+      "material": "tungsten",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tungsten_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 5,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:tungsten_crush",
+      "material": "tungsten",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tungsten_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:tungsten_wash",
+      "material": "tungsten",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_tungsten_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tungsten_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:tungsten_legacy_smelting",
+      "material": "tungsten",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tungsten_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:tungsten_legacy_blasting",
+      "material": "tungsten",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tungsten_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:tungsten_industrial_smelt",
+      "material": "tungsten",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:electric_blast_furnace",
+        "ic2:blast_induction_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tungsten_ingot",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:quartz_macerate",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:quartz",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:quartz_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:quartz_crush",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:quartz",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:quartz_dust",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:silicon",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:non_metal_processor"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:quartz_dust",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:silicon",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": 8,
+      "priority": 10,
+      "format": "processor",
+      "kind": "non_metal"
+    },
+    {
+      "id": "ic2newera:high_purity_silicon",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:non_metal_processor"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:silicon",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:high_purity_silicon",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 16,
+      "priority": 10,
+      "format": "processor",
+      "kind": "non_metal"
+    },
+    {
+      "id": "ic2newera:pcb",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "tag": "forge:ingots/copper",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:silicon",
+          "count": 1
+        },
+        {
+          "item": "create:electron_tube",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:pcb",
+        "count": 1
+      },
+      "duration_ticks": 300,
+      "eu_per_tick": 16,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:integrated_circuit",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:high_purity_silicon",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "item": "minecraft:redstone",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:integrated_circuit",
+        "count": 1
+      },
+      "duration_ticks": 300,
+      "eu_per_tick": 16,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:cpu",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "tag": "forge:ingots/gold",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cpu",
+        "count": 1
+      },
+      "duration_ticks": 600,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:ram",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "tag": "forge:ingots/copper",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:ram",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 24,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:gpu",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 2
+        },
+        {
+          "tag": "forge:ingots/gold",
+          "count": 2
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:gpu",
+        "count": 1
+      },
+      "duration_ticks": 800,
+      "eu_per_tick": 64,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:industrial_ssd",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:high_purity_silicon",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "tag": "forge:ingots/iron",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:industrial_ssd",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:stainless_steel",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "tag": "forge:ingots/iron",
+          "count": 3
+        },
+        {
+          "item": "ic2newera:chromium_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:stainless_steel_ingot",
+        "count": 4
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:invar",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "tag": "forge:ingots/iron",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:nickel_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:invar_ingot",
+        "count": 3
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:nichrome",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:nickel_ingot",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:chromium_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:nichrome_ingot",
+        "count": 5
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:tool_steel",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tempered_steel_ingot",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:tungsten_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tool_steel_ingot",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:titanium_alloy",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:titanium_ingot",
+          "count": 3
+        },
+        {
+          "tag": "forge:ingots/aluminium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:titanium_alloy_ingot",
+        "count": 4
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:tungsten_carbide",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tungsten_ingot",
+          "count": 1
+        },
+        {
+          "item": "minecraft:coal",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tungsten_carbide_ingot",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:non_metal_processor",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "tag": "forge:ingots/iron",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:nichrome_ingot",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "create:andesite_alloy",
+          "count": 2
+        },
+        {
+          "item": "minecraft:quartz",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:non_metal_processor",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:electronic_fabricator",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:stainless_steel_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:tungsten_carbide_ingot",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:tool_steel_ingot",
+          "count": 1
+        },
+        {
+          "item": "create:electron_tube",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        },
+        {
+          "tag": "forge:ingots/copper",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:electronic_fabricator",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:machine_network_adapter",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:invar_ingot",
+          "count": 1
+        },
+        {
+          "item": "create:electron_tube",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:machine_network_adapter",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:industrial_fiber",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:glass",
+          "count": 2
+        },
+        {
+          "item": "minecraft:quartz",
+          "count": 1
+        },
+        {
+          "item": "minecraft:redstone",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:industrial_fiber",
+        "count": 8
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:industrial_network_switch",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:pcb",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_fiber",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:stainless_steel_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:industrial_network_switch",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:industrial_control_server",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:ram",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:industrial_ssd",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_network_switch",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_alloy_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2:machine_block",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:industrial_control_server",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:industrial_ai_core",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:gpu",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:ram",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_ssd",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:industrial_ai_core",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:terminal",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:chest",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:gpu",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_ssd",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_fiber",
+          "count": 1
+        },
+        {
+          "item": "create:brass_casing",
+          "count": 1
+        },
+        {
+          "item": "projecte:dark_matter",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:terminal",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting",
+      "required_mods": [
+        "projecte"
+      ]
+    },
+    {
+      "id": "ic2newera:advanced_circuit",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "minecraft:redstone",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2:advanced_circuit",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:complex_circuit",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2:advanced_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:high_purity_silicon",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2:complex_circuit",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    }
+  ]
+}

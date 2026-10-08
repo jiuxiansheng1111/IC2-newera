@@ -1,0 +1,20 @@
+{
+  "title": "认识工业原料",
+  "description": "从铁、铜和锡开始建立基础矿物与金属材料储备。",
+  "branch": "资源与冶金",
+  "icon": "minecraft:iron_ingot",
+  "prerequisites": [],
+  "objectives": [
+    {
+      "type": "item",
+      "count": 1,
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "steps": [
+    "取得铁锭作为第一份可加工金属。",
+    "继续采集 IC2 铜矿、锡矿等矿物；原矿加工与粉末、锭的取得按 JEI 中 IC2 原生配方进行。"
+  ],
+  "x": 0,
+  "y": 0
+}

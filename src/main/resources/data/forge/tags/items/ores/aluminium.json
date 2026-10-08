@@ -1,0 +1,6 @@
+{
+  "replace": false,
+  "values": [
+    { "required": false, "id": "ic2:aluminium_ore_nether" }
+  ]
+}

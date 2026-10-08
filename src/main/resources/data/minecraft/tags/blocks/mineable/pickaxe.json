@@ -1,0 +1,16 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ore",
+    "ic2newera:chromium_ore",
+    "ic2newera:titanium_ore",
+    "ic2newera:tungsten_ore",
+    "ic2newera:non_metal_processor",
+    "ic2newera:electronic_fabricator",
+    "ic2newera:machine_network_adapter",
+    "ic2newera:industrial_fiber",
+    "ic2newera:industrial_network_switch",
+    "ic2newera:industrial_control_server",
+    "ic2newera:terminal"
+  ]
+}

@@ -1,0 +1,63 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// The graph declares quantities once; all concrete recipes below are derived from it.
+def generatedProcesses = layout.buildDirectory.dir('generated-process-resources')
+tasks.register('generateProcessRecipes') {
+    inputs.files(fileTree('src/main/resources/data/ic2newera/process_graph'))
+    outputs.dir(generatedProcesses)
+    doLast {
+        def base = generatedProcesses.get().asFile
+        delete(base)
+        fileTree('src/main/resources/data/ic2newera/process_graph').matching { include '**/*.json' }.each { source ->
+            def graph = new JsonSlurper().parse(source, 'UTF-8')
+            graph.routes.findAll { it.classification!='BLOCKED_BYPASS' }.each { r ->
+                def input = { i -> i.item ? [item:i.item] : [tag:i.tag] }
+                def repeated = r.inputs.collectMany { i -> (1..i.count).collect { input(i) } }
+                def result = [item:r.output.item, count:r.output.count]
+                def body
+                def directory = 'recipes'
+                switch(r.format) {
+                    case 'smelting': case 'blasting':
+                        assert r.inputs.size()==1 && r.inputs[0].count==1 && r.output.count==1
+                        body = [type:"minecraft:${r.format}", ingredient:input(r.inputs[0]), result:r.output.item,
+                                experience:0.2, cookingtime:r.duration_ticks]
+                        break
+                    case 'crafting':
+                        assert repeated.size()<=9
+                        body = [type:'minecraft:crafting_shapeless', ingredients:repeated, result:result]
+                        break
+                    case 'crushing': case 'splashing': case 'mixing':
+                        body = [type:"create:${r.format}", ingredients:repeated, results:[result]]
+                        if (r.format!='splashing') body.processingTime = r.duration_ticks
+                        if (r.heat) body.heatRequirement = r.heat
+                        break
+                    case 'processor':
+                        assert r.inputs.size()<=6
+                        body = [type:'ic2newera:processor', kind:r.kind,
+                            ingredients:r.inputs.collect { i -> input(i)+[count:i.count] }, result:result,
+                            duration_ticks:r.duration_ticks, eu_per_tick:r.eu_per_tick]
+                        break
+                    case 'macerator': case 'blast_furnace': case 'mixing_furnace':
+                        directory = "ic2_recipes/${r.format}"
+                        def ic2in = r.inputs.collect { i -> input(i)+[type:i.item?'ic2:item':'ic2:tag',size:i.count] }
+                        body = [input:ic2in.size()==1?ic2in[0]:ic2in,
+                                output:[type:'ic2:simple',xp:0.0,outputs:[type:'ic2:item',item:r.output.item,size:r.output.count].with { [it] }]]
+                        break
+                    default: throw new GradleException("Unknown process format ${r.format}")
+                }
+                def name = r.id.split(':',2)
+                if (r.required_mods) {
+                    assert directory == 'recipes'
+                    body.conditions = r.required_mods.collect { mod -> [type:'forge:mod_loaded', modid:mod] }
+                }
+                assert name[0]=='ic2newera'
+                def target = new File(base, "data/${name[0]}/${directory}/${name[1]}.json")
+                target.parentFile.mkdirs()
+                target.setText(JsonOutput.prettyPrint(JsonOutput.toJson(body))+'\n','UTF-8')
+            }
+        }
+    }
+}
+sourceSets.main.resources.srcDir(generatedProcesses)
+tasks.named('processResources').configure { dependsOn 'generateProcessRecipes' }

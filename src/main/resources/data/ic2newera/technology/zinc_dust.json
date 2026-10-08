@@ -1,0 +1,14 @@
+{
+  "title": "粉碎锌原料",
+  "description": "使用 IC2 粉碎机将 Create 粗锌加工为新纪元锌粉。",
+  "branch": "矿物与合金",
+  "icon": "ic2newera:zinc_dust",
+  "prerequisites": ["ic2newera:sphalerite_mining"],
+  "objectives": [{"type":"item","item":"ic2newera:zinc_dust","count":1}],
+  "steps": [
+    "将 Create 粗锌或 Create 粉碎粗锌放入 IC2 粉碎机；每份输入产出2份新纪元锌粉。",
+    "精确兼容配方以 JEI 为准。"
+  ],
+  "x": 24,
+  "y": 45
+}

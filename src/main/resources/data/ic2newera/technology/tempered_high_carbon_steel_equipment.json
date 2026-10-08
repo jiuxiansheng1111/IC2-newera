@@ -1,0 +1,20 @@
+{
+  "title":"高碳调质钢装备",
+  "description":"使用高碳调质钢锭制作整套护具与近战工具。",
+  "branch":"工具与装备",
+  "icon":"ic2newera:tempered_high_carbon_steel_sword",
+  "prerequisites":["ic2newera:tempered_high_carbon_steel_ingot"],
+  "objectives":[
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_helmet","count":1},
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_chestplate","count":1},
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_leggings","count":1},
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_boots","count":1},
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_sword","count":1},
+    {"type":"item","item":"ic2newera:tempered_high_carbon_steel_axe","count":1}
+  ],
+  "steps":[
+    "普通 3×3 工作台按原版护具轮廓制作高碳调质钢护具和近战工具；精确材料格以 JEI 为准。",
+    "护具、剑和斧分别提供防护或工具用途；高碳钢配料与装备都是新配方路径，不替换原版或旧调质钢装备。"
+  ],
+  "x":15,"y":4
+}

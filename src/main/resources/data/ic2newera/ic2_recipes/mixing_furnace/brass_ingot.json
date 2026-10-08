@@ -1,0 +1,13 @@
+{
+  "input": [
+    { "type": "ic2:tag", "tag": "forge:ingots/copper", "size": 7 },
+    { "type": "ic2:item", "item": "create:zinc_ingot", "size": 3 }
+  ],
+  "output": {
+    "type": "ic2:simple",
+    "xp": 0.0,
+    "outputs": [
+      { "type": "ic2:item", "item": "create:brass_ingot", "size": 10 }
+    ]
+  }
+}

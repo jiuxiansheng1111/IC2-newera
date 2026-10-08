@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smelting",
+  "ingredient": { "item": "ic2newera:high_carbon_steel_billet" },
+  "result": "ic2newera:tempered_high_carbon_steel_ingot",
+  "experience": 0.7,
+  "cookingtime": 200
+}

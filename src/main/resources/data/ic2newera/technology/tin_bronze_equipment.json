@@ -1,0 +1,47 @@
+{
+  "title": "IC2青铜装备",
+  "description": "按IC2原有配方制作青铜护具、剑与斧。",
+  "branch": "工具与装备",
+  "icon": "ic2:armor_bronze_chest",
+  "prerequisites": [
+    "ic2newera:bronze"
+  ],
+  "objectives": [
+    {
+      "count": 1,
+      "item": "ic2:armor_bronze_helmet",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2:armor_bronze_chest",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2:armor_bronze_leggings",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2:armor_bronze_boots",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2:tool_sword_bronze",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2:tool_axe_bronze",
+      "type": "item"
+    }
+  ],
+  "steps": [
+    "按JEI显示的IC2原有配方，在对应工作台制作四件青铜护具、青铜剑和青铜斧。",
+    "青铜装备沿用IC2的物品与维修规则；本路线没有新增一套重复装备。"
+  ],
+  "x": 5,
+  "y": 1
+}

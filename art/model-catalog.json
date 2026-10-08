@@ -1,0 +1,571 @@
+{
+  "models": [
+    {
+      "id": "zinc_dust",
+      "name": "锌粉",
+      "category": "锌矿物材料",
+      "status": "已接入游戏",
+      "description": "锌矿物处理支线中的粉末图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/zinc_dust.json"
+    },
+    {
+      "id": "aluminium_bronze_ingot",
+      "name": "铝青铜锭",
+      "category": "合金材料",
+      "status": "已接入游戏",
+      "description": "活动合金加工材料图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_ingot.json"
+    },
+    {
+      "id": "carbon_steel_billet",
+      "name": "碳钢坯",
+      "category": "合金材料",
+      "status": "已接入游戏",
+      "description": "活动合金加工材料图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/carbon_steel_billet.json"
+    },
+    {
+      "id": "high_carbon_steel_billet",
+      "name": "高碳钢坯",
+      "category": "合金材料",
+      "status": "已接入游戏",
+      "description": "活动合金加工材料图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/high_carbon_steel_billet.json"
+    },
+    {
+      "id": "tempered_steel_ingot",
+      "name": "调质钢锭",
+      "category": "合金材料",
+      "status": "已接入游戏",
+      "description": "活动合金加工材料图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_ingot.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_ingot",
+      "name": "高碳调质钢锭",
+      "category": "合金材料",
+      "status": "已接入游戏",
+      "description": "活动合金加工材料图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_ingot.json"
+    },
+    {
+      "id": "aluminium_bronze_helmet",
+      "name": "铝青铜头盔",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_helmet.json"
+    },
+    {
+      "id": "aluminium_bronze_chestplate",
+      "name": "铝青铜胸甲",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_chestplate.json"
+    },
+    {
+      "id": "aluminium_bronze_leggings",
+      "name": "铝青铜护腿",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_leggings.json"
+    },
+    {
+      "id": "aluminium_bronze_boots",
+      "name": "铝青铜靴",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_boots.json"
+    },
+    {
+      "id": "aluminium_bronze_sword",
+      "name": "铝青铜剑",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_sword.json"
+    },
+    {
+      "id": "aluminium_bronze_axe",
+      "name": "铝青铜斧",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/aluminium_bronze_axe.json"
+    },
+    {
+      "id": "tempered_steel_helmet",
+      "name": "调质钢头盔",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_helmet.json"
+    },
+    {
+      "id": "tempered_steel_chestplate",
+      "name": "调质钢胸甲",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_chestplate.json"
+    },
+    {
+      "id": "tempered_steel_leggings",
+      "name": "调质钢护腿",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_leggings.json"
+    },
+    {
+      "id": "tempered_steel_boots",
+      "name": "调质钢靴",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_boots.json"
+    },
+    {
+      "id": "tempered_steel_sword",
+      "name": "调质钢剑",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_sword.json"
+    },
+    {
+      "id": "tempered_steel_axe",
+      "name": "调质钢斧",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_steel_axe.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_helmet",
+      "name": "高碳调质钢头盔",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_helmet.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_chestplate",
+      "name": "高碳调质钢胸甲",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_chestplate.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_leggings",
+      "name": "高碳调质钢护腿",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_leggings.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_boots",
+      "name": "高碳调质钢靴子",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_boots.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_sword",
+      "name": "高碳调质钢剑",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_sword.json"
+    },
+    {
+      "id": "tempered_high_carbon_steel_axe",
+      "name": "高碳调质钢斧",
+      "category": "合金装备",
+      "status": "已接入游戏",
+      "description": "活动合金装备图标，沿用对应原版装备模型。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tempered_high_carbon_steel_axe.json"
+    },
+    {
+      "id": "quartz_dust",
+      "name": "石英粉",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "下界石英粉碎得到的硅工业基础材料。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/quartz_dust.json"
+    },
+    {
+      "id": "silicon",
+      "name": "硅",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "由石英粉制成的基础半导体材料。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/silicon.json"
+    },
+    {
+      "id": "high_purity_silicon",
+      "name": "高纯硅",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "进入电路板加工的高纯半导体材料。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/high_purity_silicon.json"
+    },
+    {
+      "id": "pcb",
+      "name": "印刷电路板",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "电子元件装配使用的绿色电路基板。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/pcb.json"
+    },
+    {
+      "id": "integrated_circuit",
+      "name": "集成电路",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "封装了精细导线的集成芯片。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/integrated_circuit.json"
+    },
+    {
+      "id": "cpu",
+      "name": "CPU",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "工业服务器的处理器芯片。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/cpu.json"
+    },
+    {
+      "id": "ram",
+      "name": "RAM",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "工业服务器使用的内存条。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/ram.json"
+    },
+    {
+      "id": "gpu",
+      "name": "GPU",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "工业 AI 核心使用的图形处理芯片。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/gpu.json"
+    },
+    {
+      "id": "industrial_ssd",
+      "name": "工业固态硬盘",
+      "category": "电子材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "工业服务器使用的固态存储模块。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/industrial_ssd.json"
+    },
+    {
+      "id": "industrial_ai_core",
+      "name": "工业 AI 核心",
+      "category": "工业网络",
+      "status": "资源已补齐，待集成验收",
+      "description": "插入工业控制服务器的计算核心。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/industrial_ai_core.json"
+    },
+    {
+      "id": "non_metal_processor",
+      "name": "非金属处理机",
+      "category": "工业机器",
+      "status": "资源已补齐，待集成验收",
+      "description": "前置粉料入口与下方输出托盘的非金属处理设备。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/non_metal_processor.json"
+    },
+    {
+      "id": "electronic_fabricator",
+      "name": "电子材料加工机",
+      "category": "工业机器",
+      "status": "资源已补齐，待集成验收",
+      "description": "具有独立芯片观察窗和电路指示的精密加工设备。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/electronic_fabricator.json"
+    },
+    {
+      "id": "machine_network_adapter",
+      "name": "机器网络适配器",
+      "category": "工业网络",
+      "status": "资源已补齐，待集成验收",
+      "description": "带无线信号指示的机器数据网络接口。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/machine_network_adapter.json"
+    },
+    {
+      "id": "industrial_fiber",
+      "name": "工业光纤",
+      "category": "工业网络",
+      "status": "资源已补齐，待集成验收",
+      "description": "带端部接头的透明紫色数据光纤。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/industrial_fiber.json"
+    },
+    {
+      "id": "industrial_network_switch",
+      "name": "工业网络交换机",
+      "category": "工业网络",
+      "status": "资源已补齐，待集成验收",
+      "description": "多端口链路灯展示的数据交换设备。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/industrial_network_switch.json"
+    },
+    {
+      "id": "industrial_control_server",
+      "name": "工业控制服务器",
+      "category": "工业网络",
+      "status": "资源已补齐，待集成验收",
+      "description": "具有多层状态灯和存储托架的控制服务器。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/industrial_control_server.json"
+    },
+    {
+      "id": "stainless_steel_ingot",
+      "name": "不锈钢锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/stainless_steel_ingot.json"
+    },
+    {
+      "id": "invar_ingot",
+      "name": "因瓦合金锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/invar_ingot.json"
+    },
+    {
+      "id": "nichrome_ingot",
+      "name": "镍铬合金锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/nichrome_ingot.json"
+    },
+    {
+      "id": "tool_steel_ingot",
+      "name": "工具钢锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tool_steel_ingot.json"
+    },
+    {
+      "id": "titanium_alloy_ingot",
+      "name": "钛合金锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/titanium_alloy_ingot.json"
+    },
+    {
+      "id": "tungsten_carbide_ingot",
+      "name": "碳化钨锭",
+      "category": "合金材料",
+      "status": "资源已补齐，待集成验收",
+      "description": "ProcessGraph 所列合金路线的金属锭图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tungsten_carbide_ingot.json"
+    },
+    {
+      "id": "nickel_ore",
+      "name": "镍矿石",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/nickel_ore.json"
+    },
+    {
+      "id": "nickel_dust",
+      "name": "镍粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/nickel_dust.json"
+    },
+    {
+      "id": "nickel_ingot",
+      "name": "镍锭",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/nickel_ingot.json"
+    },
+    {
+      "id": "impure_nickel_dust",
+      "name": "含杂质的镍粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/impure_nickel_dust.json"
+    },
+    {
+      "id": "chromium_ore",
+      "name": "铬矿石",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/chromium_ore.json"
+    },
+    {
+      "id": "chromium_dust",
+      "name": "铬粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/chromium_dust.json"
+    },
+    {
+      "id": "chromium_ingot",
+      "name": "铬锭",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/chromium_ingot.json"
+    },
+    {
+      "id": "impure_chromium_dust",
+      "name": "含杂质的铬粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/impure_chromium_dust.json"
+    },
+    {
+      "id": "titanium_ore",
+      "name": "钛矿石",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/titanium_ore.json"
+    },
+    {
+      "id": "titanium_dust",
+      "name": "钛粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/titanium_dust.json"
+    },
+    {
+      "id": "titanium_ingot",
+      "name": "钛锭",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/titanium_ingot.json"
+    },
+    {
+      "id": "impure_titanium_dust",
+      "name": "含杂质的钛粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/impure_titanium_dust.json"
+    },
+    {
+      "id": "tungsten_ore",
+      "name": "钨矿石",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tungsten_ore.json"
+    },
+    {
+      "id": "tungsten_dust",
+      "name": "钨粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tungsten_dust.json"
+    },
+    {
+      "id": "tungsten_ingot",
+      "name": "钨锭",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/tungsten_ingot.json"
+    },
+    {
+      "id": "impure_tungsten_dust",
+      "name": "含杂质的钨粉",
+      "category": "核心矿物加工",
+      "status": "源码已接入，实机待验收",
+      "description": "原创16像素矿物材质；受控阶段读取ProcessGraph。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/impure_tungsten_dust.json"
+    },
+    {
+      "id": "terminal",
+      "name": "终端机",
+      "category": "工业网络",
+      "status": "源码接入待实机验收",
+      "description": "单方块赛博机箱；正面屏幕与物料端口、背面光纤和 Wi-Fi 天线、顶部检修盖及独立底部接口。原创程序绘制资源。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/terminal.json"
+    }
+  ]
+}

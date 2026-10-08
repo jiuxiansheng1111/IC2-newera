@@ -1,0 +1,195 @@
+<div id="ic2ne-model-gallery">
+  <div class="viz-controls">
+    <label class="form-label">模型<select class="form-select" id="ic2ne-model-choice" aria-label="选择模型"></select></label>
+  </div>
+  <canvas id="ic2ne-model-canvas" role="img" aria-label="立体模型，拖动可旋转">Minecraft 模型预览</canvas>
+  <div class="viz-controls">
+    <label class="form-label">水平旋转 <span id="ic2ne-yaw-value" class="tabular-nums">225°</span><input id="ic2ne-yaw" class="form-range" type="range" min="0" max="360" value="225" aria-label="水平旋转角度"></label>
+    <label class="form-label">俯仰 <span id="ic2ne-pitch-value" class="tabular-nums">25°</span><input id="ic2ne-pitch" class="form-range" type="range" min="-70" max="70" value="25" aria-label="俯仰角度"></label>
+  </div>
+  <div id="ic2ne-model-detail" class="text-small" aria-live="polite"></div>
+  <style>
+    #ic2ne-model-gallery canvas { display:block; width:100%; height:340px; touch-action:none; }
+    #ic2ne-model-gallery { color:var(--foreground); }
+    @media(max-width:440px) { #ic2ne-model-gallery canvas { height:280px; } }
+  </style>
+  <script type="application/json" id="ic2ne-model-data">MODEL_CATALOG_JSON</script>
+  <script>
+  (() => {
+    const root = document.getElementById('ic2ne-model-gallery');
+    const data = JSON.parse(root.querySelector('#ic2ne-model-data').textContent);
+    const canvas = root.querySelector('#ic2ne-model-canvas');
+    const ctx = canvas.getContext('2d');
+    const choice = root.querySelector('#ic2ne-model-choice');
+    const yawInput = root.querySelector('#ic2ne-yaw');
+    const pitchInput = root.querySelector('#ic2ne-pitch');
+    const detail = root.querySelector('#ic2ne-model-detail');
+    const textures = new Map(), shaded = new Map(), spriteGeometry = new Map();
+    let selected = 0, yaw = 225, pitch = 25, pointer = null;
+    const groups = new Map();
+    data.models.forEach((entry, i) => {
+      if (!groups.has(entry.category)) {
+        const group = document.createElement('optgroup');
+        group.label = entry.category; choice.appendChild(group); groups.set(entry.category, group);
+      }
+      const option = document.createElement('option'); option.value = String(i); option.textContent = entry.name;
+      groups.get(entry.category).appendChild(option);
+    });
+    const deg = n => n * Math.PI / 180;
+    function rotateVertex(v, rotation) {
+      if (!rotation) return v;
+      const o = rotation.origin || [8,8,8], axis = rotation.axis, a = deg(rotation.angle || 0);
+      let [x,y,z] = v.map((n,i) => n-o[i]); const c=Math.cos(a), s=Math.sin(a);
+      if(rotation.rescale) {
+        const f=1/Math.cos(a);
+        if(axis==='x'){y*=f;z*=f;} else if(axis==='y'){x*=f;z*=f;} else {x*=f;y*=f;}
+      }
+      let out;
+      if(axis==='x') out=[x,y*c-z*s,y*s+z*c];
+      else if(axis==='y') out=[x*c+z*s,y,-x*s+z*c];
+      else out=[x*c-y*s,x*s+y*c,z];
+      return out.map((n,i)=>n+o[i]);
+    }
+    function camera(v) {
+      const a=deg(yaw), b=deg(pitch), x=v[0]-8,y=v[1]-8,z=v[2]-8;
+      const cx=x*Math.cos(a)+z*Math.sin(a), cz=-x*Math.sin(a)+z*Math.cos(a);
+      return [cx,y*Math.cos(b)-cz*Math.sin(b),y*Math.sin(b)+cz*Math.cos(b)];
+    }
+    function faceVertices(box, side) {
+      const [x0,y0,z0]=box.from, [x1,y1,z1]=box.to;
+      switch(side) {
+        case 'north':return [[x1,y1,z0],[x0,y1,z0],[x0,y0,z0],[x1,y0,z0]];
+        case 'south':return [[x0,y1,z1],[x1,y1,z1],[x1,y0,z1],[x0,y0,z1]];
+        case 'east':return [[x1,y1,z1],[x1,y1,z0],[x1,y0,z0],[x1,y0,z1]];
+        case 'west':return [[x0,y1,z0],[x0,y1,z1],[x0,y0,z1],[x0,y0,z0]];
+        case 'up':return [[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]];
+        case 'down':return [[x0,y0,z1],[x1,y0,z1],[x1,y0,z0],[x0,y0,z0]];
+        default:return [];
+      }
+    }
+    function defaultUv(box, side) {
+      const [x0,y0,z0]=box.from, [x1,y1,z1]=box.to;
+      switch(side){
+        case 'north':return [16-x1,16-y1,16-x0,16-y0];
+        case 'south':return [x0,16-y1,x1,16-y0];
+        case 'east':return [16-z1,16-y1,16-z0,16-y0];
+        case 'west':return [z0,16-y1,z1,16-y0];
+        case 'up':return [x0,z0,x1,z1];
+        default:return [x0,16-z1,x1,16-z0];
+      }
+    }
+    function textureId(ref, model) {
+      for(let i=0;i<32 && ref?.startsWith('#');i++) ref=model.textures[ref.slice(1)];
+      return ref;
+    }
+    function imageFor(ref, intensity) {
+      const key=ref+':'+intensity;
+      if(shaded.has(key))return shaded.get(key);
+      const source=textures.get(ref); if(!source)return null;
+      const c=document.createElement('canvas');c.width=source.width;c.height=source.height;
+      const g=c.getContext('2d');g.drawImage(source,0,0);
+      const pixels=g.getImageData(0,0,c.width,c.height);
+      for(let i=0;i<pixels.data.length;i+=4)for(let ch=0;ch<3;ch++)pixels.data[i+ch]*=intensity;
+      g.putImageData(pixels,0,0);shaded.set(key,c);return c;
+    }
+    function elementsFor(model) {
+      if(model.elements?.length) return model.elements;
+      const id=textureId('#layer0',model), img=textures.get(id);
+      if(!img)return [];
+      if(spriteGeometry.has(id))return spriteGeometry.get(id);
+      const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+      const g=c.getContext('2d');g.drawImage(img,0,0);
+      const pixels=g.getImageData(0,0,c.width,c.height).data;
+      const visible=(x,y)=>x>=0&&y>=0&&x<c.width&&y<c.height&&pixels[(y*c.width+x)*4+3]>0;
+      const geometry=[{from:[0,0,7.5],to:[16,16,8.5],shade:false,faces:{
+        north:{texture:'#layer0',uv:[0,0,16,16]},south:{texture:'#layer0',uv:[0,0,16,16]}}}];
+      for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++) {
+        if(!visible(x,y))continue;
+        const faces={},uv=[x*16/c.width,y*16/c.height,(x+1)*16/c.width,(y+1)*16/c.height];
+        for(const [side,dx,dy] of [['west',-1,0],['east',1,0],['up',0,-1],['down',0,1]])
+          if(!visible(x+dx,y+dy))faces[side]={texture:'#layer0',uv};
+        if(Object.keys(faces).length)geometry.push({from:[x*16/c.width,16-(y+1)*16/c.height,7.5],
+          to:[(x+1)*16/c.width,16-y*16/c.height,8.5],shade:false,faces});
+      }
+      spriteGeometry.set(id,geometry);return geometry;
+    }
+    function drawTexture(image, uv, points, rotation) {
+      const p=points.slice(), turns=((rotation||0)/90)%4;
+      for(let i=0;i<turns;i++)p.push(p.shift());
+      const sx=uv[0]/16*image.width,sy=uv[1]/16*image.height;
+      const sw=(uv[2]-uv[0])/16*image.width,sh=(uv[3]-uv[1])/16*image.height;
+      if(!sw||!sh)return;
+      ctx.save();ctx.beginPath();points.forEach((v,i)=>i?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1]));ctx.closePath();ctx.clip();
+      ctx.transform((p[1][0]-p[0][0])/sw,(p[1][1]-p[0][1])/sw,(p[3][0]-p[0][0])/sh,(p[3][1]-p[0][1])/sh,p[0][0],p[0][1]);
+      ctx.drawImage(image,sx,sy,sw,sh,0,0,sw,sh);ctx.restore();
+    }
+    function render() {
+      const bounds=canvas.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,2);
+      canvas.width=Math.max(1,Math.round(bounds.width*dpr));canvas.height=Math.round(bounds.height*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,bounds.width,bounds.height);ctx.imageSmoothingEnabled=false;
+      const entry=data.models[selected];if(!entry)return;
+      const model=entry.model, faces=[], vertices=[];
+      for(const box of elementsFor(model)) {
+        for(const [side,face] of Object.entries(box.faces || {})) {
+          const world=faceVertices(box,side).map(v=>rotateVertex(v,box.rotation));
+          const points=world.map(camera);vertices.push(...points);
+          const u=points[1].map((n,i)=>n-points[0][i]),v=points[2].map((n,i)=>n-points[1][i]);
+          const normalZ=u[0]*v[1]-u[1]*v[0];
+          if(normalZ>=0)continue;
+          const intensity=box.shade===false?1:({up:1,down:.5,north:.82,south:.82,east:.7,west:.7}[side]||1);
+          faces.push({points,face,uv:face.uv||defaultUv(box,side),depth:points.reduce((n,v)=>n+v[2],0)/4,intensity});
+        }
+      }
+      if(!vertices.length)return;
+      const xs=vertices.map(v=>v[0]),ys=vertices.map(v=>v[1]);
+      const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+      const scale=Math.min((bounds.width-56)/Math.max(maxX-minX,1),(bounds.height-42)/Math.max(maxY-minY,1));
+      const ox=bounds.width/2-(maxX+minX)*scale/2,oy=bounds.height/2+(maxY+minY)*scale/2;
+      faces.sort((a,b)=>a.depth-b.depth);
+      for(const f of faces) {
+        const image=imageFor(textureId(f.face.texture,model),f.intensity); if(!image)continue;
+        const points=f.points.map(v=>[ox+v[0]*scale,oy-v[1]*scale]);drawTexture(image,f.uv,points,f.face.rotation);
+      }
+    }
+    function syncControls() {
+      choice.value=String(selected);yawInput.value=String(yaw);pitchInput.value=String(pitch);
+      root.querySelector('#ic2ne-yaw-value').textContent=Math.round(yaw)+'°';
+      root.querySelector('#ic2ne-pitch-value').textContent=Math.round(pitch)+'°';
+      const entry=data.models[selected];
+      detail.textContent=entry ? entry.name+' · '+entry.status+' · '+entry.description : '暂无模型';
+      canvas.setAttribute('aria-label',(entry?.name||'')+'立体模型，拖动或用角度滑块旋转');
+    }
+    function restore(saved) {
+      const state=saved?.privateContent;
+      if(state && typeof state.modelId==='string') {
+        const index=data.models.findIndex(m=>m.id===state.modelId);if(index>=0)selected=index;
+        if(Number.isFinite(state.yaw))yaw=((state.yaw%360)+360)%360;
+        if(Number.isFinite(state.pitch))pitch=Math.max(-70,Math.min(70,state.pitch));
+      }
+      syncControls();render();
+    }
+    function save() {
+      const entry=data.models[selected];
+      window.openai?.setWidgetState?.({modelContent:{selectedModel:entry.id,status:entry.status},privateContent:{modelId:entry.id,yaw,pitch}})?.catch(()=>{});
+    }
+    choice.addEventListener('change',()=>{selected=Number(choice.value);
+      const cuboid=Boolean(data.models[selected].model.elements?.length);yaw=cuboid?225:0;pitch=cuboid?25:0;
+      syncControls();render();save();});
+    yawInput.addEventListener('input',()=>{yaw=Number(yawInput.value);syncControls();render();});
+    pitchInput.addEventListener('input',()=>{pitch=Number(pitchInput.value);syncControls();render();});
+    yawInput.addEventListener('change',save);pitchInput.addEventListener('change',save);
+    canvas.addEventListener('pointerdown',e=>{pointer={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+    canvas.addEventListener('pointermove',e=>{if(!pointer||pointer.id!==e.pointerId)return;
+      yaw=(yaw+(e.clientX-pointer.x)*.65+360)%360;pitch=Math.max(-70,Math.min(70,pitch+(e.clientY-pointer.y)*.4));
+      pointer.x=e.clientX;pointer.y=e.clientY;syncControls();render();});
+    const endPointer=()=>{if(pointer){pointer=null;save();}};
+    canvas.addEventListener('pointerup',endPointer);canvas.addEventListener('pointercancel',endPointer);
+    window.addEventListener('openai:set_globals',e=>{if(e.detail?.globals?.widgetState)restore(e.detail.globals.widgetState);});
+    new ResizeObserver(render).observe(canvas);
+    restore(window.openai?.widgetState);
+    Promise.all(Object.entries(data.textures).map(([id,url])=>new Promise(resolve=>{
+      const img=new Image();img.onload=()=>{textures.set(id,img);resolve();};img.onerror=resolve;img.src=url;
+    }))).then(render);
+  })();
+  </script>
+</div>

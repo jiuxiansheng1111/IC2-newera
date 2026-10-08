@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    { "required": false, "id": "ic2:silver_ore" },
+    { "required": false, "id": "ic2:deepslate_silver_ore" },
+    { "required": false, "id": "ic2:silver_ore_nether" }
+  ]
+}

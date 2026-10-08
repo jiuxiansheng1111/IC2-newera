@@ -1,0 +1,27 @@
+.gradle/
+build/
+run/
+out/
+*.iml
+.idea/
+.vscode/
+
+# Local credentials and client-only model configuration
+.env
+.env.*
+*.secrets
+*.secrets.*
+secrets.properties
+config/ic2newera-client.toml
+run/config/
+
+# Local IDE and machine-specific files
+*.log
+hs_err_pid*
+replay_pid*
+/build-isolated/
+
+# Local reference image: provenance has not been established for redistribution.
+/art/references/reagent-bottle-reference.png
+__pycache__/
+*.pyc

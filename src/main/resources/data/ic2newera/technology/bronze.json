@@ -1,0 +1,22 @@
+{
+  "title": "铜锡青铜",
+  "description": "把铜与锡转化为实用的青铜合金。",
+  "branch": "资源与冶金",
+  "icon": "ic2:ingot_bronze",
+  "prerequisites": [
+    "ic2newera:copper_tin"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "count": 1,
+      "item": "ic2:ingot_bronze"
+    }
+  ],
+  "steps": [
+    "将铜与锡按IC2合金配方制成青铜。",
+    "青铜可用于 IC2 原生青铜工具与装备。"
+  ],
+  "x": 2,
+  "y": 1
+}

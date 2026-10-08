@@ -1,0 +1,26 @@
+{
+  "title": "精炼铁",
+  "description": "通过 IC2 原生加工路线取得精炼铁材料。",
+  "branch": "资源与冶金",
+  "icon": "ic2:ingot_refined_iron",
+  "prerequisites": [
+    "ic2newera:raw_materials"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "count": 1,
+      "item": "ic2:ingot_refined_iron"
+    },
+    {
+      "type": "advancement",
+      "id": "ic2:acquire_refined_iron"
+    }
+  ],
+  "steps": [
+    "按IC2配方加工铁以得到精炼铁。",
+    "精炼铁可作为后续钢合金加工的基础材料；相关配方以 JEI 为准。"
+  ],
+  "x": 1,
+  "y": 2
+}

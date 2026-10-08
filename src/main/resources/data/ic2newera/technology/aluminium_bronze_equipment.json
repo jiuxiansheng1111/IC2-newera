@@ -1,0 +1,27 @@
+{
+  "title": "铝青铜装备",
+  "description": "用铝青铜锭制作耐用装备，并使用铝青铜锭修复。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:aluminium_bronze_sword",
+  "prerequisites": [
+    "ic2newera:aluminium_bronze"
+  ],
+  "objectives": [
+    {
+      "count": 1,
+      "item": "ic2newera:aluminium_bronze_sword",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2newera:aluminium_bronze_chestplate",
+      "type": "item"
+    }
+  ],
+  "steps": [
+    "在常规 3×3 工作台制作铝青铜剑与胸甲。",
+    "铝青铜装备使用铝青铜锭修复。"
+  ],
+  "x": 13,
+  "y": 3
+}

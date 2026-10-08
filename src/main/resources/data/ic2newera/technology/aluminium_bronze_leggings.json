@@ -1,0 +1,22 @@
+{
+  "title": "铝青铜护腿",
+  "description": "完成铝青铜防具组的护腿部件。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:aluminium_bronze_leggings",
+  "prerequisites": [
+    "ic2newera:aluminium_bronze"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:aluminium_bronze_leggings",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "准备合金熔炼取得的铝青铜锭。",
+    "按护腿配方制作并用铝青铜锭维修。"
+  ],
+  "x": 6,
+  "y": 37
+}

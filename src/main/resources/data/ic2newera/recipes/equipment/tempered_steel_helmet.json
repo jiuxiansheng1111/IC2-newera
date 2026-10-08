@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "III",
+    "I I"
+  ],
+  "key": {
+    "I": {
+      "item": "ic2newera:tempered_steel_ingot"
+    }
+  },
+  "result": {
+    "item": "ic2newera:tempered_steel_helmet"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "title": "碳钢钢坯",
+  "description": "使用 IC2 合金熔炼机加工碳钢钢坯，再按 IC2 熔炼配方取得钢材。",
+  "branch": "资源与冶金",
+  "icon": "ic2newera:carbon_steel_billet",
+  "prerequisites": [
+    "ic2newera:refined_iron"
+  ],
+  "objectives": [
+    {
+      "count": 1,
+      "item": "ic2newera:carbon_steel_billet",
+      "type": "item"
+    }
+  ],
+  "steps": [
+    "使用 IC2 Alloy Smelter 制备碳钢钢坯；具体输入配方以 JEI 为准。",
+    "再按 IC2 电炉或熔炼配方将钢坯加工成钢材；本模组不再提供专用热处理设备。"
+  ],
+  "x": 12,
+  "y": 2
+}

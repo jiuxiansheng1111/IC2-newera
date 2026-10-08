@@ -1,0 +1,8 @@
+{
+  "input": { "type": "ic2:item", "item": "create:crushed_raw_copper", "size": 1 },
+  "output": {
+    "type": "ic2:simple",
+    "xp": 0.0,
+    "outputs": [{ "type": "ic2:item", "item": "ic2:dust_copper", "size": 1 }]
+  }
+}

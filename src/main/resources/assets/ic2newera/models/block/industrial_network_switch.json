@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "ic2newera:block/industrial_network_switch_side",
+    "north": "ic2newera:block/industrial_network_switch_front",
+    "south": "ic2newera:block/industrial_network_switch_side",
+    "east": "ic2newera:block/industrial_network_switch_side",
+    "west": "ic2newera:block/industrial_network_switch_side",
+    "up": "ic2newera:block/industrial_network_switch_top",
+    "down": "ic2newera:block/industrial_network_switch_side"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north"
+        },
+        "south": {
+          "texture": "#south"
+        },
+        "east": {
+          "texture": "#east"
+        },
+        "west": {
+          "texture": "#west"
+        },
+        "up": {
+          "texture": "#up"
+        },
+        "down": {
+          "texture": "#down"
+        }
+      }
+    }
+  ]
+}

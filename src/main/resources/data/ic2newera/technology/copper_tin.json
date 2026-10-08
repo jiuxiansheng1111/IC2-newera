@@ -1,0 +1,27 @@
+{
+  "title": "铜与锡冶炼",
+  "description": "取得铜锭和锡锭，准备制作铜锡合金。",
+  "branch": "资源与冶金",
+  "icon": "minecraft:copper_ingot",
+  "prerequisites": [
+    "ic2newera:raw_materials"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "count": 1,
+      "item": "minecraft:copper_ingot"
+    },
+    {
+      "type": "item",
+      "count": 1,
+      "item": "ic2:ingot_tin"
+    }
+  ],
+  "steps": [
+    "采集铜矿与锡矿，分别熔炼成锭。",
+    "铜与锡可用于 IC2 青铜合金；具体配方以 JEI 为准。"
+  ],
+  "x": 1,
+  "y": 1
+}

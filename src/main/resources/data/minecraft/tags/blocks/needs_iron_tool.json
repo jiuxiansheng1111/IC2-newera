@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ore",
+    "ic2newera:chromium_ore",
+    "ic2newera:titanium_ore",
+    "ic2newera:tungsten_ore"
+  ]
+}

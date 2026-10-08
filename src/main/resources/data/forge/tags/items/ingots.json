@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ingot",
+    "ic2newera:chromium_ingot",
+    "ic2newera:titanium_ingot",
+    "ic2newera:tungsten_ingot",
+    "ic2newera:stainless_steel_ingot",
+    "ic2newera:invar_ingot",
+    "ic2newera:nichrome_ingot",
+    "ic2newera:tool_steel_ingot",
+    "ic2newera:titanium_alloy_ingot",
+    "ic2newera:tungsten_carbide_ingot"
+  ]
+}

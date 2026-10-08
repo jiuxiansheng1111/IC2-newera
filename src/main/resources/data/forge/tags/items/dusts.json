@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_dust",
+    "ic2newera:chromium_dust",
+    "ic2newera:titanium_dust",
+    "ic2newera:tungsten_dust",
+    "ic2newera:quartz_dust"
+  ]
+}

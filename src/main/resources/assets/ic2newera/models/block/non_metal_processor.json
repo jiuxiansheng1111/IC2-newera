@@ -1,0 +1,46 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "ic2newera:block/non_metal_processor_side",
+    "north": "ic2newera:block/non_metal_processor_front",
+    "south": "ic2newera:block/non_metal_processor_side",
+    "east": "ic2newera:block/non_metal_processor_side",
+    "west": "ic2newera:block/non_metal_processor_side",
+    "up": "ic2newera:block/non_metal_processor_top",
+    "down": "ic2newera:block/non_metal_processor_side"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north"
+        },
+        "south": {
+          "texture": "#south"
+        },
+        "east": {
+          "texture": "#east"
+        },
+        "west": {
+          "texture": "#west"
+        },
+        "up": {
+          "texture": "#up"
+        },
+        "down": {
+          "texture": "#down"
+        }
+      }
+    }
+  ]
+}

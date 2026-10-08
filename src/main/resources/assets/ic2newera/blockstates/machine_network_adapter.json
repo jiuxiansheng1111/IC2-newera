@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "ic2newera:block/machine_network_adapter"
+    }
+  }
+}
