@@ -14,4 +14,6 @@
 
 ## 当前阶段
 
-项目内容已准备，仓库创建与上传结果需由 GitHub 返回及远端提交核实后补记。此阶段只整理公开交付与导出路径，不修改 Java/运行资源、不重新构建、不运行测试、不启动游戏。最新 JAR 的已有构建安装证据见 server-ai-ui-fix-2026-10-08.md；实机验收仍待测试玩家反馈。
+公开仓库已创建，GitHub返回名称 jiuxiansheng1111/IC2-newera、private=false；连接器复核 visibility=public、默认分支 main。首次完整上传已成功，远端 refs/heads/main 与本地首提交同为 790d6eaf9413c607ec37701f9a32f49b886e0893。该提交包含 479 个公开文件；完整源码 ZIP 内为 477 个文件，另两项是该 ZIP 自身与其哈希文件。随后同步本交付记录并重导出源码 ZIP，最终远端逐项核对结果保存在本机 build-isolated/github-publication-audit.json。
+
+此阶段只整理公开交付与导出路径，不修改 Java/运行资源、不重新构建、不运行测试、不启动游戏。新纪元公开 JAR 与先前已安装修复 JAR 字节/哈希一致；原四核心测试包保持原有 SHA-256。最新 JAR 的已有构建安装证据见 server-ai-ui-fix-2026-10-08.md；实机验收仍待测试玩家反馈。

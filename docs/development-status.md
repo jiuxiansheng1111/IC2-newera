@@ -1,5 +1,13 @@
 # 开发状态
 
+## 2026-10-08 最新交付：完整项目 GitHub 公开仓库
+
+- 用户明确授权按原文件夹名上传，并选择公开仓库；本次授权优先于历史“不上传 GitHub”约定。
+- https://github.com/jiuxiansheng1111/IC2-newera 已创建为 public，main 首次完整推送已成功，远端与本地首提交均为790d6eaf9413c607ec37701f9a32f49b886e0893。
+- 首页完整介绍基于IC2 Classic、Create与ProjectE的附属模组、材料/电子中间体、网络/服务器、终端机及箱子/暗物质配方、AI/多人权限、构建/导入及实机验收状态。
+- dist/IC2-newera.zip保留IC2-newera/顶层目录，包含477项公开项目文件；仓库额外保留该ZIP与哈希，共479项。源码、活动资源、原创美术及脚本、文档、Gradle Wrapper、最新自有JAR和四核心测试包全部保留。玩家配置、运行目录、缓存、日志、备份和未核实来源的旧参考图排除在公开交付外。
+- releases/ic2newera-0.1.0-dev.jar与之前安装的UI修复包SHA-256一致；runtime-mods.json改用此分享路径，Create原始依赖改从固定Gradle缓存解析。未改Java/游戏资源、未构建或运行测试、未启动游戏；实机验收范围不变。详见docs/github-project-delivery-2026-10-08.md。
+
 ## 2026-10-08 最新分享交付：四核心测试整合包
 
 - 按用户上下文，四核心为新纪元、IC2 Classic、Create、ProjectE；同时保留当前Carbon Config、Curios、The One Probe、JEI，共8个顶层模组。版本Minecraft1.19.2 / Forge43.5.0 / Java17。
