@@ -6,6 +6,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.List;
 
@@ -15,6 +17,13 @@ public final class IndustrialNetworkSwitchBlockEntity extends OwnedIndustrialBlo
     private String networkName = "Factory";
     private int connectedSwitches = 1;
     private long lastRefresh = Long.MIN_VALUE;
+    private final ItemStackHandler upgrade = new ItemStackHandler(1) {
+        @Override public boolean isItemValid(int slot, ItemStack stack) {
+            return slot == 0 && stack.is(IndustrialItems.WIFI_AMPLIFIER.get());
+        }
+        @Override public int getSlotLimit(int slot) { return 1; }
+        @Override protected void onContentsChanged(int slot) { markSynced(); }
+    };
 
     public IndustrialNetworkSwitchBlockEntity(BlockPos pos, BlockState state) {
         super(IndustrialBlockEntities.SWITCH.get(), pos, state);
@@ -24,6 +33,16 @@ public final class IndustrialNetworkSwitchBlockEntity extends OwnedIndustrialBlo
     @Override public Component getDisplayName() { return Component.literal("工业网络交换机"); }
     public String getNetworkName() { return networkName; }
     public int getConnectedSwitches() { return connectedSwitches; }
+    public ItemStackHandler getUpgradeHandler() { return upgrade; }
+    public boolean hasAmplifier() { return upgrade.getStackInSlot(0).is(IndustrialItems.WIFI_AMPLIFIER.get()); }
+    public int getWirelessSearchRange() { return hasAmplifier() ? 33 : 16; }
+    public boolean coversWireless(BlockPos endpoint) {
+        if (!hasAmplifier()) return worldPosition.distSqr(endpoint) <= 16 * 16;
+        long dx = (long) endpoint.getX() - worldPosition.getX();
+        long dz = (long) endpoint.getZ() - worldPosition.getZ();
+        long dy = (long) endpoint.getY() - worldPosition.getY();
+        return dx >= -20 && dx <= 19 && dz >= -20 && dz <= 19 && Math.abs(dy) <= 16;
+    }
 
     public boolean setNetworkName(String value) {
         String sanitized = value == null ? "" : value.trim();
@@ -63,6 +82,7 @@ public final class IndustrialNetworkSwitchBlockEntity extends OwnedIndustrialBlo
 
     public List<String> getDisplayLines() {
         return List.of("网络名称：" + networkName, "联网方式：Wi-Fi 与光纤", "光纤连接交换机：" + connectedSwitches,
+                hasAmplifier() ? "Wi-Fi覆盖：水平40×40格，上下各16格" : "Wi-Fi覆盖：16格半径；可安装WiFi增幅器",
                 "适配器会自动加入最近的交换机");
     }
 
@@ -71,6 +91,7 @@ public final class IndustrialNetworkSwitchBlockEntity extends OwnedIndustrialBlo
         super.saveAdditional(tag);
         tag.putString(NETWORK_NAME, networkName);
         tag.putInt("ConnectedSwitches", connectedSwitches);
+        tag.put("WifiUpgrade", upgrade.serializeNBT());
     }
 
     @Override
@@ -79,5 +100,6 @@ public final class IndustrialNetworkSwitchBlockEntity extends OwnedIndustrialBlo
         String savedName = tag.getString(NETWORK_NAME);
         networkName = savedName.isBlank() ? "Factory" : savedName.substring(0, Math.min(32, savedName.length()));
         connectedSwitches = Math.max(1, Math.min(32, tag.getInt("ConnectedSwitches")));
+        if (tag.contains("WifiUpgrade")) upgrade.deserializeNBT(tag.getCompound("WifiUpgrade"));
     }
 }

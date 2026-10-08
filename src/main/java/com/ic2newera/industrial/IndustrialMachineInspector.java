@@ -39,21 +39,33 @@ final class IndustrialMachineInspector {
         List<String> details = new ArrayList<>();
         String issue = "";
         String controlCode = "UNKNOWN";
+        String runState = "UNKNOWN";
         boolean supported = false;
+        if (machine instanceof com.ic2newera.motor.EUMotorBlockEntity motor) {
+            supported = true;
+            details.addAll(motor.getDisplayLines().subList(0, 5));
+        }
 
         try {
             Optional<IC2Integration.MachineSnapshot> optional = IC2Integration.inspect(machine);
             if (optional.isPresent()) {
                 supported = true;
                 IC2Integration.MachineSnapshot snapshot = optional.get();
+                if (snapshot.activityKnown()) runState = snapshot.active() ? "RUNNING" : "IDLE";
+                if (snapshot.active()) controlCode = "NONE";
                 if (snapshot.storedEU() >= 0 && snapshot.capacityEU() >= 0) {
                     details.add("EU储能 " + snapshot.storedEU() + "/" + snapshot.capacityEU());
                 }
                 if (snapshot.progress() >= 0 && snapshot.maxProgress() > 0) {
                     details.add("进度 " + Math.round(snapshot.progress()) + "/" + Math.round(snapshot.maxProgress()));
                 }
-                if (snapshot.progress() >= 0 && snapshot.maxProgress() > 0) {
+                if (snapshot.activityKnown()) {
                     details.add(snapshot.active() ? "IC2活动中" : "IC2未活动");
+                }
+                if (!snapshot.active() && snapshot.storedEU() == 0 && snapshot.capacityEU() > 0
+                        && machine instanceof ic2.api.energy.tile.IEnergySink) {
+                    controlCode = "NO_POWER";
+                    issue = "缺电：EU储能为空";
                 }
             }
         } catch (RuntimeException ignored) {
@@ -63,11 +75,14 @@ final class IndustrialMachineInspector {
         CreateStatus create = inspectCreate(machine);
         if (create != null) {
             supported = true;
+            runState = create.speed() != 0 ? "RUNNING" : "IDLE";
             details.add("Create转速 " + String.format(Locale.ROOT, "%.2f", create.speed()));
             details.add(create.overstressed() ? "Create机械网络过载" : "Create未报告过载");
             if (create.overstressed()) {
                 issue = "机械网络过载";
                 controlCode = "OVERSTRESSED";
+            } else if (create.speed() != 0) {
+                controlCode = "NONE";
             }
         }
 
@@ -76,11 +91,19 @@ final class IndustrialMachineInspector {
             try {
                 controlCode = normalizedCode(controllable.automationProblem());
                 issue = formatProblem(controlCode);
+                runState = controllable.isAutomationPaused() ? "PAUSED" : controlCode.equals("NONE") ? "RUNNING"
+                        : controlCode.equals("UNKNOWN") ? "UNKNOWN" : "IDLE";
             } catch (RuntimeException ignored) {
                 controlCode = "UNKNOWN";
+                runState = "UNKNOWN";
                 issue = "自动控制状态读取失败";
             }
             details.add(controllable.isAutomationPaused() ? "自动处理已暂停" : "自动处理未暂停");
+        }
+        if (machine instanceof com.ic2newera.motor.EUMotorBlockEntity motor) {
+            runState = motor.hasSource() && motor.getSpeed() != 0 ? "EXTERNAL"
+                    : motor.isAutomationPaused() ? "PAUSED"
+                    : motor.getCurrentEuPerTick() > 0 && motor.getSpeed() != 0 ? "RUNNING" : "IDLE";
         }
         if (!supported) {
             var inventory=machine.getCapability(net.minecraftforge.common.capabilities.ForgeCapabilities.ITEM_HANDLER).orElse(null);
@@ -92,7 +115,7 @@ final class IndustrialMachineInspector {
         }
         if (!supported) return null;
         if (details.isEmpty()) details.add("状态未提供");
-        return new MachineReport(pos.immutable(), name, issue, String.join("，", details), controlCode);
+        return new MachineReport(pos.immutable(), name, issue, String.join("，", details), controlCode, runState);
     }
 
     private static CreateStatus inspectCreate(BlockEntity machine) {
@@ -135,7 +158,7 @@ final class IndustrialMachineInspector {
 
     static String formatProblem(String code) {
         return switch (code) {
-            case "NONE" -> "未报告问题";
+            case "NONE" -> "";
             case "WAITING_INPUT" -> "缺少输入原料";
             case "OUTPUT_FULL" -> "输出已满";
             case "NO_POWER" -> "缺电";
@@ -145,18 +168,26 @@ final class IndustrialMachineInspector {
             case "DISABLED" -> "设备已禁用";
             case "MANUAL_OVERRIDE" -> "手动控制";
             case "ERROR" -> "设备报告错误";
-            case "UNKNOWN" -> "状态未知";
+            case "UNKNOWN" -> "设备未提供故障原因";
             default -> "状态未知：" + code;
         };
     }
 
-    record MachineReport(BlockPos pos, String name, String issue, String details, String controlCode) {
+    record MachineReport(BlockPos pos, String name, String issue, String details, String controlCode, String runState) {
         MachineReport {
             pos = pos.immutable();
             name = name == null ? "未知设备" : name;
             issue = issue == null ? "" : issue;
             details = details == null ? "" : details;
             controlCode = controlCode == null ? "UNKNOWN" : controlCode;
+            runState = runState == null || runState.isBlank() ? "UNKNOWN" : runState;
+        }
+        boolean isRunning() { return runState.equals("RUNNING") || runState.equals("EXTERNAL"); }
+        boolean hasProblem() {
+            return switch (controlCode) {
+                case "WAITING_INPUT", "OUTPUT_FULL", "NO_POWER", "LOW_POWER", "OVERSTRESSED", "NO_NETWORK", "ERROR" -> true;
+                default -> false;
+            };
         }
     }
 

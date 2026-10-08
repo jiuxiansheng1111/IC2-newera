@@ -66,6 +66,7 @@ public final class IC2Integration {
                 tier,
                 producedEU,
                 maxOutputEU,
+                activity != null,
                 activity != null && activity.isActivated(),
                 progress == null ? -1.0F : progress.getProgress(),
                 progress == null ? -1.0F : progress.getMaxProgress()
@@ -78,6 +79,7 @@ public final class IC2Integration {
             int tier,
             int producedEU,
             int maxOutputEU,
+            boolean activityKnown,
             boolean active,
             float progress,
             float maxProgress

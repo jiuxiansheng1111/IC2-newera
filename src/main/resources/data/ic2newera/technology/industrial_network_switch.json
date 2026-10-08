@@ -1,0 +1,17 @@
+{
+  "title": "工业网络交换机",
+  "description": "交换机提供工业网络的数据连接；网络不承载 EU、转速或物品。",
+  "branch": "IC2 与 Create 联动",
+  "icon": "ic2newera:industrial_network_switch",
+  "prerequisites": ["ic2newera:raw_materials"],
+  "objectives": [
+    {"type": "item", "item": "ic2newera:industrial_network_switch", "count": 1}
+  ],
+  "steps": [
+    "交换机支持网络名、有线光纤链路与 WiFi；适配器自动连接附近可用的网络。",
+    "光纤只传输工业网络数据，不传 EU、Create 转速、物品或流体。",
+    "交换机状态页显示网络名称与有线交换机数量；具体权限按交换机与工业服务器各自规则处理。"
+  ],
+  "x": 4,
+  "y": 8
+}

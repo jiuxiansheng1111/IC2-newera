@@ -6,6 +6,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.SimpleContainerData;
+import com.ic2newera.motor.EUMotorBlockEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemStackHandler;
@@ -13,22 +16,24 @@ import net.minecraftforge.items.SlotItemHandler;
 
 import java.util.List;
 
-/** Read-only status menu with one server-only AI-core slot. */
+/** Live, server-authorized status/settings menu; core and WiFi-upgrade slots are validated on both sides. */
 public final class IndustrialMenu extends AbstractContainerMenu {
     public static final int KIND_ADAPTER = 0;
     public static final int KIND_SWITCH = 1;
     public static final int KIND_SERVER = 2;
+    public static final int KIND_MOTOR = 3;
     public static final int SCREEN_WIDTH = 300;
     public static final int SCREEN_HEIGHT = 226;
     public static final int CORE_X = 265;
     public static final int CORE_Y = 46;
+    public static final int UPGRADE_Y = 69;
     public static final int INVENTORY_X = 70;
     public static final int INVENTORY_Y = 141;
     public static final int HOTBAR_Y = 199;
     private final Inventory playerInventory;
     private final BlockPos pos;
     private final int kind;
-    private final boolean canManage;
+    private final ContainerData settings;
     private final int playerInventoryStart;
 
     public IndustrialMenu(int id, Inventory inventory, FriendlyByteBuf openingData) {
@@ -40,23 +45,42 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         this.playerInventory = inventory;
         this.pos = pos.immutable();
         this.kind = kind;
-        this.canManage = canManage;
+        if (inventory.player.level.isClientSide) {
+            settings = new SimpleContainerData(5);
+            settings.set(0, canManage ? 1 : 0);
+            settings.set(3, 64);
+            settings.set(4, 1);
+        } else settings = new ContainerData() {
+            @Override public int get(int index) {
+                BlockEntity entity = currentBlockEntity();
+                return switch (index) {
+                    case 0 -> hasManagePermission(inventory.player) ? 1 : 0;
+                    case 1 -> entity instanceof IndustrialControlServerBlockEntity server ? server.getAccessMode() : 0;
+                    case 2 -> ServerControllerAccess.isControllerOwner(inventory.player) ? 1 : 0;
+                    case 3 -> entity instanceof EUMotorBlockEntity motor ? motor.getTargetRpm() : 64;
+                    case 4 -> entity instanceof EUMotorBlockEntity motor && motor.isEnabled() ? 1 : 0;
+                    default -> 0;
+                };
+            }
+            @Override public void set(int index, int value) { }
+            @Override public int getCount() { return 5; }
+        };
+        addDataSlots(settings);
 
         int playerStart = 0;
-        if (kind == KIND_SERVER) {
-            ItemStackHandler handler = inventory.player.level.isClientSide || getServerBlockEntity() == null ? clientFallbackHandler()
-                    : getServerBlockEntity().getAiCoreHandler();
-            addSlot(new SlotItemHandler(handler, 0, CORE_X, CORE_Y) {
+        if (kind == KIND_SERVER || kind == KIND_SWITCH) {
+            BlockEntity device = currentBlockEntity();
+            ItemStackHandler handler = inventory.player.level.isClientSide ? clientFallbackHandler(kind)
+                    : device instanceof IndustrialControlServerBlockEntity server ? server.getAiCoreHandler()
+                    : device instanceof IndustrialNetworkSwitchBlockEntity networkSwitch ? networkSwitch.getUpgradeHandler()
+                    : clientFallbackHandler(kind);
+            addSlot(new SlotItemHandler(handler, 0, CORE_X, kind == KIND_SERVER ? CORE_Y : UPGRADE_Y) {
                 @Override public int getMaxStackSize() { return 1; }
                 @Override public boolean mayPlace(ItemStack stack) {
-                    if (playerInventory.player.level.isClientSide) return canManage && super.mayPlace(stack);
-                    IndustrialControlServerBlockEntity server = getServerBlockEntity();
-                    return server != null && server.canManage(playerInventory.player) && super.mayPlace(stack);
+                    return IndustrialMenu.this.canManage() && super.mayPlace(stack);
                 }
                 @Override public boolean mayPickup(Player player) {
-                    if (player.level.isClientSide) return canManage;
-                    IndustrialControlServerBlockEntity server = getServerBlockEntity();
-                    return server != null && server.canManage(player);
+                    return player.level.isClientSide ? IndustrialMenu.this.canManage() : hasManagePermission(player);
                 }
             });
             playerStart = 1;
@@ -73,10 +97,10 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         }
     }
 
-    private static ItemStackHandler clientFallbackHandler() {
+    private static ItemStackHandler clientFallbackHandler(int kind) {
         return new ItemStackHandler(1) {
             @Override public boolean isItemValid(int slot, ItemStack stack) {
-                return stack.is(IndustrialItems.INDUSTRIAL_AI_CORE.get());
+                return stack.is(kind == KIND_SERVER ? IndustrialItems.INDUSTRIAL_AI_CORE.get() : IndustrialItems.WIFI_AMPLIFIER.get());
             }
             @Override public int getSlotLimit(int slot) { return 1; }
         };
@@ -89,12 +113,12 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         if (!slot.hasItem() || !slot.mayPickup(player)) return ItemStack.EMPTY;
         ItemStack original = slot.getItem();
         ItemStack moving = original.copy();
-        if (kind == KIND_SERVER && index == 0) {
+        if (playerInventoryStart == 1 && index == 0) {
             if (!moveItemStackTo(original, playerInventoryStart, slots.size(), true)) return ItemStack.EMPTY;
-        } else if (kind == KIND_SERVER && index >= playerInventoryStart) {
+        } else if (playerInventoryStart == 1 && index >= playerInventoryStart && getSlot(0).mayPlace(original)) {
             if (!moveItemStackTo(original, 0, 1, false)) return ItemStack.EMPTY;
         } else {
-            int playerStartIndex = kind == KIND_SERVER ? playerInventoryStart : 0;
+            int playerStartIndex = playerInventoryStart;
             if (index < playerStartIndex + 27) {
                 if (!moveItemStackTo(original, playerStartIndex + 27, slots.size(), false)) return ItemStack.EMPTY;
             } else if (!moveItemStackTo(original, playerStartIndex, playerStartIndex + 27, false)) return ItemStack.EMPTY;
@@ -113,7 +137,19 @@ public final class IndustrialMenu extends AbstractContainerMenu {
 
     public BlockPos getBlockPos() { return pos; }
     public int getKind() { return kind; }
-    public boolean canManage() { return canManage; }
+    public boolean canManage() {
+        return playerInventory.player.level.isClientSide ? settings.get(0) != 0 : hasManagePermission(playerInventory.player);
+    }
+    private boolean hasManagePermission(Player player) {
+        BlockEntity device = currentBlockEntity();
+        return device instanceof OwnedIndustrialBlockEntity owned ? owned.canManage(player)
+                : device instanceof EUMotorBlockEntity && ServerControllerAccess.canConfigure(player);
+    }
+    public int getAccessMode() { return settings.get(1); }
+    public boolean isControllerOwner() { return settings.get(2) != 0; }
+    public int getMotorTargetRpm() { return settings.get(3); }
+    public boolean isMotorEnabled() { return settings.get(4) != 0; }
+    public boolean isMotorMenu() { return kind == KIND_MOTOR; }
     public boolean isServerMenu() { return kind == KIND_SERVER; }
 
     public String getNetworkName() {
@@ -139,11 +175,17 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         return server == null ? List.of("生产方案状态同步中") : server.getPlanLines();
     }
 
+    public List<ServerDeviceView> getServerDevices() {
+        IndustrialControlServerBlockEntity server = getServerBlockEntity();
+        return server == null ? List.of() : server.getDevices();
+    }
+
     public List<String> getDisplayLines() {
         BlockEntity entity = currentBlockEntity();
         if (entity instanceof MachineNetworkAdapterBlockEntity adapter) return adapter.getDisplayLines();
         if (entity instanceof IndustrialNetworkSwitchBlockEntity networkSwitch) return networkSwitch.getDisplayLines();
         if (entity instanceof IndustrialControlServerBlockEntity server) return server.getDisplayLines();
+        if (entity instanceof EUMotorBlockEntity motor) return motor.getDisplayLines();
         return List.of("网络设备未同步", "状态未知");
     }
 
@@ -163,8 +205,15 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.RequestPlan(pos, product, count));
     }
 
-    public void commandMachine(BlockPos target, boolean start) {
+    public void commandMachine(java.util.UUID target, boolean start) {
         IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.MachineCommand(pos, target, start));
+    }
+
+    public void setAccessMode(int mode) {
+        IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.SetServerAccessMode(pos, mode));
+    }
+    public void setMotorSettings(int rpm, boolean enabled) {
+        IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.SetMotorSettings(pos, rpm, enabled));
     }
 
     private BlockEntity currentBlockEntity() {

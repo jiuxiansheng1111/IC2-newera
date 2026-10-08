@@ -220,7 +220,7 @@
       "id": "quartz_dust",
       "name": "石英粉",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "下界石英粉碎得到的硅工业基础材料。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/quartz_dust.json"
@@ -229,7 +229,7 @@
       "id": "silicon",
       "name": "硅",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "由石英粉制成的基础半导体材料。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/silicon.json"
@@ -238,7 +238,7 @@
       "id": "high_purity_silicon",
       "name": "高纯硅",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "进入电路板加工的高纯半导体材料。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/high_purity_silicon.json"
@@ -247,7 +247,7 @@
       "id": "pcb",
       "name": "印刷电路板",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "电子元件装配使用的绿色电路基板。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/pcb.json"
@@ -256,7 +256,7 @@
       "id": "integrated_circuit",
       "name": "集成电路",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "封装了精细导线的集成芯片。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/integrated_circuit.json"
@@ -265,7 +265,7 @@
       "id": "cpu",
       "name": "CPU",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "工业服务器的处理器芯片。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/cpu.json"
@@ -274,7 +274,7 @@
       "id": "ram",
       "name": "RAM",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "工业服务器使用的内存条。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/ram.json"
@@ -283,7 +283,7 @@
       "id": "gpu",
       "name": "GPU",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "工业 AI 核心使用的图形处理芯片。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/gpu.json"
@@ -292,7 +292,7 @@
       "id": "industrial_ssd",
       "name": "工业固态硬盘",
       "category": "电子材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "工业服务器使用的固态存储模块。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/industrial_ssd.json"
@@ -301,7 +301,7 @@
       "id": "industrial_ai_core",
       "name": "工业 AI 核心",
       "category": "工业网络",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "插入工业控制服务器的计算核心。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/industrial_ai_core.json"
@@ -310,7 +310,7 @@
       "id": "non_metal_processor",
       "name": "非金属处理机",
       "category": "工业机器",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "前置粉料入口与下方输出托盘的非金属处理设备。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/non_metal_processor.json"
@@ -319,7 +319,7 @@
       "id": "electronic_fabricator",
       "name": "电子材料加工机",
       "category": "工业机器",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "具有独立芯片观察窗和电路指示的精密加工设备。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/electronic_fabricator.json"
@@ -328,7 +328,7 @@
       "id": "machine_network_adapter",
       "name": "机器网络适配器",
       "category": "工业网络",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "带无线信号指示的机器数据网络接口。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/machine_network_adapter.json"
@@ -337,7 +337,7 @@
       "id": "industrial_fiber",
       "name": "工业光纤",
       "category": "工业网络",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "带端部接头的透明紫色数据光纤。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/industrial_fiber.json"
@@ -346,7 +346,7 @@
       "id": "industrial_network_switch",
       "name": "工业网络交换机",
       "category": "工业网络",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "多端口链路灯展示的数据交换设备。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/industrial_network_switch.json"
@@ -355,7 +355,7 @@
       "id": "industrial_control_server",
       "name": "工业控制服务器",
       "category": "工业网络",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "具有多层状态灯和存储托架的控制服务器。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/industrial_control_server.json"
@@ -364,7 +364,7 @@
       "id": "stainless_steel_ingot",
       "name": "不锈钢锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/stainless_steel_ingot.json"
@@ -373,7 +373,7 @@
       "id": "invar_ingot",
       "name": "因瓦合金锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/invar_ingot.json"
@@ -382,7 +382,7 @@
       "id": "nichrome_ingot",
       "name": "镍铬合金锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/nichrome_ingot.json"
@@ -391,7 +391,7 @@
       "id": "tool_steel_ingot",
       "name": "工具钢锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/tool_steel_ingot.json"
@@ -400,7 +400,7 @@
       "id": "titanium_alloy_ingot",
       "name": "钛合金锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/titanium_alloy_ingot.json"
@@ -409,7 +409,7 @@
       "id": "tungsten_carbide_ingot",
       "name": "碳化钨锭",
       "category": "合金材料",
-      "status": "资源已补齐，待集成验收",
+      "status": "源码接入，待实机验收",
       "description": "ProcessGraph 所列合金路线的金属锭图标。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/item/tungsten_carbide_ingot.json"
@@ -566,6 +566,24 @@
       "description": "单方块赛博机箱；正面屏幕与物料端口、背面光纤和 Wi-Fi 天线、顶部检修盖及独立底部接口。原创程序绘制资源。",
       "assetRoot": "src/main/resources/assets",
       "path": "ic2newera/models/block/terminal.json"
+    },
+    {
+      "id": "eu_motor",
+      "name": "EU 电动机",
+      "category": "能源转换设备",
+      "status": "源码接入，待实机验收",
+      "description": "单向将 EU 输出为 Create 转速；安山灰机壳、铜绕组与散热片、青色状态灯，南侧中心留有动态出轴孔，北侧设 EU 电缆接口。原创程序绘制资源。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/block/eu_motor.json"
+    },
+    {
+      "id": "wifi_amplifier",
+      "name": "Wi-Fi 增幅器",
+      "category": "工业网络",
+      "status": "源码接入，待实机验收",
+      "description": "可安装在交换机升级槽中的电路板模块，带铜色天线和青色信号弧；用于表达 Wi-Fi 覆盖增强。原创程序绘制图标。",
+      "assetRoot": "src/main/resources/assets",
+      "path": "ic2newera/models/item/wifi_amplifier.json"
     }
   ]
 }

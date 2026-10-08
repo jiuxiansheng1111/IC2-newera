@@ -30,31 +30,53 @@ final class FactoryAiService {
         if (LAST_REQUEST.containsKey(player) && now >= LAST_REQUEST.get(player) && now - LAST_REQUEST.get(player) < 10)
             return error("查询过于频繁，请稍后再试");
         LAST_REQUEST.put(player, now);
-        IndustrialControlServerBlockEntity server = authorizedServer(player, serverPos);
-        if (server == null) { TICKETS.remove(player); return error("服务器离线、超出8格或没有操作权限"); }
+        IndustrialControlServerBlockEntity server = viewableServer(player, serverPos);
+        if (server == null) { TICKETS.remove(player); return error("服务器离线或超出8格"); }
+        server.refreshServer(level);
         var attachment = IndustrialNetworkTopology.attach(level, serverPos);
         var component = attachment == null ? List.<IndustrialNetworkSwitchBlockEntity>of()
                 : IndustrialNetworkTopology.component(level, attachment.networkSwitch());
         JsonObject data = new JsonObject();
         data.addProperty("dimension", level.dimension().location().toString());
         data.addProperty("game_time", now);
-        data.addProperty("scope", "仅已加载的当前权限网络；库存为每终端最多12种物品摘要，不代表全厂库存");
+        data.addProperty("scope", "仅当前服务器已加载、实际经网卡或光纤接入且已发现的设备；有界发现最多32交换机、256段光纤、128网卡、每次索引256候选、32终端。机器异常优先采样16台；数量不是无限范围全厂总数。未入网或未加载的设备未知；库存摘要不代表全厂库存");
+        data.addProperty("discovery_bounded", true);
         data.addProperty("network", attachment == null ? "未连接" : attachment.networkSwitch().getNetworkName());
         data.addProperty("connection", attachment == null ? "未连接" : attachment.connectionType());
         data.addProperty("control_enabled", server.isControlAvailable());
+        data.addProperty("can_configure", server.canManage(player));
+        JsonObject summary = new JsonObject();
+        summary.addProperty("devices", server.getMachineCount() + server.getTerminalCount());
+        summary.addProperty("machines", server.getMachineCount());
+        summary.addProperty("terminals", server.getTerminalCount());
+        summary.addProperty("running", server.getRunningCount());
+        summary.addProperty("problems", server.getProblemCount());
+        summary.addProperty("unknown", server.getUnknownCount());
+        summary.addProperty("idle", server.getIdleCount());
+        summary.addProperty("paused", server.getPausedCount());
+        data.add("summary", summary);
         JsonArray machines = new JsonArray();
-        for (var adapter : IndustrialNetworkTopology.adaptersFor(level, component)) {
-            adapter.refreshServer(level);
-            for (var report : adapter.getReports()) {
-                if (machines.size() >= 16) break;
+        for (var target : server.runtimeDevices().stream()
+                .sorted(java.util.Comparator.comparing((IndustrialControlServerBlockEntity.DeviceTarget t) -> !t.view().faulty())
+                        .thenComparingInt(t -> t.view().number())).limit(16).toList()) {
+                var report = target.report();
+                var view = target.view();
                 JsonObject value = new JsonObject();
-                value.addProperty("machine", report.name()); value.addProperty("state", report.controlCode());
-                value.addProperty("issue", report.issue()); value.addProperty("position", report.pos().toShortString());
+                value.addProperty("device_number", view.number());
+                value.addProperty("machine", clip(report.name(), 96)); value.addProperty("state", report.controlCode());
+                value.addProperty("issue", clip(report.issue(), 128)); value.addProperty("position", report.pos().toShortString());
+                value.addProperty("connection", view.connection());
+                value.addProperty("run_state", view.runState()); value.addProperty("status", clip(view.statusText(), 160));
+                value.addProperty("faulty", view.faulty()); value.addProperty("paused", view.paused());
+                value.addProperty("controllable", view.controllable());
+                value.addProperty("details", report.details().substring(0, Math.min(320, report.details().length())));
                 machines.add(value);
-            }
-            if (machines.size() >= 16) break;
+                data.add("machines", machines);
+                if (data.toString().length() > 12500) { machines.remove(machines.size() - 1); break; }
         }
         data.add("machines", machines);
+        data.addProperty("machine_sample_limit", 16);
+        data.addProperty("machine_sample_truncated", server.getMachineCount() > machines.size());
         JsonArray terminals = new JsonArray();
         Map<BlockPos, Target> revisions = new LinkedHashMap<>();
         for (var terminal : IndustrialNetworkTopology.endpointsFor(level, component, TerminalBlockEntity.class, 8)) {
@@ -98,8 +120,9 @@ final class FactoryAiService {
         data.addProperty("terminal_sample_limit", 8);
         JsonObject wrapper = new JsonObject();
         UUID id = UUID.randomUUID();
-        wrapper.addProperty("ticket", id.toString()); wrapper.add("data", data);
-        TICKETS.put(player, new Ticket(id, level, serverPos.immutable(), server, now, Map.copyOf(revisions)));
+        wrapper.addProperty("ticket", server.canManage(player) ? id.toString() : ""); wrapper.add("data", data);
+        if (server.canManage(player)) TICKETS.put(player, new Ticket(id, level, serverPos.immutable(), server, now, Map.copyOf(revisions)));
+        else TICKETS.remove(player);
         return wrapper.toString();
     }
     static String apply(ServerPlayer player, BlockPos serverPos, String ticketId, String json) {
@@ -133,8 +156,13 @@ final class FactoryAiService {
         } catch (RuntimeException invalid) { return "终端提案被拒绝：格式或参数无效。"; }
     }
     private static IndustrialControlServerBlockEntity authorizedServer(ServerPlayer player, BlockPos pos) {
-        if (!player.level.hasChunkAt(pos) || player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) > 64) return null;
-        return player.level.getBlockEntity(pos) instanceof IndustrialControlServerBlockEntity server && server.canManage(player) ? server : null;
+        IndustrialControlServerBlockEntity server = viewableServer(player, pos);
+        return server != null && server.canManage(player) ? server : null;
     }
+    private static IndustrialControlServerBlockEntity viewableServer(ServerPlayer player, BlockPos pos) {
+        if (!player.level.hasChunkAt(pos) || player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) > 64) return null;
+        return player.level.getBlockEntity(pos) instanceof IndustrialControlServerBlockEntity server ? server : null;
+    }
+    private static String clip(String value, int limit) { return value.substring(0, Math.min(limit, value.length())); }
     private static String error(String message) { JsonObject result = new JsonObject(); result.addProperty("error", message); return result.toString(); }
 }

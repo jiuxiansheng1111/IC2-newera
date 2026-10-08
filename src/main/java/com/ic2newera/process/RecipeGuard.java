@@ -88,7 +88,7 @@ public final class RecipeGuard {
         boolean protectedCircuit = outputs.stream().anyMatch(stack -> Set.of("ic2:advanced_circuit","ic2:complex_circuit")
                 .contains(String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
         boolean protectedHardware = outputs.stream().anyMatch(stack -> Set.of("ic2newera:industrial_control_server",
-                        "ic2newera:industrial_ai_core", "ic2newera:terminal")
+                        "ic2newera:industrial_ai_core", "ic2newera:terminal", "ic2newera:eu_motor", "ic2newera:wifi_amplifier")
                 .contains(String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
         ProcessGraph.Route approved = ProcessGraph.route(id);
         if (protectedHardware) return approved != null && approved.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS

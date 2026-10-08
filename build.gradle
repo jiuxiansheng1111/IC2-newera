@@ -48,7 +48,7 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("curse.maven:ic2-classic-242942:${ic2_classic_file_id}")
-    runtimeOnly fg.deobf("curse.maven:create-328085:5797604")
+    implementation fg.deobf("curse.maven:create-328085:5797604")
     implementation fg.deobf("curse.maven:carbon-config-898104:${carbon_config_file_id}")
     implementation fg.deobf("curse.maven:curios-309927:${curios_file_id}")
     implementation fg.deobf("curse.maven:the-one-probe-245211:${the_one_probe_file_id}")

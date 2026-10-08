@@ -19,6 +19,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.UUID;
 
 /** Network status display and opt-in, AI-core-gated controller for supported machines. */
 public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlockEntity {
@@ -41,11 +44,17 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
     private String connectionType = "未连接";
     private String networkName = "";
     private boolean serverControlEnabled;
+    private int accessMode = ServerControllerAccess.MODE_OWNER_AND_DELEGATES;
     private int connectedSwitches;
     private int connectedAdapters;
     private List<String> displayLines = List.of("网络：未连接", "未发现已接入设备");
     private List<String> planLines = List.of("尚未生成生产方案");
     private long lastRefresh = Long.MIN_VALUE;
+    private List<ServerDeviceView> devices = List.of();
+    private Map<UUID, DeviceTarget> deviceTargets = new LinkedHashMap<>();
+    private int machineCount, runningCount, problemCount, unknownCount, terminalCount, idleCount, pausedCount;
+    private int nextDeviceNumber = 1;
+    record DeviceTarget(BlockEntity entity, IndustrialMachineInspector.MachineReport report, ServerDeviceView view) { }
 
     public IndustrialControlServerBlockEntity(BlockPos pos, BlockState state) {
         super(IndustrialBlockEntities.SERVER.get(), pos, state);
@@ -60,6 +69,27 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
     public BlockPos getConnectedSwitchPos() { return connectedSwitchPos; }
     public List<String> getDisplayLines() { return displayLines; }
     public List<String> getPlanLines() { return planLines; }
+    public List<ServerDeviceView> getDevices() { return devices; }
+    List<DeviceTarget> runtimeDevices() { return List.copyOf(deviceTargets.values()); }
+    public int getMachineCount() { return machineCount; }
+    public int getRunningCount() { return runningCount; }
+    public int getProblemCount() { return problemCount; }
+    public int getUnknownCount() { return unknownCount; }
+    public int getTerminalCount() { return terminalCount; }
+    public int getIdleCount() { return idleCount; }
+    public int getPausedCount() { return pausedCount; }
+
+    @Override public boolean canManage(Player player) {
+        return ServerControllerAccess.canConfigure(player, accessMode);
+    }
+    public int getAccessMode() { return accessMode; }
+    public boolean setAccessMode(Player player, int mode) {
+        if (!(level instanceof ServerLevel) || !ServerControllerAccess.isControllerOwner(player)
+                || mode < 0 || mode > 2) return false;
+        accessMode = mode;
+        markSynced();
+        return true;
+    }
 
     public boolean requestPlan(Player player, String productText, int count) {
         if (!(level instanceof ServerLevel server) || !canManage(player)) return false;
@@ -76,12 +106,12 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
             var attachment=IndustrialNetworkTopology.attach(server,worldPosition);
             var component=attachment==null?List.<IndustrialNetworkSwitchBlockEntity>of():IndustrialNetworkTopology.component(server,attachment.networkSwitch());
             Set<net.minecraft.resources.ResourceLocation> observed=new HashSet<>();
-            for (var adapter:IndustrialNetworkTopology.adaptersFor(server,component)) for (var report:adapter.getReports())
-                observed.add(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(server.getBlockState(report.pos()).getBlock()));
+            for (var machine : IndustrialNetworkTopology.machinesFor(server, component))
+                observed.add(net.minecraftforge.registries.ForgeRegistries.BLOCKS.getKey(server.getBlockState(machine.report().pos()).getBlock()));
             plan.machines().stream().sorted().limit(8).forEach(machine -> lines.add((observed.contains(machine)?"网络已识别设备 ":"网络未识别设备 ")+machine));
             plan.steps().stream().limit(8).forEach(step -> lines.add("流程 " + step.route().id() + " × " + step.batches() + " 批"));
             lines.addAll(plan.notes());
-            lines.add("未识别不等于世界没有；仅盘点本网络适配器。未接入全厂库存，材料需现场核对。");
+            lines.add("未识别不等于世界没有；仅盘点本网络网卡和光纤直连设备。未接入全厂库存，材料需现场核对。");
             planLines = List.copyOf(lines.subList(0, Math.min(40, lines.size())));
         } catch (RuntimeException exception) {
             planLines = List.of("无法生成方案：" + safeError(exception.getMessage()));
@@ -90,23 +120,23 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         return true;
     }
 
-    public boolean commandMachine(Player player, BlockPos targetPos, boolean start) {
+    public boolean commandMachine(Player player, UUID targetId, boolean start) {
         if (!(level instanceof ServerLevel server) || !canManage(player) || !isControlAvailable()
-                || !server.hasChunkAt(targetPos) || player.distanceToSqr(worldPosition.getX() + 0.5,
-                worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5) > 64.0
-                || player.distanceToSqr(targetPos.getX() + 0.5, targetPos.getY() + 0.5,
-                targetPos.getZ() + 0.5) > 64.0) return false;
+                || player.distanceToSqr(worldPosition.getX() + 0.5,
+                worldPosition.getY() + 0.5, worldPosition.getZ() + 0.5) > 64.0) return false;
+        DeviceTarget target = deviceTargets.get(targetId);
+        if (target == null || target.entity().isRemoved()) return false;
+        BlockPos targetPos = target.entity().getBlockPos();
+        if (!server.hasChunkAt(targetPos) || server.getBlockEntity(targetPos) != target.entity()) return false;
         IndustrialNetworkTopology.Attachment attachment = IndustrialNetworkTopology.attach(server, worldPosition);
         if (attachment == null) return false;
         List<IndustrialNetworkSwitchBlockEntity> component = IndustrialNetworkTopology.component(server, attachment.networkSwitch());
-        List<MachineNetworkAdapterBlockEntity> adapters = IndustrialNetworkTopology.adaptersFor(server, component);
-        boolean recognized = adapters.stream().flatMap(adapter -> adapter.getReports().stream())
-                .anyMatch(report -> report.pos().equals(targetPos));
-        if (!recognized || !IndustrialNetworkTopology.isConnectedMachine(server, targetPos, adapters)) return false;
-        BlockEntity entity = server.getBlockEntity(targetPos);
-        if (!(entity instanceof ControllableMachine machine)) return false;
+        boolean stillConnected = IndustrialNetworkTopology.machinesFor(server, component).stream()
+                .anyMatch(connected -> connected.entity() == target.entity());
+        if (!stillConnected || !(target.entity() instanceof ControllableMachine machine)) return false;
         machine.setAutomationPaused(!start);
         autoPausedMachines.remove(targetPos);
+        refreshServer(server);
         markSynced();
         return true;
     }
@@ -146,10 +176,14 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         if (!(level instanceof ServerLevel server) || Math.floorMod(server.getGameTime(), 20) != 0
                 || server.getGameTime() == lastRefresh) return;
         lastRefresh = server.getGameTime();
-        refreshServer(server);
+        refreshServer(server, true);
     }
 
-    private void refreshServer(ServerLevel level) {
+    void refreshServer(ServerLevel level) {
+        refreshServer(level, false);
+    }
+
+    private void refreshServer(ServerLevel level, boolean runAutomation) {
         IndustrialNetworkTopology.Attachment attachment = IndustrialNetworkTopology.attach(level, worldPosition);
         connectedSwitchPos = attachment == null ? null : attachment.networkSwitch().getBlockPos().immutable();
         connectionType = attachment == null ? "未连接" : attachment.connectionType();
@@ -161,36 +195,54 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         connectedSwitches = Math.min(32, component.size());
         connectedAdapters = Math.min(128, adapters.size());
 
-        List<String> nextLines = new ArrayList<>();
-        nextLines.add("网络：" + (networkName.isBlank() ? "未连接" : networkName));
-        nextLines.add("连接：" + connectionType + "；交换机 " + connectedSwitches + " 台");
-        nextLines.add("在线适配器：" + connectedAdapters + " 台");
-        nextLines.add("AI核心：" + (hasAiCore() ? "已安装" : "未安装"));
-        nextLines.add("自动控制：" + (isControlAvailable() ? "已启用" : "已关闭"));
-        var terminals = IndustrialNetworkTopology.endpointsFor(level, component, TerminalBlockEntity.class, 32);
-        nextLines.add("在线终端机：" + terminals.size() + " 台；AI助手自动使用打开界面的玩家本机设置");
-        for (String line : planLines.stream().limit(4).toList()) nextLines.add(line);
-
+        var connectedMachines = IndustrialNetworkTopology.machinesFor(level, component);
+        terminalCount = IndustrialNetworkTopology.endpointsFor(level, component, TerminalBlockEntity.class, 32).size();
         Set<BlockPos> currentControlTargets = new HashSet<>();
-        int issueCount = 0;
-        for (MachineNetworkAdapterBlockEntity adapter : adapters) {
-            adapter.refreshServer(level);
-            for (IndustrialMachineInspector.MachineReport report : adapter.getReports()) {
-                currentControlTargets.add(report.pos());
-                if (!report.controlCode().equals("NONE") && !report.issue().isBlank() && issueCount < 6) {
-                    nextLines.add(report.name() + "：" + report.issue());
-                    issueCount++;
-                }
-            }
+        connectedMachines.forEach(machine -> currentControlTargets.add(machine.entity().getBlockPos()));
+        if (runAutomation) runController(level, currentControlTargets);
+        Map<BlockPos, DeviceTarget> oldTargets = new LinkedHashMap<>();
+        deviceTargets.values().forEach(target -> oldTargets.put(target.entity().getBlockPos(), target));
+        Map<UUID, DeviceTarget> nextTargets = new LinkedHashMap<>();
+        List<ServerDeviceView> nextDevices = new ArrayList<>();
+        runningCount = problemCount = unknownCount = idleCount = pausedCount = 0;
+        int controllableCount = 0;
+        for (var connected : connectedMachines) {
+            var report = connected.report();
+            BlockEntity machine = connected.entity();
+            if (runAutomation && machine instanceof ControllableMachine)
+                report = IndustrialMachineInspector.inspect(level, machine.getBlockPos(), machine);
+            if (report == null) continue;
+            DeviceTarget old = oldTargets.get(machine.getBlockPos());
+            UUID id = old != null && old.entity() == machine ? old.view().id() : UUID.randomUUID();
+            boolean supported = machine instanceof ControllableMachine;
+            boolean paused = supported && ((ControllableMachine) machine).isAutomationPaused();
+            String state = paused ? "PAUSED" : report.runState();
+            int number = old != null && old.entity() == machine ? old.view().number() : nextDeviceNumber++;
+            ServerDeviceView view = new ServerDeviceView(id, number, machine.getBlockState().getBlock().getDescriptionId(),
+                    connected.connection(), state, report.issue(), report.hasProblem(), supported, paused);
+            nextTargets.put(id, new DeviceTarget(machine, report, view));
+            nextDevices.add(view);
+            if (!paused && report.isRunning()) runningCount++;
+            if (state.equals("IDLE")) idleCount++;
+            if (paused) pausedCount++;
+            if (report.hasProblem()) problemCount++;
+            if (report.runState().equals("UNKNOWN")) unknownCount++;
+            if (supported) controllableCount++;
         }
-        if (connectedAdapters == 0) nextLines.add("当前网络没有已识别的机器适配器");
-        else if (issueCount == 0) nextLines.add("已识别设备未报告已知问题");
-        if (nextLines.size() > 11) nextLines = new ArrayList<>(nextLines.subList(0, 11));
+        machineCount = nextDevices.size();
+        List<String> nextLines = List.of("网络：" + (networkName.isBlank() ? "未连接" : networkName),
+                "设备总数（已发现）：" + (machineCount + terminalCount) + " 台",
+                "机器：" + machineCount + " 台；终端机：" + terminalCount + " 台",
+                "运行：" + runningCount + " 台；异常：" + problemCount + " 台",
+                "可控制：" + controllableCount + " 台；状态未知：" + unknownCount + " 台",
+                "网络控制：" + (!hasAiCore() ? "未安装AI核心" : isControlAvailable() ? "已启用" : "已关闭"));
 
         boolean changed = !same(connectedSwitchPos, lastSyncedSwitchPos)
                 || !networkName.equals(lastSyncedNetworkName) || !connectionType.equals(lastSyncedConnectionType)
                 || connectedSwitches != lastSyncedSwitches || connectedAdapters != lastSyncedAdapters
-                || !nextLines.equals(displayLines);
+                || !nextLines.equals(displayLines) || !nextDevices.equals(devices);
+        deviceTargets = nextTargets;
+        devices = List.copyOf(nextDevices);
         if (changed) {
             displayLines = List.copyOf(nextLines);
             lastSyncedSwitchPos = connectedSwitchPos == null ? null : connectedSwitchPos.immutable();
@@ -200,7 +252,6 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
             lastSyncedAdapters = connectedAdapters;
             markSynced();
         }
-        runController(level, currentControlTargets);
     }
 
     private BlockPos lastSyncedSwitchPos;
@@ -208,6 +259,14 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
     private String lastSyncedConnectionType = "未连接";
     private int lastSyncedSwitches;
     private int lastSyncedAdapters;
+
+    @Override public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        ListTag rows = new ListTag();
+        devices.forEach(device -> rows.add(device.write()));
+        tag.put("ServerDevices", rows);
+        return tag;
+    }
 
     private void runController(ServerLevel level, Set<BlockPos> currentTargets) {
         if (!isControlAvailable()) {
@@ -224,6 +283,9 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
             if (!level.hasChunkAt(pos)) continue;
             BlockEntity entity = level.getBlockEntity(pos);
             if (!(entity instanceof ControllableMachine machine)) continue;
+            // Power sources handle brownouts/redstone themselves. Pausing a source on
+            // over-stress would remove capacity and prevent the network from recovering.
+            if (entity instanceof com.ic2newera.motor.EUMotorBlockEntity) continue;
             String code = IndustrialMachineInspector.normalizedCode(machine.automationProblem());
             if (isBlockingProblem(code)) {
                 if (!machine.isAutomationPaused() && autoPausedMachines.size() < MAX_TRACKED_AUTO_PAUSES) {
@@ -270,6 +332,7 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         super.saveAdditional(tag);
         tag.put(AI_SLOT, aiCore.serializeNBT());
         tag.putBoolean("ServerControlEnabled", serverControlEnabled);
+        tag.putInt("ServerAccessMode", accessMode);
         if (connectedSwitchPos != null) tag.putLong("ConnectedSwitch", connectedSwitchPos.asLong());
         tag.putString("ConnectionType", connectionType);
         tag.putString("NetworkName", networkName);
@@ -305,6 +368,7 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         super.load(tag);
         if (tag.contains(AI_SLOT, Tag.TAG_COMPOUND)) aiCore.deserializeNBT(tag.getCompound(AI_SLOT));
         serverControlEnabled = tag.getBoolean("ServerControlEnabled");
+        accessMode = Math.max(0, Math.min(2, tag.getInt("ServerAccessMode")));
         connectedSwitchPos = tag.contains("ConnectedSwitch", Tag.TAG_LONG)
                 ? BlockPos.of(tag.getLong("ConnectedSwitch")) : null;
         connectionType = tag.getString("ConnectionType");
@@ -319,8 +383,17 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         }
         ListTag lines = tag.getList("DisplayLines", Tag.TAG_COMPOUND);
         List<String> loadedLines = new ArrayList<>();
-        for (int i = 0; i < Math.min(11, lines.size()); i++) loadedLines.add(lines.getCompound(i).getString("Text"));
+        for (int i = 0; i < Math.min(6, lines.size()); i++) loadedLines.add(lines.getCompound(i).getString("Text"));
         if (!loadedLines.isEmpty()) displayLines = List.copyOf(loadedLines);
+        if (tag.contains("ServerDevices", Tag.TAG_LIST)) {
+            List<ServerDeviceView> loadedDevices = new ArrayList<>();
+            ListTag rows = tag.getList("ServerDevices", Tag.TAG_COMPOUND);
+            for (int i = 0; i < Math.min(4096, rows.size()); i++) {
+                CompoundTag row = rows.getCompound(i);
+                if (row.hasUUID("Id")) loadedDevices.add(ServerDeviceView.read(row));
+            }
+            devices = List.copyOf(loadedDevices);
+        }
         ListTag loadedPlan = tag.getList("PlanLines", Tag.TAG_COMPOUND);
         List<String> restoredPlan = new ArrayList<>();
         for (int i = 0; i < Math.min(40, loadedPlan.size()); i++) restoredPlan.add(loadedPlan.getCompound(i).getString("Text"));

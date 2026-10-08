@@ -14,6 +14,11 @@ public final class IndustrialClientEvents {
     private IndustrialClientEvents() { }
 
     @SubscribeEvent
+    public static void registerRenderers(net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(com.ic2newera.motor.MotorBlocks.EU_MOTOR_TYPE.get(), EUMotorRenderer::new);
+    }
+
+    @SubscribeEvent
     public static void registerScreens(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
             MenuScreens.register(IndustrialMenus.NETWORK.get(), IndustrialScreen::new);

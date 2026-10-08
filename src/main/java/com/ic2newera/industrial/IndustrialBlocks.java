@@ -94,6 +94,13 @@ public final class IndustrialBlocks {
 
     private static final class SwitchBlock extends BaseEntityBlock {
         private SwitchBlock(Properties properties) { super(properties); }
+        @Override public void onRemove(BlockState state, Level level, BlockPos pos, BlockState next, boolean moved) {
+            if (!level.isClientSide && state.getBlock() != next.getBlock()
+                    && level.getBlockEntity(pos) instanceof IndustrialNetworkSwitchBlockEntity networkSwitch)
+                net.minecraft.world.Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(),
+                        networkSwitch.getUpgradeHandler().getStackInSlot(0).copy());
+            super.onRemove(state, level, pos, next, moved);
+        }
         @Override public RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
         @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
             return new IndustrialNetworkSwitchBlockEntity(pos, state);

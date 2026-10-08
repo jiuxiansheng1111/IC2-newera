@@ -38,6 +38,9 @@ public final class IC2NewEra {
         ModMineralBlocks.BLOCKS.register(modBus);
         ModProcessorBlocks.BLOCKS.register(modBus);
         IndustrialBlocks.BLOCKS.register(modBus);
+        com.ic2newera.motor.MotorBlocks.BLOCKS.register(modBus);
+        com.ic2newera.motor.MotorBlocks.ITEMS.register(modBus);
+        com.ic2newera.motor.MotorBlocks.TYPES.register(modBus);
         CoreMaterials.ITEMS.register(modBus);
         ElectronicMaterials.ITEMS.register(modBus);
         AlloyMaterials.ITEMS.register(modBus);

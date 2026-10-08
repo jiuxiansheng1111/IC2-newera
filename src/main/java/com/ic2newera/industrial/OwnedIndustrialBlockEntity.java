@@ -39,7 +39,7 @@ public abstract class OwnedIndustrialBlockEntity extends BlockEntity implements 
         markSynced();
     }
 
-    public final boolean canManage(Player player) {
+    public boolean canManage(Player player) {
         if (player == null) return false;
         if (player.hasPermissions(2) || player.getUUID().equals(owner)) return true;
         if (owner == null || level == null || level.getServer() == null || player.getTeam() == null) return false;

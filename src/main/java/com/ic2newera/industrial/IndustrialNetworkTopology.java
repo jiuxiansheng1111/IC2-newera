@@ -34,7 +34,7 @@ final class IndustrialNetworkTopology {
                 .min(Comparator.comparingDouble(candidate -> candidate.getBlockPos().distSqr(endpoint))).orElse(null);
         if (nearest != null) return new Attachment(nearest, "光纤");
 
-        List<IndustrialNetworkSwitchBlockEntity> wireless = nearestSwitches(level, endpoint, WIFI_RANGE, 1, ownerEndpoint);
+        List<IndustrialNetworkSwitchBlockEntity> wireless = nearestSwitches(level, endpoint, 33, 1, ownerEndpoint);
         if (wireless.isEmpty()) return null;
         return new Attachment(wireless.get(0), "Wi-Fi");
     }
@@ -82,7 +82,7 @@ final class IndustrialNetworkTopology {
         }
         for (IndustrialNetworkSwitchBlockEntity networkSwitch : switches) {
             for (BlockEntity entity : IndustrialNetworkIndex.nearby(level, networkSwitch.getBlockPos(),
-                    WIFI_RANGE, MAX_INDEX_CANDIDATES)) {
+                    networkSwitch.getWirelessSearchRange(), MAX_INDEX_CANDIDATES)) {
                 if (entity instanceof MachineNetworkAdapterBlockEntity adapter)
                     considerAdapter(level, adapter, networkSwitch, switchPositions, adapters);
                 if (adapters.size() >= MAX_ADAPTERS) return List.copyOf(adapters.values());
@@ -139,6 +139,51 @@ final class IndustrialNetworkTopology {
         return false;
     }
 
+    /** The sole roster for server counts, device actions and AI runtime evidence. */
+    static List<ConnectedMachine> machinesFor(ServerLevel level,
+                                               Collection<IndustrialNetworkSwitchBlockEntity> switches) {
+        if (switches.isEmpty()) return List.of();
+        Map<BlockPos, ConnectedMachine> machines = new LinkedHashMap<>();
+        for (MachineNetworkAdapterBlockEntity adapter : adaptersFor(level, switches)) {
+            for (var report : adapter.getReports()) {
+                BlockPos pos = report.pos();
+                if (!level.hasChunkAt(pos)) continue;
+                BlockEntity machine = level.getBlockEntity(pos);
+                if (!isMachineEndpoint(machine)) continue;
+                machines.putIfAbsent(pos, new ConnectedMachine(machine, report, "网卡·" + adapter.getConnectionType()));
+            }
+        }
+        Set<BlockPos> visited = new HashSet<>();
+        ArrayDeque<BlockPos> fibers = new ArrayDeque<>();
+        for (var networkSwitch : switches) enqueueAdjacentFibers(level, networkSwitch.getBlockPos(), fibers, visited);
+        while (!fibers.isEmpty()) {
+            BlockPos fiber = fibers.removeFirst();
+            if (!level.hasChunkAt(fiber)) continue;
+            for (Direction face : Direction.values()) {
+                BlockPos pos = fiber.relative(face);
+                if (!level.hasChunkAt(pos)) continue;
+                BlockEntity machine = level.getBlockEntity(pos);
+                if (machine instanceof IndustrialFiberBlockEntity) {
+                    if (!visited.contains(pos) && visited.size() < MAX_FIBER_SEGMENTS) {
+                        visited.add(pos.immutable()); fibers.addLast(pos.immutable());
+                    }
+                } else if (isMachineEndpoint(machine)) {
+                    var report = machines.containsKey(pos) ? machines.get(pos).report() : IndustrialMachineInspector.inspect(level, pos, machine);
+                    if (report != null) machines.put(pos.immutable(), new ConnectedMachine(machine, report, "光纤直连"));
+                }
+            }
+        }
+        return machines.values().stream().sorted(Comparator.comparingInt((ConnectedMachine m) -> m.report().pos().getX())
+                .thenComparingInt(m -> m.report().pos().getY()).thenComparingInt(m -> m.report().pos().getZ())).toList();
+    }
+
+    private static boolean isMachineEndpoint(BlockEntity entity) {
+        return entity != null && !entity.isRemoved() && !(entity instanceof OwnedIndustrialBlockEntity)
+                && !(entity instanceof IndustrialFiberBlockEntity);
+    }
+
+    record ConnectedMachine(BlockEntity entity, IndustrialMachineInspector.MachineReport report, String connection) { }
+
     /** Loaded, owner-compatible endpoints attached to exactly this fiber component; names alone never authorize. */
     static <T extends OwnedIndustrialBlockEntity> List<T> endpointsFor(ServerLevel level,
             Collection<IndustrialNetworkSwitchBlockEntity> switches, Class<T> type, int limit) {
@@ -151,7 +196,7 @@ final class IndustrialNetworkTopology {
         Set<BlockPos> visited = new HashSet<>();
         ArrayDeque<BlockPos> fibers = new ArrayDeque<>();
         for (var networkSwitch : switches) {
-            for (var entity : IndustrialNetworkIndex.nearby(level, networkSwitch.getBlockPos(), WIFI_RANGE, MAX_INDEX_CANDIDATES)) {
+            for (var entity : IndustrialNetworkIndex.nearby(level, networkSwitch.getBlockPos(), networkSwitch.getWirelessSearchRange(), MAX_INDEX_CANDIDATES)) {
                 if (type.isInstance(entity) && candidates.size() < MAX_INDEX_CANDIDATES) candidates.add(entity.getBlockPos().immutable());
             }
             enqueueAdjacentFibers(level, networkSwitch.getBlockPos(), fibers, visited);
@@ -181,12 +226,11 @@ final class IndustrialNetworkTopology {
     private static List<IndustrialNetworkSwitchBlockEntity> nearestSwitches(ServerLevel level, BlockPos center,
                                                                               int range, int limit,
                                                                               OwnedIndustrialBlockEntity ownerEndpoint) {
-        long rangeSquared = (long) range * range;
         return IndustrialNetworkIndex.nearby(level, center, range, MAX_INDEX_CANDIDATES).stream()
                 .filter(IndustrialNetworkSwitchBlockEntity.class::isInstance)
                 .map(IndustrialNetworkSwitchBlockEntity.class::cast)
                 .filter(candidate -> ownerEndpoint == null || ownerEndpoint.sharesNetworkWith(candidate))
-                .filter(candidate -> candidate.getBlockPos().distSqr(center) <= rangeSquared)
+                .filter(candidate -> candidate.coversWireless(center))
                 .sorted(Comparator.comparingDouble(candidate -> candidate.getBlockPos().distSqr(center)))
                 .limit(limit)
                 .toList();

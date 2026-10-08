@@ -103,6 +103,7 @@ public final class MachineNetworkAdapterBlockEntity extends OwnedIndustrialBlock
             entry.putString("Issue", report.issue());
             entry.putString("Details", report.details());
             entry.putString("Code", report.controlCode());
+            entry.putString("RunState", report.runState());
             list.add(entry);
         }
         tag.put(REPORTS, list);
@@ -120,7 +121,7 @@ public final class MachineNetworkAdapterBlockEntity extends OwnedIndustrialBlock
         for (int i = 0; i < Math.min(6, list.size()); i++) {
             CompoundTag entry = list.getCompound(i);
             loaded.add(new IndustrialMachineInspector.MachineReport(BlockPos.of(entry.getLong("Pos")),
-                    entry.getString("Name"), entry.getString("Issue"), entry.getString("Details"), entry.getString("Code")));
+                    entry.getString("Name"), entry.getString("Issue"), entry.getString("Details"), entry.getString("Code"), entry.getString("RunState")));
         }
         reports = List.copyOf(loaded);
     }

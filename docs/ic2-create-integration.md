@@ -6,7 +6,7 @@
 
 - **IC2 Classic** 使用 EU 电力网，机器有各自的配方、供能等级、面向和物流接口。
 - **Create** 使用转速与应力网络，动力由转动装置提供，机器通过轴、齿轮、皮带等传递动力。
-- 两者不是可直接接线的同一种能源。新纪元没有转速转 EU 或 EU 转转速的设备或比率。
+- 两者不是可直接接线的同一种能源。新纪元电动机仅把 IC2 EU 转换成 Create 轴系动力；没有转速转 EU 的反向发电设备，也不合并 EU 电网与转速网络。
 - 新纪元的联动是物品配方：Create 的粗锌/粉碎矿进入 IC2 Macerator；机器产出的物品再进入另一个配方。不要据此推定两套物品管、流体管或机器端口都能直连。
 
 ## 如何使用游戏内说明
@@ -88,7 +88,7 @@ Mechanical Crafter 可拼接配方，Deployer 可按过滤配置对目标执行�
 
 Belts 适合可见的连续物品线，Funnels/Brass Funnels 与 Chutes 用于装卸或落料，Brass Tunnels 可按过滤与分配模式处理分支。Depot、箱子、Barrel、Vault 提供工序之间的暂存；Filter、Attribute Filter、Threshold Switch、Smart Observer 和 Redstone Link 用于分类、库存检测或信号控制。实际过滤选项以该方块 GUI 和 Ponder 为准。
 
-Create Mechanical Pump、Fluid Pipe、Fluid Tank、Valve 与 Spout 可组成 Create 内部的流体管线。确认泵的动力方向、流体源/目的端及管网连续性，再逐段扩展。项目未实现 IC2 EU/转速转换或任意 IC2/Create 流体接口桥接。
+Create Mechanical Pump、Fluid Pipe、Fluid Tank、Valve 与 Spout 可组成 Create 内部的流体管线。确认泵的动力方向、流体源/目的端及管网连续性，再逐段扩展。IC2 EU 到 Create 转速只能通过新纪元电动机单向转换；未实现反向发电或任意 IC2/Create 流体接口桥接。
 
 ## Create：移动结构、控制与列车
 
@@ -116,7 +116,7 @@ Simple Crop Library 与 Crop Library 可保存种子/突变信息；Cropmatron�
 
 IC2 Nuclear Reactor 的燃料组件、热管理、冷却/输出方案共同决定产能与风险。用 Reactor Planner 和游戏内 Reactor Wiki 逐格检查方案、组件相互作用与热量，再在安全隔离处小规模验证；过热会造成严重事故。不要直接复制其他版本或整合包的摆法，因为组件、配方、配置及输出可能不同。
 
-IC2 还提供 Steam Reactor、Thermonuclear Reactor 和 Steam Turbine 等高阶系统，但它们的结构、冷却和流体/蒸汽端口与普通 EU 发电机不同。按本版本 Wiki 逐步搭建和确认端口，先处理安全停机、蒸汽输出与储存，再接入下游负载。Create 的 Steam Engine 属于转动网络；无新纪元能源转换器时，它不会向 IC2 电网输出 EU。
+IC2 还提供 Steam Reactor、Thermonuclear Reactor 和 Steam Turbine 等高阶系统，但它们的结构、冷却和流体/蒸汽端口与普通 EU 发电机不同。按本版本 Wiki 逐步搭建和确认端口，先处理安全停机、蒸汽输出与储存，再接入下游负载。Create 的 Steam Engine 自身只输出转动动力，不向 IC2 电网输出 EU；新纪元电动机的方向相反，是消耗 EU 并输出 Create 转轴动力的负载，不会把蒸汽机或其他轴系动力转换成 EU。
 
 ### UU-Matter 与后期资源
 
@@ -128,12 +128,37 @@ IC2 的装备横跨普通工具、充电工具、防护服、喷气背包与高�
 
 当前阶段包括四种矿物、六种合金、九种电子材料、非金属处理机、电子材料加工机和工业网络。IC2 Classic 电路、Create 电子管与精密构件继续复用原模组物品；化学实验与化学加工线已退役。
 
-## 新纪元材料与工业网络`r`n`r`n非金属处理机加工石英粉与硅材料；电子材料加工机按配方位置使用多输入槽生产 PCB、集成电路、CPU、RAM、GPU 和工业固态硬盘。物品过滤由服务端已登记配方决定，槽位提示和自动化方向以游戏内实现为准。`r`n`r`n工业网络由工业光纤、网络交换机和工业控制服务器组成。服务器可安装工业 AI 核心并控制已接入设备；权限、拓扑与操作方式依当前游戏界面确认。Create 转速与 IC2 EU 仍是独立能源体系。`r`n`r`n工序和材料数量唯一来自服务器同步的 ProcessGraph，生产规划器与 AI 读取当前同步数据；本文不维护独立材料清单。JEI 显示当前实例实际加载配方，若与图数据不一致，应排查资源加载或同步状态。`r`n`r`n## 配方与版本依据
+## 新纪元材料、单向电动机与工业网络
+
+非金属处理机加工石英粉与硅材料；电子材料加工机按配方位置使用多输入槽生产 PCB、集成电路、CPU、RAM、GPU 和工业固态硬盘。工序数量以 ProcessGraph 与 JEI 为准。
+
+### 单向 EU→Create 电动机
+
+`ic2newera:eu_motor` 的源码已实现，增量离线构建成功；最终构建与安装状态见[本阶段交付记录](motor-wifi-access-delivery-2026-10-08.md)，实机验收待完成。它只把 IC2 EU 转成 Create 轴系动力，不反向发电，也不将两种网络并成一条线。
+
+| 转速 | Create 应力容量 | EU 消耗 |
+| --- | ---: | ---: |
+| 32 RPM | 1024 SU | 10 EU/t |
+| 64 RPM（默认） | 2048 SU | 20 EU/t |
+| 128 RPM | 4096 SU | 40 EU/t |
+
+UI 可选择转速、正反转和启停。缓冲容量为 10000 EU，背面接受 LV 电包，每包最多 32 EU。初次启动要求缓冲存有本档 20 tick 额定电量（200、400 或 800 EU）。供电不足时停机；停机后等待 20 tick，且缓冲足够，才允许重新启动。128 RPM 需要持续获得 40 EU/t 总供给。若轴系上已有其他 Create 动力源，电动机优先使用外部动力，本机为零发力、零耗电。Create 负责处理应力/过载，本设备不提供 Create→EU 反向转换。
+
+### 网络设备与服务器权限
+
+工业网络的光纤和 WiFi 只传数据，不运输 EU、转速、物品或流体。交换机默认 WiFi 覆盖为 16 格球形范围。一个交换机只有一个升级槽；装入一个 `ic2newera:wifi_amplifier` 后，水平范围为 40×40 格（相对坐标 `dx,dz ∈ [-20,19]`），上方/下方各 16 格。升级不可叠加、串联或作为独立方块使用。源码已实现，增量离线构建成功；最终构建与安装状态见[本阶段交付记录](motor-wifi-access-delivery-2026-10-08.md)，实机验收待完成。
+
+工业服务器 GUI 仅有“概览”和“联网设备”两页，不显示工艺流程或材料。概览显示设备总数、运行数、异常数；设备列表每页 3 台，设备显示编号，显示名称、连接方式和状态，不显示坐标。名单只包含装有机器网络适配器并经 WiFi/光纤联网，或实际相邻工业光纤直连的设备。玩家须在服务器 8 格内，从列表设备行启动/停止；远端设备还必须已加载、仍在同网、实体身份一致且实现 `ControllableMachine`。AI 读取同一名单和故障状态，所有玩家均可打开服务器 AI 做只读诊断；快照优先列出最多 16 台设备（异常优先），并附设备总数以及未知、空闲、暂停、故障各自数量。GUI 三档权限默认模式 0“所有人查看”：root 房主和授权名单可配置服务器运行参数；模式 1“所有人配置”允许所有玩家修改运行参数，但不能切换权限或授权他人；模式 2“仅房主配置”只允许 root，delegates 授权名单暂不生效。只有 root 能切换模式；`grant`、`revoke`、`controller_status` 可由 root 或控制台使用，授权名单成员不能再次授权。当前配置权决定谁可确认 AI 提案。
+
+单人/LAN root 由 Minecraft 识别为世界所有者。专用服务器需由控制台或 RCON 权限等级 4 执行 `/ic2newera bind_controller <player>`，用在线玩家 GameProfile 绑定并持久保存唯一服主 UUID。尚未绑定时默认模式 0 全员只读，且无人可更改模式。终端机库存与规则权限独立按其 Owner UUID、队伍或管理员校验；模式 1 不公开其他玩家的终端库存。
+
+### 流程与验收边界
+
+当前 ProcessGraph 包含 54 条路线，是工序、配方与规划的唯一材料数量来源。指南、JEI、规划后端和 AI 应读取同一份流程，不维护并行 BOM；服务器 GUI 本身不显示流程/材料或规划页。本轮设备列表与服务器 GUI 调整仍在实现，构建、安装状态以后续[服务器设备列表交付记录](server-device-list-delivery-2026-10-08.md)为准，实机验收待完成。
+
+## 配方与版本依据
 
 - IC2 Classic 配方与机器类型：在目标实例 JEI 查询。IC2 官方 [1.19.x DataPacks 文档](https://github.com/TinyModularThings/IC2Classic/wiki/1.19.x-DataPacks)说明其数据包机器配方类别；本文涉及的 IC2 Classic 英文方块/游戏内 Wiki 资源核对自 CurseForge 文件 8545995 对应 JAR。
 - Create 设备操作：优先看目标实例方块 Ponder，再看[官方 Create Wiki 用户文档](https://wiki.createmod.net/users/)与[0.5.1 版本说明](https://wiki.createmod.net/users/changelogs/0.5.1)。0.5.1.i 面向 Minecraft 1.19.2；其版本修正见[0.5.1i 说明](https://wiki.createmod.net/users/changelogs/0.5.1i)。
 - IC2 Classic 版本文件：[CurseForge 文件 8545995](https://www.curseforge.com/minecraft/mc-mods/ic2-classic/files/8545995)。Create 版本文件：[Create 0.5.1.i 文件 5797604](https://www.curseforge.com/minecraft/mc-mods/create/files/5797604)。
 - 新纪元工序与数量以服务器同步 ProcessGraph、当前资源和游戏内 JEI 为准。整合包数据包覆盖、配置差异或换版都可能改变最终可见结果。
-
-
-

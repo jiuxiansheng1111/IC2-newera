@@ -7,8 +7,9 @@ modId="${mod_id}"
 version="${version}"
 displayName="${mod_name}"
 authors="IC2：新纪元开发组"
-description='''IC2 Classic 与 Create 的矿物、合金及装备附属模组。
-使用 Create 锌矿接入 IC2 粉碎与合金路线，并用科技树和 AI 助手讲解两套工业体系。'''
+description='''基于 IC2 Classic、Create、ProjectE 和 JEI 协作开发的工业附属模组。
+提供受控矿物流程、合金与电子中间体、工业服务器、光纤/WiFi 数据网络、144格终端机、EU电动机、科技树和游戏内AI助手。
+复用已有加工设备、传动与能源系统，通过统一流程图规划生产，由房主/服主管理多人配置权限。'''
 
 [[dependencies.ic2newera]]
 modId="forge"

@@ -1185,6 +1185,82 @@
       "format": "crafting"
     },
     {
+      "id": "ic2newera:eu_motor",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "create:andesite_alloy",
+          "count": 4
+        },
+        {
+          "item": "ic2:copper_insulated_cable_item",
+          "count": 2
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "create:andesite_casing",
+          "count": 1
+        },
+        {
+          "item": "create:shaft",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:eu_motor",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:wifi_amplifier",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2:copper_insulated_cable_item",
+          "count": 2
+        },
+        {
+          "item": "create:electron_tube",
+          "count": 2
+        },
+        {
+          "item": "create:andesite_alloy",
+          "count": 3
+        }
+      ],
+      "output": {
+        "item": "ic2newera:wifi_amplifier",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
       "id": "ic2newera:industrial_fiber",
       "material": "",
       "classification": "APPROVED_INDUSTRIAL_PROCESS",

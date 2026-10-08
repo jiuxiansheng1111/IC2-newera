@@ -22,3 +22,11 @@
 离线双视角预览为 preview/terminal-model-preview.png；sources/render-terminal-preview.py 从实际方块JSON与项目贴图重复生成。它展示模型设计，不代表游戏手持比例已实机验收。
 
 运行 `py -3 art/sources/generate-terminal-assets.py` 可重建 `ic2newera:terminal` 的方块/物品模型、四向朝向方块状态、掉落表与六张 16×16 贴图，并更新 `model-catalog.json`。贴图由脚本使用 Pillow 像素绘图原创生成，没有引入外部图像或第三方资产。深色箱式金属外壳以青色屏幕/物流标记和紫色数据端口区分接口：北面显示屏及物料槽，南面光纤插口与内置天线，侧面、顶面和底面各有独立物流/服务图案；机身与全部附加几何均限制在一个标准方块内。物品模型显式沿用常见方块物品的 GUI、地面和手持缩放比例。
+
+## EU 电动机
+
+运行 `py -3 art/sources/generate-eu-motor-assets.py` 可重建 `ic2newera:eu_motor` 的方块/物品模型、六向朝向方块状态、掉落表、五张 16×16 贴图，并更新 `model-catalog.json`。脚本只用 Pillow 从原创像素几何绘图，不读取第三方资产。安山灰外壳、铜色绕组与散热片、青色状态灯表达电动机用途；南面（+Z）为正面和 Create 动态出轴接口，中心 6..10 区域留作轴孔，北面是 EU 电缆端口。模型不包含静态轴；全部方块几何处于 0..16 单方块范围内。`facing=south` 无旋转，其余水平方向及上下方向通过 blockstate 旋转到目标出轴面。物品模型沿用原版方块物品的 GUI、地面和第一/第三人称比例。
+
+## Wi-Fi 增幅器
+
+运行 `py -3 art/sources/generate-wifi-amplifier-assets.py` 可重建 `ic2newera:wifi_amplifier` 的 16×16 物品图标、`minecraft:item/generated` 模型，并更新 `model-catalog.json`。图标由 Pillow 用原创像素几何绘制：深绿色电路板、铜色天线、青色信号弧与金色插槽触点；不复用电子材料图标或外部资产。它表示可安装到交换机升级槽的模块，不是独立网络方块。

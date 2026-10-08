@@ -11,6 +11,7 @@
     "ic2newera:industrial_fiber",
     "ic2newera:industrial_network_switch",
     "ic2newera:industrial_control_server",
-    "ic2newera:terminal"
+    "ic2newera:terminal",
+    "ic2newera:eu_motor"
   ]
 }

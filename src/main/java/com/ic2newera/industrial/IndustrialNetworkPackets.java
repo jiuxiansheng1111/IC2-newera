@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 /** Authenticated server-side actions for the sole switch field and opt-in server control switch. */
 public final class IndustrialNetworkPackets {
-    private static final String PROTOCOL = "2";
+    private static final String PROTOCOL = "4";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(IC2NewEra.MOD_ID, "industrial"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -45,7 +45,48 @@ public final class IndustrialNetworkPackets {
                 FactorySnapshotReply::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(9, ConfirmTerminalProposal.class, ConfirmTerminalProposal::encode, ConfirmTerminalProposal::decode,
                 ConfirmTerminalProposal::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(10, SetServerAccessMode.class, SetServerAccessMode::encode, SetServerAccessMode::decode,
+                SetServerAccessMode::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(11, SetMotorSettings.class, SetMotorSettings::encode, SetMotorSettings::decode,
+                SetMotorSettings::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         registered = true;
+    }
+
+    private static boolean hasOpenMenu(ServerPlayer player, BlockPos pos, int kind) {
+        return player != null && player.level.hasChunkAt(pos)
+                && player.distanceToSqr(pos.getX() + .5, pos.getY() + .5, pos.getZ() + .5) <= 64
+                && player.containerMenu instanceof IndustrialMenu menu
+                && menu.getKind() == kind && menu.getBlockPos().equals(pos) && menu.stillValid(player);
+    }
+
+    public record SetServerAccessMode(BlockPos pos, int mode) {
+        private static void encode(SetServerAccessMode v, FriendlyByteBuf b) { b.writeBlockPos(v.pos); b.writeVarInt(v.mode); }
+        private static SetServerAccessMode decode(FriendlyByteBuf b) { return new SetServerAccessMode(b.readBlockPos(), b.readVarInt()); }
+        private static void handle(SetServerAccessMode v, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get();
+            context.enqueueWork(() -> {
+                ServerPlayer player = context.getSender();
+                if (hasOpenMenu(player, v.pos, IndustrialMenu.KIND_SERVER)
+                        && player.level.getBlockEntity(v.pos) instanceof IndustrialControlServerBlockEntity server)
+                    server.setAccessMode(player, v.mode);
+            });
+            context.setPacketHandled(true);
+        }
+    }
+
+    public record SetMotorSettings(BlockPos pos, int rpm, boolean enabled) {
+        private static void encode(SetMotorSettings v, FriendlyByteBuf b) { b.writeBlockPos(v.pos); b.writeInt(v.rpm); b.writeBoolean(v.enabled); }
+        private static SetMotorSettings decode(FriendlyByteBuf b) { return new SetMotorSettings(b.readBlockPos(), b.readInt(), b.readBoolean()); }
+        private static void handle(SetMotorSettings v, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get();
+            context.enqueueWork(() -> {
+                ServerPlayer player = context.getSender();
+                if (hasOpenMenu(player, v.pos, IndustrialMenu.KIND_MOTOR)
+                        && player.level.getBlockEntity(v.pos) instanceof com.ic2newera.motor.EUMotorBlockEntity motor)
+                    motor.configure(player, v.rpm, v.enabled);
+            });
+            context.setPacketHandled(true);
+        }
     }
 
     private static TerminalBlockEntity terminal(ServerPlayer player, BlockPos pos) {
@@ -204,23 +245,23 @@ public final class IndustrialNetworkPackets {
         }
     }
 
-    public record MachineCommand(BlockPos serverPos, BlockPos machinePos, boolean start) {
+    public record MachineCommand(BlockPos serverPos, java.util.UUID deviceId, boolean start) {
         private static void encode(MachineCommand message, FriendlyByteBuf buffer) {
             buffer.writeBlockPos(message.serverPos());
-            buffer.writeBlockPos(message.machinePos());
+            buffer.writeUUID(message.deviceId());
             buffer.writeBoolean(message.start());
         }
         private static MachineCommand decode(FriendlyByteBuf buffer) {
-            return new MachineCommand(buffer.readBlockPos(), buffer.readBlockPos(), buffer.readBoolean());
+            return new MachineCommand(buffer.readBlockPos(), buffer.readUUID(), buffer.readBoolean());
         }
         private static void handle(MachineCommand message, Supplier<NetworkEvent.Context> contextSupplier) {
             NetworkEvent.Context context = contextSupplier.get();
             ServerPlayer player = context.getSender();
             context.enqueueWork(() -> {
-                if (player == null || player.level.isClientSide || !player.level.hasChunkAt(message.serverPos())
-                        || !player.level.hasChunkAt(message.machinePos())) return;
+                if (!hasOpenMenu(player, message.serverPos(), IndustrialMenu.KIND_SERVER)) return;
                 if (player.level.getBlockEntity(message.serverPos()) instanceof IndustrialControlServerBlockEntity server) {
-                    server.commandMachine(player, message.machinePos(), message.start());
+                    if (!server.commandMachine(player, message.deviceId(), message.start()))
+                        player.sendSystemMessage(net.minecraft.network.chat.Component.literal("操作未执行：请核对当前权限、AI核心和设备网络连接，并刷新设备列表。"));
                 }
             });
             context.setPacketHandled(true);

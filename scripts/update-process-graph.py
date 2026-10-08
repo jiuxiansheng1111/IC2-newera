@@ -59,6 +59,10 @@ def craft(name, inputs, count=1):
 craft('non_metal_processor',[tag('ingots/iron',2),item(own('nichrome_ingot')),item('ic2:circuit'),item('create:andesite_alloy',2),item('minecraft:quartz',2)])
 craft('electronic_fabricator',[item(own('stainless_steel_ingot'),2),item(own('tungsten_carbide_ingot')),item(own('tool_steel_ingot')),item('create:electron_tube'),item('ic2:circuit'),item('create:precision_mechanism'),tag('ingots/copper',2)])
 craft('machine_network_adapter',[item(own('pcb')),item('ic2:circuit'),item(own('invar_ingot')),item('create:electron_tube')])
+craft('eu_motor',[item('create:andesite_alloy',4),item('ic2:copper_insulated_cable_item',2),
+                  item('ic2:circuit'),item('create:andesite_casing'),item('create:shaft')])
+craft('wifi_amplifier',[item(own('pcb')),item('ic2:circuit'),item('ic2:copper_insulated_cable_item',2),
+                        item('create:electron_tube',2),item('create:andesite_alloy',3)])
 craft('industrial_fiber',[item('minecraft:glass',2),item('minecraft:quartz'),item('minecraft:redstone')],8)
 craft('industrial_network_switch',[item(own('pcb'),2),item(own('integrated_circuit')),item(own('industrial_fiber'),2),item(own('stainless_steel_ingot'))])
 craft('industrial_control_server',[item(own('cpu')),item(own('ram'),2),item(own('industrial_ssd')),item(own('industrial_network_switch')),item(own('titanium_alloy_ingot'),2),item('ic2:machine_block')])

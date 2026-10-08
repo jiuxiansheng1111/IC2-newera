@@ -1,0 +1,45 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "ic2newera:block/eu_motor_side",
+    "front": "ic2newera:block/eu_motor_front",
+    "rear": "ic2newera:block/eu_motor_rear",
+    "side": "ic2newera:block/eu_motor_side",
+    "top": "ic2newera:block/eu_motor_top",
+    "bottom": "ic2newera:block/eu_motor_bottom"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#rear"
+        },
+        "south": {
+          "texture": "#front"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top"
+        },
+        "down": {
+          "texture": "#bottom"
+        }
+      }
+    }
+  ]
+}

@@ -122,5 +122,7 @@
   "block.ic2newera.industrial_fiber": "Industrial Fiber",
   "block.ic2newera.industrial_network_switch": "Industrial Network Switch",
   "block.ic2newera.industrial_control_server": "Industrial Control Server",
-  "block.ic2newera.terminal": "Terminal"
+  "block.ic2newera.terminal": "Terminal",
+  "block.ic2newera.eu_motor": "EU Motor",
+  "item.ic2newera.wifi_amplifier": "WiFi Amplifier"
 }

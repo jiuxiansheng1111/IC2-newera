@@ -23,7 +23,7 @@ import java.util.WeakHashMap;
 /** Indexes only industrial block entities in already loaded chunks. */
 @Mod.EventBusSubscriber(modid = IC2NewEra.MOD_ID)
 public final class IndustrialNetworkIndex {
-    private static final int MAX_RADIUS = 24;
+    private static final int MAX_RADIUS = 33;
     private static final int MAX_CANDIDATES = 512;
     private static final Map<ServerLevel, Map<Long, Set<BlockPos>>> LOADED_TILES = new WeakHashMap<>();
 
