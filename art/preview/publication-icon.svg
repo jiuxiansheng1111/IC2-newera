@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<rect width="512" height="512" rx="70" fill="#13232e"/>
+<rect x="44" y="44" width="424" height="424" rx="42" fill="none" stroke="#78929e" stroke-width="10"/>
+<path d="M44 150H120V220H175 M468 362H392V292H337 M150 44V118H220 M362 468V394H292" fill="none" stroke="#44d9cf" stroke-width="14"/>
+<g fill="#ffbd59"><circle cx="120" cy="150" r="17"/><circle cx="392" cy="362" r="17"/><circle cx="220" cy="118" r="17"/><circle cx="292" cy="394" r="17"/></g>
+<text x="256" y="322" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="168" fill="#eef6f7">NE</text>
+</svg>

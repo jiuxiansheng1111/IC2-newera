@@ -52,6 +52,7 @@ public final class RecipeGuard {
         }
         if (kept.size() != manager.getRecipes().size()) manager.replaceRecipes(kept);
         hook(RecipeRegistry.MACERATOR.get(true), "macerator");
+        hook(RecipeRegistry.FURNACE.get(true), "furnace");
         hook(RecipeRegistry.BLAST_FURNACE.get(true), "blast_furnace");
         hook(RecipeRegistry.MIXING_FURNACE.get(true), "mixing_furnace");
     }
@@ -67,10 +68,10 @@ public final class RecipeGuard {
             List<ItemStack> inputs = Arrays.stream(entry.getInputs()).flatMap(i -> i.getComponents().stream()).toList();
             List<ItemStack> outputs = entry.getOutput().getAllOutputs();
             List<Ingredient> ingredients = Arrays.stream(entry.getInputs()).map(i -> i.asIngredient()).toList();
-            String reason = blockedReason(entry.getLocation(), inputs, outputs, false, ingredients, null);
+            String reason = blockedReason(entry.getLocation(), inputs, outputs, profile.equals("furnace"), ingredients, null);
             ProcessGraph.Route approved = ProcessGraph.route(entry.getLocation());
             if (reason == null && approved != null) {
-                if (!approved.format().equals(profile)) reason = "批准路线不属于这张机器配方表";
+                if (!approved.format().equals(profile.equals("furnace") ? "smelting" : profile)) reason = "批准路线不属于这张机器配方表";
                 if (entry.getInputs().length != approved.inputs().size()) reason = "批准配方的输入槽数量不一致";
                 else for (int i=0;i<entry.getInputs().length;i++)
                     if (entry.getInputs()[i].getInputSize() != approved.inputs().get(i).count()) reason = "批准配方的输入数量不一致";
@@ -84,42 +85,61 @@ public final class RecipeGuard {
 
     private static String blockedReason(ResourceLocation id, List<ItemStack> inputs, List<ItemStack> outputs,
                                         boolean cooking, List<Ingredient> ingredients, Recipe<?> actual) {
-        boolean touches = inputs.stream().anyMatch(stack -> controlled(stack) != null);
+        // Coal, quartz and gems retain native solid-item uses. Only their conversion
+        // to this material's powder is subject to the washing policy.
+        boolean solidToPowder = ProcessGraph.current().materials().values().stream().anyMatch(material ->
+                inputs.stream().anyMatch(stack -> material.grindingInputs().contains(ForgeRegistries.ITEMS.getKey(stack.getItem())))
+                        && outputs.stream().anyMatch(stack -> {
+                            Controlled target=controlled(stack);
+                            return target!=null && target.material.equals(material)
+                                    && Set.of(ProcessGraph.Stage.IMPURE_DUST,ProcessGraph.Stage.CLEAN_DUST).contains(target.stage);
+                        }));
+        boolean touches = solidToPowder || inputs.stream().anyMatch(stack -> controlled(stack) != null);
+        // The graph's alloy-smelter outputs define the guarded alloys, including native bronze/brass.
+        boolean protectedAlloy = outputs.stream().anyMatch(stack -> ProcessGraph.current().routes().stream()
+                .anyMatch(route -> route.format().equals("mixing_furnace")
+                        && route.output().equals(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
+        boolean protectedSteelIngot = outputs.stream().anyMatch(stack -> Set.of("ic2newera:tempered_steel_ingot",
+                        "ic2newera:tempered_high_carbon_steel_ingot")
+                .contains(String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
         boolean protectedCircuit = outputs.stream().anyMatch(stack -> Set.of("ic2:advanced_circuit","ic2:complex_circuit")
                 .contains(String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
         boolean protectedHardware = outputs.stream().anyMatch(stack -> Set.of("ic2newera:industrial_control_server",
                         "ic2newera:industrial_ai_core", "ic2newera:terminal", "ic2newera:eu_motor", "ic2newera:wifi_amplifier")
                 .contains(String.valueOf(ForgeRegistries.ITEMS.getKey(stack.getItem()))));
         ProcessGraph.Route approved = ProcessGraph.route(id);
+        if (protectedAlloy || protectedSteelIngot) return approved != null
+                && approved.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS
+                && exact(approved, ingredients, outputs, actual) ? null : "合金配料须走批准的IC2合金炉路线；仅允许批准的成品熔炼与同级回收";
         if (protectedHardware) return approved != null && approved.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS
                 && exact(approved, ingredients, outputs, actual) ? null : "服务器/AI核心/终端须使用批准电子中间体；终端必须包含箱子与暗物质";
         if (protectedCircuit) return approved != null && approved.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS
                 && exact(approved, ingredients, outputs, actual) ? null : "高级电路须使用PCB与集成电路";
         if (!touches) return null;
-        if (cooking && actual != null && ingredients.size()==1 && !inputs.isEmpty() && outputs.size()==1
-                && outputs.get(0).getCount()==1 && Set.of("minecraft:smelting","minecraft:blasting").contains(
-                    String.valueOf(ForgeRegistries.RECIPE_SERIALIZERS.getKey(actual.getSerializer())))) {
-            Controlled target=controlled(outputs.get(0));
-            if (target!=null && target.stage==ProcessGraph.Stage.FINAL_METAL
-                    && target.material.items().get(ProcessGraph.Stage.FINAL_METAL).equals(ForgeRegistries.ITEMS.getKey(outputs.get(0).getItem()))
-                    && inputs.stream().allMatch(input -> {
-                        Controlled source=controlled(input);
-                        return source!=null && source.stage==ProcessGraph.Stage.RAW && source.material.equals(target.material);
-                    })) return null;
-        }
-        boolean guarded = false;
+        if (cooking && ingredients.size()==1 && outputs.size()==1 && outputs.get(0).getCount()==1
+                && ProcessGraph.current().routes().stream().anyMatch(route ->
+                    route.classification()==ProcessGraph.Classification.LEGACY_PROCESS
+                            && (actual!=null || route.format().equals("smelting"))
+                            && exact(route, ingredients, outputs, actual))) return null;
+        boolean guarded = solidToPowder;
         for (ItemStack input : inputs) {
             Controlled c = controlled(input);
             if (c == null || c.stage == ProcessGraph.Stage.FINAL_METAL) continue;
+            if (c.stage==ProcessGraph.Stage.IMPURE_DUST) { guarded=true; continue; }
             for (ItemStack output : outputs) {
                 Controlled target = controlled(output);
-                if (target == null || !target.material.equals(c.material)) {
-                    // Raw and impure feedstock cannot be converted directly into alloy/electronics.
-                    if (c.stage != ProcessGraph.Stage.FINAL_METAL) guarded = true;
-                    continue;
+                if (c.stage==ProcessGraph.Stage.CLEAN_DUST) {
+                    // Clean iron powder may become steel and clean quartz may become
+                    // silicon. Only this material's final smelting step is restricted.
+                    if (target!=null && target.material.equals(c.material) && target.stage==ProcessGraph.Stage.FINAL_METAL)
+                        guarded=true;
+                } else {
+                    // Preserve raw storage packing/unpacking; ore grinding itself must
+                    // enter the approved impure stage, including Create's old crushed ore.
+                    if (target==null || !target.material.equals(c.material) || target.stage!=ProcessGraph.Stage.RAW
+                            || actual==null || !String.valueOf(ForgeRegistries.RECIPE_SERIALIZERS.getKey(actual.getSerializer()))
+                                .startsWith("minecraft:crafting")) guarded=true;
                 }
-                if (target.stage.ordinal() <= c.stage.ordinal()) continue;
-                guarded = true;
             }
         }
         if (!guarded) return null;
@@ -183,13 +203,17 @@ public final class RecipeGuard {
         if (stack.isEmpty()) return null;
         ResourceLocation id=ForgeRegistries.ITEMS.getKey(stack.getItem());
         for (var material : ProcessGraph.current().materials().values()) {
-            for (var stage : material.items().entrySet()) if (stage.getValue().equals(id)) return new Controlled(material,stage.getKey());
+            ProcessGraph.Stage stage=material.stage(id);
+            if (stage!=null) return new Controlled(material,stage);
             for (var path : List.of("ingots/","nuggets/","storage_blocks/"))
                 if (stack.is(TagKey.create(Registry.ITEM_REGISTRY,new ResourceLocation("forge",path+material.id()))))
                     return new Controlled(material,ProcessGraph.Stage.FINAL_METAL);
             if (stack.is(TagKey.create(Registry.ITEM_REGISTRY,new ResourceLocation("forge","dusts/"+material.id()))))
                 return new Controlled(material,ProcessGraph.Stage.CLEAN_DUST);
             if (stack.is(TagKey.create(Registry.ITEM_REGISTRY,new ResourceLocation("forge","ores/"+material.id()))))
+                return new Controlled(material,ProcessGraph.Stage.RAW);
+            if (stack.is(TagKey.create(Registry.ITEM_REGISTRY,new ResourceLocation("forge","raw_materials/"+material.id())))
+                    || stack.is(TagKey.create(Registry.ITEM_REGISTRY,new ResourceLocation("forge","storage_blocks/raw_"+material.id()))))
                 return new Controlled(material,ProcessGraph.Stage.RAW);
         }
         return null;

@@ -1,10 +1,10 @@
 {
-  "title": "调质钢锭",
-  "description": "使用 IC2 电炉或熔炼配方将碳钢钢坯加工为调质钢材。",
+  "title": "低碳钢锭",
+  "description": "把低碳钢粉直接熔炼成低碳钢锭，无钢坯步骤。",
   "branch": "资源与冶金",
   "icon": "ic2newera:tempered_steel_ingot",
   "prerequisites": [
-    "ic2newera:steel_billet"
+    "ic2newera:low_carbon_steel_dust"
   ],
   "objectives": [
     {
@@ -14,8 +14,8 @@
     }
   ],
   "steps": [
-    "按 IC2 电炉或熔炼配方将碳钢钢坯加工为调质钢材；具体输入与产物以 JEI 为准。",
-    "此处是简化的游戏内加工规则，不模拟现实热处理；本模组不提供专用热处理机器。"
+    "把低碳钢粉放入熔炉、IC2 电炉或原版高炉；配方以当前 ProcessGraph 与 JEI 为准。",
+    "低碳钢锭用于对应装备；锭重新打粉只得到同等级粉末，不返还碳粉或提高产量。"
   ],
   "x": 14,
   "y": 2

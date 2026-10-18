@@ -147,6 +147,20 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         return sanitized.substring(0, Math.min(96, sanitized.length()));
     }
 
+    /** Manual phone command retains the server's control/core/permission gates, replacing proximity with ICCN reachability. */
+    public boolean commandMachineFromMobile(net.minecraft.server.level.ServerPlayer player, BlockPos target, boolean start) {
+        if (!(level instanceof ServerLevel server) || player.level != level || !canManage(player) || !isControlAvailable()
+                || !IndustrialMobileAccess.canReachEndpoint(player, worldPosition) || !server.hasChunkAt(target)) return false;
+        var attachment = IndustrialNetworkTopology.attach(server, worldPosition);
+        if (attachment == null) return false;
+        var component = IndustrialNetworkTopology.component(server, attachment.networkSwitch());
+        var machine = IndustrialNetworkTopology.machinesFor(server, component).stream()
+                .filter(row -> row.report().pos().equals(target)).map(IndustrialNetworkTopology.ConnectedMachine::entity).findFirst().orElse(null);
+        if (!(machine instanceof ControllableMachine controllable)) return false;
+        controllable.setAutomationPaused(!start); autoPausedMachines.remove(target);
+        refreshServer(server); markSynced(); return true;
+    }
+
     public boolean setServerControlEnabled(Player player, boolean enabled) {
         if (!canManage(player) || (enabled && !hasAiCore())) return false;
         if (serverControlEnabled != enabled) {

@@ -13,7 +13,7 @@ import java.util.*;
 /** Complements authored guides with actual registered recipe products, never recipe-book advancements. */
 final class ProductTechnologyCatalog {
     private static final Set<String> ACTIVE_ADDON_OUTPUTS = Set.of(
-            "zinc_dust", "aluminium_bronze_ingot", "carbon_steel_billet", "high_carbon_steel_billet",
+            "zinc_dust", "aluminium_bronze_ingot", "low_carbon_steel_dust", "high_carbon_steel_dust",
             "tempered_steel_ingot", "tempered_high_carbon_steel_ingot",
             "aluminium_bronze_helmet", "aluminium_bronze_chestplate", "aluminium_bronze_leggings",
             "aluminium_bronze_boots", "aluminium_bronze_sword", "aluminium_bronze_axe",

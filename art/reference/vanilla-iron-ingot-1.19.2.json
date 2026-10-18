@@ -1,0 +1,136 @@
+{
+  "minecraft_version": "1.19.2",
+  "source": "Minecraft client.jar; assets/minecraft/textures/item/iron_ingot.png",
+  "texture_sha256": "4625aa2c32c74bd6796c7ba8e7ee6300db8d2f24fb38c9d9324a63b262a44391",
+  "texture_size": [
+    16,
+    16
+  ],
+  "opaque_bounds": [
+    0,
+    2,
+    16,
+    14
+  ],
+  "gray_levels": [
+    53,
+    88,
+    94,
+    114,
+    130,
+    168,
+    216,
+    255
+  ],
+  "shade_rows": [
+    "................",
+    "................",
+    "..........22....",
+    ".......222553...",
+    "....2225666653..",
+    ".22256666666653.",
+    "2766666666667763",
+    "2576666667776350",
+    "2557667776433450",
+    "2555776433335550",
+    "245564333355400.",
+    ".245643344000...",
+    "..24541000......",
+    "...2200.........",
+    "................",
+    "................"
+  ],
+  "iron_model": {
+    "parent": "minecraft:item/generated",
+    "textures": {
+      "layer0": "minecraft:item/iron_ingot"
+    }
+  },
+  "generated_parent_model": {
+    "parent": "builtin/generated",
+    "gui_light": "front",
+    "display": {
+      "ground": {
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "translation": [
+          0,
+          2,
+          0
+        ],
+        "scale": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "head": {
+        "rotation": [
+          0,
+          180,
+          0
+        ],
+        "translation": [
+          0,
+          13,
+          7
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      },
+      "thirdperson_righthand": {
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "translation": [
+          0,
+          3,
+          1
+        ],
+        "scale": [
+          0.55,
+          0.55,
+          0.55
+        ]
+      },
+      "firstperson_righthand": {
+        "rotation": [
+          0,
+          -90,
+          25
+        ],
+        "translation": [
+          1.13,
+          3.2,
+          1.13
+        ],
+        "scale": [
+          0.68,
+          0.68,
+          0.68
+        ]
+      },
+      "fixed": {
+        "rotation": [
+          0,
+          180,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "usage": "User requested identical vanilla proportions and texture silhouette; recolour only. Vanilla game assets belong to Mojang/Microsoft."
+}

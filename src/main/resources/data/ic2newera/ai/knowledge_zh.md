@@ -1,6 +1,6 @@
-﻿# IC2 新纪元：工业与电子知识
+# IC2 新纪元：工业与电子知识
 
-本指南覆盖四种受控矿物、六种新纪元合金锭、九种电子材料、两台材料处理机和工业网络。化学实验、反应链与化工机器已退出当前范围，不能当作可用玩法推荐。
+本指南覆盖四种新增矿物和十种已有粉末的受控矿物、六种新纪元合金锭、九种电子材料、两台材料处理机和工业网络。化学实验、反应链与化工机器已退出当前范围，不能当作可用玩法推荐。
 
 ## 唯一配方与数量来源
 
@@ -12,7 +12,7 @@
 
 - IC2 Classic 提供 EU、电网、储能、基础粉碎/熔炼/合金机器及其原生物流。
 - Create 提供转速、机械加工、粉碎轮、风扇水洗、物品物流与机械自动化。
-- EU 和 Create 转速不可互换；新纪元工业网络传数据，不承载电力、转速、物品或流体。
+- EU 与 Create 转速网络各自独立；已有新纪元 EU 电动机提供单向 EU→转轴动力，没有反向发电。工业网络只传数据，不承载电力、转速、物品或流体。
 - 新纪元新增矿物阶段与合金、电子材料、两台材料处理机、工业网络和生产规划；不重做 IC2/Create 原生设备。
 
 ## IC2 Classic 粉碎机界面：I / C / S 按钮、槽位和升级（Macerator / GUI）
@@ -25,9 +25,19 @@
 
 粉碎机注册 ID 是 ic2:macerator。左边闪电形条是 EU 能量/充能显示，箭头形条是加工进度。右边竖排四格属于 SlotType.UPGRADES，中文槽位名为“升级”；只能放机器接受的 IC2 升级组件，是可选位，不是四个原料格，留空也能工作。组件可改变速度、耗能、储能或物品导入/导出行为，具体以组件提示与机器校验为准。
 
+## 已有矿物的打粉与水洗
+
+铁、金、铜、煤、钻石、石英、锡、银、铝、锌已有普通粉末，因此补齐含杂质粉中间体。矿石、深层/下界变体、粗金属及旧 Create 碎矿通过 IC2 粉碎机或 Create 粉碎轮先得到含杂质粉，经过 Create 风扇加水清洗才得到已有普通粉末。煤、钻石和石英的固体资源打粉同样需要清洗；它们原有燃料、合成、装备等用途照常使用。钻石粉复用目标版本 IC2 的 ic2:dust_diamond。煤/钻石/石英的路线止于粉末，不虚构熔炼成锭或从粉返还宝石的步骤。
+
+红石粉按玩家要求保持原流程；青金石、绿宝石、远古残骸和铀没有普通粉，不新增粉或路线。已制成金属锭的同级打粉回收直接得到普通粉；清洗后的铁/煤粉仍进入合金炉制作高低碳钢，普通石英粉仍用于制硅。原矿单倍直烧保留低效旧路线；工业规划须读取图里的杂质粉与水洗步骤。
+
 ## 四种矿物路线
 
 镍、铬、钛、钨从矿石经粉碎得到含杂质粉，再由 Create 风扇水洗得到洁净粉，最后按服务端批准路线精炼。镍、铬可用普通熔炼路线；钛、钨洁净粉走 IC2 电力高炉或感应高炉。矿石旧直炼是否保留由当前图和 RecipeGuard 分类决定；不要把杂质粉直接熔炼或使用旧攻略覆盖当前裁决。
+
+## 高低碳钢粉与钢锭
+
+高低碳钢各有粉末和钢锭两个形态。普通铁粉和 IC2 煤粉分别打粉后，在 IC2 合金炉配成对应钢粉，再熔炼成锭；没有钢坯、配料包或额外碳中间体。青铜、黄铜和新纪元其他金属合金的配料也只走合金炉，不能推荐工作台混粉或 Create 搅拌旁路。输入比例、批次数与产量必须读取当前服务器 ProcessGraph，不能由此静态文档另行推算。两种钢锭重新打粉只回收同等级粉末；已制成合金的块/粒拆分和装备制作仅使用批准配方。
 
 ## 两台材料处理机
 
@@ -55,12 +65,14 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 下列名称由当前简体中文语言文件自动生成；精确配方步骤和数量见当前服务器同步 ProcessGraph 与 JEI。
 - 铬矿石（方块，`ic2newera:chromium_ore`）
 - 电子材料加工机（方块，`ic2newera:electronic_fabricator`）
+- EU电动机（方块，`ic2newera:eu_motor`）
 - 工业控制服务器（方块，`ic2newera:industrial_control_server`）
 - 工业光纤（方块，`ic2newera:industrial_fiber`）
 - 工业网络交换机（方块，`ic2newera:industrial_network_switch`）
 - 机器网络适配器（方块，`ic2newera:machine_network_adapter`）
 - 镍矿石（方块，`ic2newera:nickel_ore`）
 - 非金属处理机（方块，`ic2newera:non_metal_processor`）
+- 终端机（方块，`ic2newera:terminal`）
 - 钛矿石（方块，`ic2newera:titanium_ore`）
 - 钨矿石（方块，`ic2newera:tungsten_ore`）
 - 铝青铜斧（物品，`ic2newera:aluminium_bronze_axe`）
@@ -70,21 +82,31 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 铝青铜锭（物品，`ic2newera:aluminium_bronze_ingot`）
 - 铝青铜护腿（物品，`ic2newera:aluminium_bronze_leggings`）
 - 铝青铜剑（物品，`ic2newera:aluminium_bronze_sword`）
-- 碳钢坯（物品，`ic2newera:carbon_steel_billet`）
 - 铬粉（物品，`ic2newera:chromium_dust`）
 - 铬锭（物品，`ic2newera:chromium_ingot`）
 - 中央处理器（物品，`ic2newera:cpu`）
 - 图形处理器（物品，`ic2newera:gpu`）
-- 高碳钢坯（物品，`ic2newera:high_carbon_steel_billet`）
+- 高碳钢粉（物品，`ic2newera:high_carbon_steel_dust`）
 - 高纯硅（物品，`ic2newera:high_purity_silicon`）
+- 含杂质的铝粉（物品，`ic2newera:impure_aluminium_dust`）
 - 含杂质的铬粉（物品，`ic2newera:impure_chromium_dust`）
+- 含杂质的煤粉（物品，`ic2newera:impure_coal_dust`）
+- 含杂质的铜粉（物品，`ic2newera:impure_copper_dust`）
+- 含杂质的钻石粉（物品，`ic2newera:impure_diamond_dust`）
+- 含杂质的金粉（物品，`ic2newera:impure_gold_dust`）
+- 含杂质的铁粉（物品，`ic2newera:impure_iron_dust`）
 - 含杂质的镍粉（物品，`ic2newera:impure_nickel_dust`）
+- 含杂质的石英粉（物品，`ic2newera:impure_quartz_dust`）
+- 含杂质的银粉（物品，`ic2newera:impure_silver_dust`）
+- 含杂质的锡粉（物品，`ic2newera:impure_tin_dust`）
 - 含杂质的钛粉（物品，`ic2newera:impure_titanium_dust`）
 - 含杂质的钨粉（物品，`ic2newera:impure_tungsten_dust`）
+- 含杂质的锌粉（物品，`ic2newera:impure_zinc_dust`）
 - 工业AI核心（物品，`ic2newera:industrial_ai_core`）
 - 工业固态存储器（物品，`ic2newera:industrial_ssd`）
 - 集成电路（物品，`ic2newera:integrated_circuit`）
 - 因瓦合金锭（物品，`ic2newera:invar_ingot`）
+- 低碳钢粉（物品，`ic2newera:low_carbon_steel_dust`）
 - 镍铬合金锭（物品，`ic2newera:nichrome_ingot`）
 - 镍粉（物品，`ic2newera:nickel_dust`）
 - 镍锭（物品，`ic2newera:nickel_ingot`）
@@ -93,20 +115,20 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 内存模块（物品，`ic2newera:ram`）
 - 硅（物品，`ic2newera:silicon`）
 - 不锈钢锭（物品，`ic2newera:stainless_steel_ingot`）
-- 高碳调质钢斧（物品，`ic2newera:tempered_high_carbon_steel_axe`）
-- 高碳调质钢靴子（物品，`ic2newera:tempered_high_carbon_steel_boots`）
-- 高碳调质钢胸甲（物品，`ic2newera:tempered_high_carbon_steel_chestplate`）
-- 高碳调质钢头盔（物品，`ic2newera:tempered_high_carbon_steel_helmet`）
-- 高碳调质钢锭（物品，`ic2newera:tempered_high_carbon_steel_ingot`）
-- 高碳调质钢护腿（物品，`ic2newera:tempered_high_carbon_steel_leggings`）
-- 高碳调质钢剑（物品，`ic2newera:tempered_high_carbon_steel_sword`）
-- 调质钢斧（物品，`ic2newera:tempered_steel_axe`）
-- 调质钢靴（物品，`ic2newera:tempered_steel_boots`）
-- 调质钢胸甲（物品，`ic2newera:tempered_steel_chestplate`）
-- 调质钢头盔（物品，`ic2newera:tempered_steel_helmet`）
-- 调质钢锭（物品，`ic2newera:tempered_steel_ingot`）
-- 调质钢护腿（物品，`ic2newera:tempered_steel_leggings`）
-- 调质钢剑（物品，`ic2newera:tempered_steel_sword`）
+- 高碳钢斧（物品，`ic2newera:tempered_high_carbon_steel_axe`）
+- 高碳钢靴子（物品，`ic2newera:tempered_high_carbon_steel_boots`）
+- 高碳钢胸甲（物品，`ic2newera:tempered_high_carbon_steel_chestplate`）
+- 高碳钢头盔（物品，`ic2newera:tempered_high_carbon_steel_helmet`）
+- 高碳钢锭（物品，`ic2newera:tempered_high_carbon_steel_ingot`）
+- 高碳钢护腿（物品，`ic2newera:tempered_high_carbon_steel_leggings`）
+- 高碳钢剑（物品，`ic2newera:tempered_high_carbon_steel_sword`）
+- 低碳钢斧（物品，`ic2newera:tempered_steel_axe`）
+- 低碳钢靴（物品，`ic2newera:tempered_steel_boots`）
+- 低碳钢胸甲（物品，`ic2newera:tempered_steel_chestplate`）
+- 低碳钢头盔（物品，`ic2newera:tempered_steel_helmet`）
+- 低碳钢锭（物品，`ic2newera:tempered_steel_ingot`）
+- 低碳钢护腿（物品，`ic2newera:tempered_steel_leggings`）
+- 低碳钢剑（物品，`ic2newera:tempered_steel_sword`）
 - 钛合金锭（物品，`ic2newera:titanium_alloy_ingot`）
 - 钛粉（物品，`ic2newera:titanium_dust`）
 - 钛锭（物品，`ic2newera:titanium_ingot`）
@@ -114,6 +136,7 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 碳化钨锭（物品，`ic2newera:tungsten_carbide_ingot`）
 - 钨粉（物品，`ic2newera:tungsten_dust`）
 - 钨锭（物品，`ic2newera:tungsten_ingot`）
+- WiFi增幅器（物品，`ic2newera:wifi_amplifier`）
 - 锌粉（物品，`ic2newera:zinc_dust`）
 
 ## 官方参考

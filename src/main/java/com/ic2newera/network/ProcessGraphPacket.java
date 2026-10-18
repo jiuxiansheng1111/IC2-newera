@@ -53,8 +53,15 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
         for (ProcessGraph.Material material : graph.materials().values()) {
             buffer.writeUtf(material.id(), 64);
             buffer.writeBoolean(material.advanced());
-            for (ProcessGraph.Stage stage : ProcessGraph.Stage.values())
-                buffer.writeUtf(requiredId(material.items().get(stage)), 256);
+            for (ProcessGraph.Stage stage : ProcessGraph.Stage.values()) {
+                ResourceLocation item = material.items().get(stage);
+                buffer.writeBoolean(item != null);
+                if (item != null) buffer.writeUtf(item.toString(), 256);
+            }
+            buffer.writeVarInt(material.rawVariants().size());
+            material.rawVariants().forEach(item -> buffer.writeUtf(item.toString(), 256));
+            buffer.writeVarInt(material.grindingInputs().size());
+            material.grindingInputs().forEach(item -> buffer.writeUtf(item.toString(), 256));
         }
         buffer.writeVarInt(graph.routes().size());
         for (ProcessGraph.Route route : graph.routes()) {
@@ -88,8 +95,12 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
             String id = buffer.readUtf(64);
             boolean advanced = buffer.readBoolean();
             Map<ProcessGraph.Stage, ResourceLocation> stages = new EnumMap<>(ProcessGraph.Stage.class);
-            for (ProcessGraph.Stage stage : ProcessGraph.Stage.values()) stages.put(stage, parseId(buffer.readUtf(256)));
-            if (materials.putIfAbsent(id, new ProcessGraph.Material(id, advanced, Map.copyOf(stages))) != null)
+            for (ProcessGraph.Stage stage : ProcessGraph.Stage.values()) if (buffer.readBoolean())
+                stages.put(stage, parseId(buffer.readUtf(256)));
+            List<ResourceLocation> variants = readIds(buffer, 16);
+            List<ResourceLocation> grindingInputs = readIds(buffer, 8);
+            validateMaterial(stages, variants, grindingInputs);
+            if (materials.putIfAbsent(id, new ProcessGraph.Material(id, advanced, Map.copyOf(stages), variants, grindingInputs)) != null)
                 throw new IllegalArgumentException("Duplicate process material");
         }
         int routeCount = bounded(buffer.readVarInt(), 0, MAX_ROUTES, "route count");
@@ -137,7 +148,10 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
             throw new IllegalArgumentException("ProcessGraph exceeds record limits");
         graph.materials().values().forEach(material -> {
             checkString(material.id(), 64);
-            for (ProcessGraph.Stage stage : ProcessGraph.Stage.values()) checkString(requiredId(material.items().get(stage)), 256);
+            validateMaterial(material.items(), material.rawVariants(), material.grindingInputs());
+            material.items().values().forEach(item -> checkString(requiredId(item), 256));
+            material.rawVariants().forEach(item -> checkString(requiredId(item), 256));
+            material.grindingInputs().forEach(item -> checkString(requiredId(item), 256));
         });
         graph.routes().forEach(route -> {
             checkString(route.id().toString(), 256); checkString(route.material(), 64);
@@ -164,6 +178,9 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
         for (ProcessGraph.Material material : graph.materials().values()) {
             size += utfSize(material.id());
             for (ResourceLocation id : material.items().values()) size += utfSize(requiredId(id));
+            for (ResourceLocation id : material.rawVariants()) size += utfSize(requiredId(id));
+            for (ResourceLocation id : material.grindingInputs()) size += utfSize(requiredId(id));
+            size += 16;
         }
         for (ProcessGraph.Route route : graph.routes()) {
             size += utfSize(route.id().toString()) + utfSize(route.material()) + utfSize(route.classification().name());
@@ -176,6 +193,22 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
     }
 
     private static int utfSize(String text) { return text.getBytes(StandardCharsets.UTF_8).length + 3; }
+    private static List<ResourceLocation> readIds(FriendlyByteBuf buffer, int max) {
+        int count = bounded(buffer.readVarInt(), 0, max, "material variant count");
+        List<ResourceLocation> ids = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) ids.add(parseId(buffer.readUtf(256)));
+        return List.copyOf(ids);
+    }
+    private static void validateMaterial(Map<ProcessGraph.Stage, ResourceLocation> stages,
+                                         List<ResourceLocation> variants, List<ResourceLocation> grindingInputs) {
+        if (!stages.keySet().containsAll(java.util.Set.of(ProcessGraph.Stage.RAW,
+                ProcessGraph.Stage.IMPURE_DUST, ProcessGraph.Stage.CLEAN_DUST))
+                || variants.size()>16 || grindingInputs.size()>8
+                || variants.stream().distinct().count()!=variants.size()
+                || grindingInputs.stream().distinct().count()!=grindingInputs.size()
+                || (!stages.containsKey(ProcessGraph.Stage.FINAL_METAL) && grindingInputs.isEmpty()))
+            throw new IllegalArgumentException("Invalid mineral stages");
+    }
     private static String requiredId(ResourceLocation id) {
         if (id == null) throw new IllegalArgumentException("Missing process stage");
         return id.toString();

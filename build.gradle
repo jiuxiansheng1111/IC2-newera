@@ -16,6 +16,12 @@ if (project.hasProperty('isolatedBuild')) {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+jarJar.enable()
+configurations {
+    library
+    implementation.extendsFrom library
+}
+
 minecraft {
     mappings channel: 'official', version: minecraft_version
 
@@ -27,6 +33,9 @@ minecraft {
             // Translate dependency Mixin refmaps from SRG names to the development mappings.
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+            lazyToken('minecraft_classpath') {
+                configurations.library.copyRecursive().resolve().collect { it.absolutePath }.join(File.pathSeparator)
+            }
             mods {
                 ic2newera {
                     source sourceSets.main
@@ -39,6 +48,7 @@ minecraft {
 }
 
 repositories {
+    mavenCentral { content { includeGroup 'javazoom' } }
     maven {
         url = 'https://www.cursemaven.com'
         content { includeGroup 'curse.maven' }
@@ -46,6 +56,11 @@ repositories {
 }
 
 dependencies {
+    library 'javazoom:jlayer:1.0.1'
+    jarJar(group: 'javazoom', name: 'jlayer', version: '1.0.1') {
+        jarJar.ranged(it, '[1.0.1,1.0.2)')
+        transitive = false
+    }
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation fg.deobf("curse.maven:ic2-classic-242942:${ic2_classic_file_id}")
     implementation fg.deobf("curse.maven:create-328085:5797604")

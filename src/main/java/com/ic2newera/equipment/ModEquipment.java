@@ -23,8 +23,8 @@ public final class ModEquipment {
 
     public static final RegistryObject<Item> TEMPERED_STEEL_INGOT = material("tempered_steel_ingot");
     public static final RegistryObject<Item> ALUMINIUM_BRONZE_INGOT = material("aluminium_bronze_ingot");
-    public static final RegistryObject<Item> CARBON_STEEL_BILLET = material("carbon_steel_billet");
-    public static final RegistryObject<Item> HIGH_CARBON_STEEL_BILLET = material("high_carbon_steel_billet");
+    public static final RegistryObject<Item> LOW_CARBON_STEEL_DUST = material("low_carbon_steel_dust");
+    public static final RegistryObject<Item> HIGH_CARBON_STEEL_DUST = material("high_carbon_steel_dust");
     public static final RegistryObject<Item> TEMPERED_HIGH_CARBON_STEEL_INGOT = material("tempered_high_carbon_steel_ingot");
 
     public static final RegistryObject<Item> TEMPERED_STEEL_HELMET = armor("tempered_steel_helmet", SteelArmor.INSTANCE, EquipmentSlot.HEAD);

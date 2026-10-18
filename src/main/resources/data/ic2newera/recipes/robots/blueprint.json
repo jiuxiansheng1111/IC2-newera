@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "minecraft:blue_dye"
+    },
+    {
+      "item": "minecraft:redstone"
+    },
+    {
+      "item": "ic2:advanced_circuit"
+    },
+    {
+      "item": "create:precision_mechanism"
+    },
+    {
+      "item": "ic2:carbon_plate"
+    }
+  ],
+  "result": {
+    "item": "ic2newera:robot_blueprint",
+    "count": 1
+  }
+}

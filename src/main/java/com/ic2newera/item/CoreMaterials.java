@@ -8,7 +8,7 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
-/** The four newly controlled mineral material lines and their ore block items. */
+/** New mineral lines and impure intermediates for existing, verified powder products. */
 public final class CoreMaterials {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, IC2NewEra.MOD_ID);
 
@@ -27,6 +27,17 @@ public final class CoreMaterials {
     public static final RegistryObject<Item> TUNGSTEN_INGOT = material("tungsten_ingot");
     public static final RegistryObject<Item> TUNGSTEN_DUST = material("tungsten_dust");
     public static final RegistryObject<Item> IMPURE_TUNGSTEN_DUST = material("impure_tungsten_dust");
+
+    public static final RegistryObject<Item> IMPURE_IRON_DUST = material("impure_iron_dust");
+    public static final RegistryObject<Item> IMPURE_GOLD_DUST = material("impure_gold_dust");
+    public static final RegistryObject<Item> IMPURE_COPPER_DUST = material("impure_copper_dust");
+    public static final RegistryObject<Item> IMPURE_COAL_DUST = material("impure_coal_dust");
+    public static final RegistryObject<Item> IMPURE_DIAMOND_DUST = material("impure_diamond_dust");
+    public static final RegistryObject<Item> IMPURE_QUARTZ_DUST = material("impure_quartz_dust");
+    public static final RegistryObject<Item> IMPURE_TIN_DUST = material("impure_tin_dust");
+    public static final RegistryObject<Item> IMPURE_SILVER_DUST = material("impure_silver_dust");
+    public static final RegistryObject<Item> IMPURE_ALUMINIUM_DUST = material("impure_aluminium_dust");
+    public static final RegistryObject<Item> IMPURE_ZINC_DUST = material("impure_zinc_dust");
 
     public static final RegistryObject<Item> NICKEL_ORE_ITEM = oreItem("nickel_ore", ModMineralBlocks.NICKEL_ORE);
     public static final RegistryObject<Item> CHROMIUM_ORE_ITEM = oreItem("chromium_ore", ModMineralBlocks.CHROMIUM_ORE);

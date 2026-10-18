@@ -1,0 +1,101 @@
+{
+  "protocol": 1,
+  "port": 9881,
+  "data_directory": "runtime",
+  "gpu_lock_file": "runtime/gpu.lock",
+  "ffmpeg": "D:/IC2NewEraVoice/RVC-upstream-20261012/ffmpeg.exe",
+  "base_tts": {
+    "root": "D:/IC2NewEraVoice/GPT-SoVITS",
+    "python": "D:/IC2NewEraVoice/GPT-SoVITS/.venv/Scripts/python.exe",
+    "version": "v2",
+    "gpt_weights": "D:/IC2NewEraVoice/GPT-SoVITS/GPT_SoVITS/pretrained_models/gsv-v2final-pretrained/s1bert25hz-5kh-longer-epoch=12-step=369668.ckpt",
+    "sovits_weights": "D:/IC2NewEraVoice/murasame_voice_mixed_e13_s1430.pth",
+    "bert_base_path": "D:/IC2NewEraVoice/GPT-SoVITS/GPT_SoVITS/pretrained_models/chinese-roberta-wwm-ext-large",
+    "cnhuhbert_base_path": "D:/IC2NewEraVoice/GPT-SoVITS/GPT_SoVITS/pretrained_models/chinese-hubert-base",
+    "reference_audio": "D:/IC2NewEraVoice/murasame_0001.mp3",
+    "prompt_text": "子供扱いするでない。吾輩の方がはるかに年上であるのに。",
+    "prompt_language": "ja",
+    "supported_languages": [
+      "zh",
+      "ja",
+      "en"
+    ],
+    "seed": 17,
+    "top_k": 15,
+    "temperature": 0.8,
+    "repetition_penalty": 1.35,
+    "text_split_method": "cut5",
+    "japanese_frontend_package": "D:/IC2NewEraVoice/GPT-SoVITS/.venv_cpu/Lib/site-packages/pyopenjtalk"
+  },
+  "rvc": {
+    "root": "D:/IC2NewEraVoice/RVC-upstream-20261012",
+    "python": "D:/IC2NewEraVoice/RVC-upstream-20261012/.venv/Scripts/python.exe",
+    "seed": 20261004
+  },
+  "characters": {
+    "tomori": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mygo_deng.pth",
+      "index": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/indices/mygo_deng.index",
+      "index_rate": 0.75,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "anon": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mygo_aiyi.pth",
+      "index": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/indices/mygo_aiyi.index",
+      "index_rate": 0.75,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "rana": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mygo_lenai.pth",
+      "index": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/indices/mygo_lenai.index",
+      "index_rate": 0.75,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "soyo": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mygo_sushi.pth",
+      "index": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/indices/mygo_sushi.index",
+      "index_rate": 0.75,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "taki": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mygo_lixi.pth",
+      "index": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/indices/mygo_lixi.index",
+      "index_rate": 0.75,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "sakiko": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mujica_xiangzi.pth",
+      "index": "",
+      "index_rate": 0.0,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "uika": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mujica_chuhua.pth",
+      "index": "",
+      "index_rate": 0.0,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    },
+    "umiri": {
+      "enabled": true,
+      "model": "D:/IC2NewEraVoice/RVC-upstream-20261012/assets/weights/mujica_hailin.pth",
+      "index": "",
+      "index_rate": 0.0,
+      "speaker_id": 0,
+      "semitone_shift": 0
+    }
+  }
+}

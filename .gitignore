@@ -25,3 +25,21 @@ replay_pid*
 /art/references/reagent-bottle-reference.png
 __pycache__/
 *.pyc
+
+# Local optional voice installation; publish source and the editable example.
+/config/
+/tools/robot_voice/ic2newera-voice-runtime.json
+/tools/robot_voice/runtime/
+/tools/robot_voice/static-verification.json
+/tools/robot_voice/**/*.pth
+/tools/robot_voice/**/*.ckpt
+/tools/robot_voice/**/*.onnx
+/tools/robot_voice/**/*.index
+
+# Historical studies and original photo references are not public sources.
+/art/robot-rework/
+/art/robot-mcp-workspace/
+/art/robot-image-reference/
+/art/robot-dolls/
+/art/robot-cuboids/
+/art/robot-reference-head-prototype/

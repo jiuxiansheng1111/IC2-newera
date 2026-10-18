@@ -109,3 +109,4 @@ $receiptFile = Join-Path $deploymentPath 'pcl-installation.json'
     mods = @($plan | Select-Object modId, destination, sha256)
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $receiptFile -Encoding UTF8
 [pscustomobject]@{ copied = $copied; total = $plan.Count; modsDirectory = $modsPath; receipt = $receiptFile } | ConvertTo-Json
+& (Join-Path $PSScriptRoot 'install-voice-runtime.ps1') -GameDirectory $versionPath

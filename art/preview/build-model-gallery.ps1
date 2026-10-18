@@ -28,7 +28,7 @@ $textures = [ordered]@{}
 foreach ($entry in $catalog) {
     $assetsRoot = Join-Path $projectRoot $entry.assetRoot
     $model = Read-Model $assetsRoot $entry.path
-    $generated = $model.parent -in @('minecraft:item/generated', 'item/generated', 'minecraft:item/handheld', 'item/handheld')
+    $generated = $model.parent -in @('minecraft:item/generated', 'item/generated', 'minecraft:item/handheld', 'item/handheld', 'minecraft:item/iron_ingot')
     if ((-not $model.elements -and -not $generated) -or -not $model.textures) { throw "No geometry/textures for $($entry.id)" }
     foreach ($textureRef in $model.textures.Values) {
         if ($textureRef.StartsWith('#')) { continue }

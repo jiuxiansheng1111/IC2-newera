@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+from machine_visual_style import write_device
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -226,6 +227,7 @@ def generate() -> None:
         }],
     })
     update_catalog()
+    write_device('eu_motor')
 
 
 if __name__ == "__main__":

@@ -16,10 +16,11 @@ import java.util.Set;
 
 /** Curated Chinese nodes generated only from currently loaded process graph facts. */
 public final class ProcessTechnologyCatalog {
-    private static final List<String> MATERIALS = List.of("nickel", "chromium", "titanium", "tungsten");
     private static final List<String> ELECTRONICS = List.of("silicon", "high_purity_silicon", "pcb", "integrated_circuit",
             "cpu", "ram", "gpu", "industrial_ssd", "titanium_alloy_ingot", "machine_network_adapter", "industrial_fiber",
-            "industrial_network_switch", "industrial_control_server", "industrial_ai_core");
+            "industrial_network_switch", "industrial_control_server", "industrial_ai_core",
+            "robot_control_core", "robot_actuator", "robot_battery", "power_bank", "intermediate_power_bank",
+            "advanced_power_bank", "nuclear_power_bank", "industrial_phone");
     private ProcessTechnologyCatalog() { }
 
     public static Collection<TechnologyNode> nodes() { return generate(ProcessGraph.current()); }
@@ -32,7 +33,7 @@ public final class ProcessTechnologyCatalog {
         Map<ResourceLocation, TechnologyNode> result = new LinkedHashMap<>();
         Map<ResourceLocation, ResourceLocation> materialStageNodes = new LinkedHashMap<>();
         int materialRow = 0;
-        for (String materialId : MATERIALS) {
+        for (String materialId : graph.materials().keySet().stream().sorted().toList()) {
             ProcessGraph.Material material = graph.materials().get(materialId);
             if (material == null) continue;
             ResourceLocation previous = null;
@@ -73,6 +74,15 @@ public final class ProcessTechnologyCatalog {
                 if (parent != null) parents.add(parent.id());
             }
             List<net.minecraft.network.chat.Component> steps = routeSteps(graph, item);
+            if (path.endsWith("power_bank")) {
+                steps.add(net.minecraft.network.chat.Component.literal("初级、中级、高级、核能分别需要一至四级 IC2 充电设备。放副手自动给电压等级兼容的手机、电池和装备补电；放玩家背包只给手机补电。"));
+                steps.add(net.minecraft.network.chat.Component.literal("高级或核能充电宝放进机器人货物格，会自动给已安装的三级电池补电，无需拆电池或开启开关。初级、中级电压不足。"));
+                steps.add(net.minecraft.network.chat.Component.literal("升级加工会消耗旧充电宝与水晶，不继承其中储能。"));
+                if (path.equals("nuclear_power_bank")) steps.add(net.minecraft.network.chat.Component.literal(
+                        "核能档：另一只手持 IC2 铀燃料棒，潜行右键装入或替换；另一只手空着时潜行右键取出。玩家携带或放在已放置机器人的货物格时按燃料原生产能自充，满电暂停消耗。"));
+            }
+            if (path.equals("industrial_phone")) steps.add(net.minecraft.network.chat.Component.literal(
+                    "手机容量 200,000 EU；携带有电的充电宝可自动补电，也可用 IC2 设备充电。打开/刷新消耗 20 EU，发送命令消耗 100 EU。"));
             int count = primary.outputCount();
             steps.add(net.minecraft.network.chat.Component.literal("本节点取得目标数量：" + count + "；数量取自批准路线的产出数量。"));
             TechnologyNode node = new TechnologyNode(id, net.minecraft.network.chat.Component.literal(electronicsTitle(path)),
@@ -146,9 +156,14 @@ public final class ProcessTechnologyCatalog {
         return id != null && ForgeRegistries.ITEMS.getValue(id) != null;
     }
     private static String materialTitle(String id, ProcessGraph.Stage stage) {
-        String name = switch (id) { case "nickel" -> "镍"; case "chromium" -> "铬"; case "titanium" -> "钛"; case "tungsten" -> "钨"; default -> id; };
-        String form = switch (stage) { case RAW -> "矿石"; case IMPURE_DUST -> "粗粉"; case CLEAN_DUST -> "纯粉"; case FINAL_METAL -> "锭"; };
-        return name + form;
+        String name = switch (id) {
+            case "nickel" -> "镍"; case "chromium" -> "铬"; case "titanium" -> "钛"; case "tungsten" -> "钨";
+            case "iron" -> "铁"; case "gold" -> "金"; case "copper" -> "铜"; case "coal" -> "煤";
+            case "diamond" -> "钻石"; case "quartz" -> "石英"; case "tin" -> "锡";
+            case "silver" -> "银"; case "aluminium" -> "铝"; case "zinc" -> "锌"; default -> id;
+        };
+        return switch (stage) { case RAW -> name+"矿石"; case IMPURE_DUST -> "含杂质的"+name+"粉";
+            case CLEAN_DUST -> name+"粉"; case FINAL_METAL -> name+"锭"; };
     }
     private static String electronicsTitle(String id) {
         return switch (id) {
@@ -157,7 +172,11 @@ public final class ProcessTechnologyCatalog {
             case "gpu" -> "图形处理器"; case "industrial_ssd" -> "工业固态硬盘"; case "titanium_alloy_ingot" -> "钛合金锭";
             case "machine_network_adapter" -> "机器网络适配器"; case "industrial_fiber" -> "工业光纤";
             case "industrial_network_switch" -> "工业网络交换机"; case "industrial_control_server" -> "工业控制服务器";
-            case "industrial_ai_core" -> "工业 AI 核心"; default -> id;
+            case "industrial_ai_core" -> "工业 AI 核心";
+            case "robot_control_core" -> "机器人控制核心"; case "robot_actuator" -> "机器人执行器";
+            case "robot_battery" -> "机器人电池"; case "power_bank" -> "初级充电宝";
+            case "intermediate_power_bank" -> "中级充电宝"; case "advanced_power_bank" -> "高级充电宝";
+            case "nuclear_power_bank" -> "核能充电宝"; case "industrial_phone" -> "手机"; default -> id;
         };
     }
 }

@@ -8,6 +8,7 @@ import random
 from pathlib import Path
 
 from PIL import Image, ImageDraw
+from material_pixel_style import draw_ingot as metal_ingot, draw_dust as metal_dust
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -99,48 +100,11 @@ def draw_ore(material: str, palette: tuple[str, ...]) -> Image.Image:
 
 
 def draw_dust(palette: tuple[str, ...], impure: bool, seed: int) -> Image.Image:
-    image, draw = new_icon()
-    outline, body, light, glint = map(rgb, palette)
-    rows = {6: (7, 8), 7: (5, 10), 8: (3, 12), 9: (2, 13), 10: (3, 12), 11: (5, 10), 12: (7, 8)}
-    for y, (left, right) in rows.items():
-        for x in range(left, right + 1):
-            draw.point((x, y), fill=outline if x in (left, right) or y in (6, 12) else body)
-    # Light grains form a compact center and edge rim; normal powder has no dark grit.
-    for x, y in ((5, 8), (7, 7), (9, 8), (4, 9), (6, 10), (9, 10), (11, 9)):
-        draw.point((x, y), fill=light)
-    for x, y in ((6, 7), (10, 8), (8, 9)):
-        draw.point((x, y), fill=glint)
-    for x, y in ((4, 11), (11, 10), (7, 11)):
-        draw.point((x, y), fill=body)
-    if impure:
-        rng = random.Random(seed)
-        grit = rgb("#242321")
-        for x, y in rng.sample([(x, y) for y in range(8, 12) for x in range(4, 12)], 8):
-            draw.point((x, y), fill=grit if (x + y) % 3 else outline)
-        # A pair of clearly readable dark mineral fragments.
-        draw.rectangle((5, 8, 6, 9), fill=grit)
-        draw.point((10, 10), fill=grit)
-    return image
+    return metal_dust(palette, impure, seed)
 
 
 def draw_ingot(palette: tuple[str, ...]) -> Image.Image:
-    image, draw = new_icon()
-    outline, body, light, glint = map(rgb, palette)
-    # A slanted bar silhouette with a bevelled top face and a broad front plane.
-    rows = {4: (8, 10), 5: (6, 12), 6: (4, 14), 7: (3, 13), 8: (2, 12), 9: (3, 11), 10: (4, 10), 11: (5, 9)}
-    for y, (left, right) in rows.items():
-        draw.line((left, y, right, y), fill=outline)
-    for y in range(6, 11):
-        left, right = rows[y]
-        draw.line((left + 1, y, right - 1, y), fill=body)
-    draw.line((7, 5, 11, 5), fill=light)
-    draw.point((6, 5), fill=glint)
-    draw.line((5, 6, 8, 6), fill=light)
-    draw.point((4, 7), fill=glint)
-    draw.line((4, 8, 7, 8), fill=light)
-    draw.line((8, 9, 11, 9), fill=outline)
-    draw.line((6, 10, 9, 10), fill=outline)
-    return image
+    return metal_ingot(palette)
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -171,7 +135,7 @@ def generate() -> None:
             image = draw_dust(palette, suffix == "impure_dust", 700 + index) if "dust" in suffix else draw_ingot(palette)
             save_image(image, ITEM_TEXTURES / f"{item_id}.png")
             write_json(ITEM_MODELS / f"{item_id}.json", {
-                "parent": "minecraft:item/generated",
+                "parent": "minecraft:item/iron_ingot" if suffix == "ingot" else "minecraft:item/generated",
                 "textures": {"layer0": f"ic2newera:item/{item_id}"},
             })
 

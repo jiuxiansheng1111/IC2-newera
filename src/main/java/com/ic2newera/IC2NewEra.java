@@ -55,11 +55,19 @@ public final class IC2NewEra {
         ModItems.ITEMS.register(modBus);
         ModEquipment.ITEMS.register(modBus);
         ModMenus.MENUS.register(modBus);
+        com.ic2newera.robot.RobotRegistry.ITEMS.register(modBus);
+        com.ic2newera.robot.RobotRegistry.ENTITIES.register(modBus);
+        com.ic2newera.robot.RobotRegistry.MENUS.register(modBus);
+        modBus.addListener(com.ic2newera.robot.RobotRegistry::attributes);
         modBus.addListener(ResearchEvents::registerCapabilities);
         modBus.addListener(IC2NewEra::loadComplete);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, LLMConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.ic2newera.media.NativeMediaConfig.SPEC,
+                "ic2newera-media-common.toml");
         NetworkHandler.register();
+        com.ic2newera.robot.RobotPackets.register();
+        com.ic2newera.media.MediaPackets.register();
         IndustrialNetworkPackets.register();
         com.ic2newera.network.ProcessGraphPacket.register();
         MinecraftForge.EVENT_BUS.register(ResearchEvents.ForgeEvents.class);

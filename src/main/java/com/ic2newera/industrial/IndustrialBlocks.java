@@ -30,13 +30,13 @@ public final class IndustrialBlocks {
     public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, IC2NewEra.MOD_ID);
 
     public static final RegistryObject<Block> MACHINE_NETWORK_ADAPTER = BLOCKS.register("machine_network_adapter",
-            () -> new AdapterBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.0F, 6.0F)));
+            () -> new AdapterBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.0F, 6.0F).noOcclusion()));
     public static final RegistryObject<Block> INDUSTRIAL_FIBER = BLOCKS.register("industrial_fiber",
             () -> new FiberBlock(Block.Properties.copy(Blocks.GLASS).sound(SoundType.GLASS).strength(0.25F).noOcclusion()));
     public static final RegistryObject<Block> INDUSTRIAL_NETWORK_SWITCH = BLOCKS.register("industrial_network_switch",
-            () -> new SwitchBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.0F, 6.0F)));
+            () -> new SwitchBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.0F, 6.0F).noOcclusion()));
     public static final RegistryObject<Block> INDUSTRIAL_CONTROL_SERVER = BLOCKS.register("industrial_control_server",
-            () -> new ServerBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.5F, 8.0F)));
+            () -> new ServerBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.5F, 8.0F).noOcclusion()));
     public static final RegistryObject<Block> TERMINAL = BLOCKS.register("terminal",
             () -> new TerminalBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(3.5F, 8.0F).noOcclusion()));
 

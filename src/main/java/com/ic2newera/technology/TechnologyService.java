@@ -81,6 +81,7 @@ public final class TechnologyService {
         }
         com.ic2newera.technology.ProcessTechnologyCatalog.appendTo(joined);
         int productCount = ProductTechnologyCatalog.append(server, joined);
+        RobotTechnologyCatalog.append(server, joined);
         for (TechnologyNode node : joined.values()) {
             for (TechnologyNode.Objective objective : node.objectives()) {
                 if (objective.type().equals("advancement") && server.getAdvancements().getAdvancement(objective.target()) == null)

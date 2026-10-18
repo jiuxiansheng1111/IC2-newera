@@ -21,7 +21,7 @@ public final class TechnologyTree {
     private static final Set<String> ACTIVE_TASKS = Set.of(
             "raw_materials", "mechanical_to_electric", "sphalerite_mining", "copper_tin", "refined_iron",
             "bronze", "bronze_tools", "bronze_hoe", "bronze_shield", "bronze_shovel", "tin_bronze_equipment",
-            "aluminium_bronze", "brass_ingot_task", "zinc_dust", "zinc_ingot_task", "steel_billet", "high_carbon_steel_billet",
+            "aluminium_bronze", "brass_ingot_task", "zinc_dust", "zinc_ingot_task", "low_carbon_steel_dust", "high_carbon_steel_dust",
             "tempered_steel_ingot", "tempered_steel_equipment", "tempered_steel_axe", "tempered_steel_boots",
             "tempered_steel_chestplate", "tempered_steel_leggings", "tempered_high_carbon_steel_ingot",
             "tempered_high_carbon_steel_equipment", "aluminium_bronze_equipment", "aluminium_bronze_axe",

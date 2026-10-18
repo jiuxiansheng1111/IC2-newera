@@ -1,5 +1,4 @@
 {
-  "credit": "Original IC2: New Era zinc dust icon.",
   "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "ic2newera:item/zinc_dust"

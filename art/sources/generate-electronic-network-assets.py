@@ -6,15 +6,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from PIL import Image, ImageDraw
+from material_pixel_style import DUSTS, draw_dust
+from machine_visual_style import write_device
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "src/main/resources/assets/ic2newera"
 
-# Warm copper traces and disciplined blue-green electronics, with distinct silhouettes.
+# Neutral metallic silicon, warm copper traces and blue-green electronic assemblies.
 ITEM_PALETTES = {
     "quartz_dust": ("#4D3C53", "#A98FC0", "#E1D4E8", "#F5EAF6"),
-    "silicon": ("#283E55", "#4E83A8", "#8EC8D8", "#D6F5ED"),
-    "high_purity_silicon": ("#1A3546", "#317A91", "#74D4CC", "#D5FFF0"),
+    "silicon": ("#222222", "#575757", "#A0A0A0", "#D6D6D6"),
+    "high_purity_silicon": ("#282828", "#797979", "#BEBEBE", "#EFEFEF"),
     "pcb": ("#173D38", "#22765D", "#4BC69B", "#F1B35C"),
     "integrated_circuit": ("#222B37", "#4D5B68", "#9BA9AC", "#F0B75F"),
     "cpu": ("#202A37", "#42515E", "#D4B569", "#FFF0B7"),
@@ -31,6 +33,11 @@ BLOCK_PALETTES = {
     "industrial_network_switch": ("#303B43", "#546772", "#8BA0A0", "#1B3036", "#53C69E", "#E4B969"),
     "industrial_control_server": ("#30343A", "#555E64", "#9AA4A5", "#192D35", "#54C4AF", "#E4B66D"),
     "industrial_fiber": ("#201D36", "#433C70", "#8178C7", "#2D294D", "#A9A0FF", "#70D6E8"),
+}
+
+SILICON_DESCRIPTIONS = {
+    "silicon": "深灰色硅碎晶，带银灰金属断面；由石英粉制成。",
+    "high_purity_silicon": "银灰色完整硅晶体，明亮整洁的晶面用于区分高纯阶段。",
 }
 
 
@@ -52,21 +59,29 @@ def write_png(im: Image.Image, path: Path) -> None:
 def item_icon(name: str, colors: tuple[str, ...]) -> Image.Image:
     dark, body, bright, glint = map(rgba, colors)
     im, d = blank()
-    if name in ("quartz_dust", "silicon", "high_purity_silicon"):
-        # Three distinct crystal splinters; high purity uses a bright single core.
-        if name == "quartz_dust":
-            d.polygon([(3, 9), (6, 5), (8, 6), (7, 11), (5, 13)], fill=dark)
-            d.polygon([(6, 9), (10, 3), (13, 4), (12, 11), (9, 13)], fill=body)
-            d.polygon([(8, 8), (10, 5), (11, 5), (10, 10)], fill=bright)
-            d.point((5, 8), fill=glint)
-        else:
-            d.polygon([(3, 5), (7, 2), (12, 4), (14, 10), (9, 14), (4, 11)], fill=dark)
-            d.polygon([(5, 5), (8, 3), (11, 5), (12, 9), (9, 12), (5, 10)], fill=body)
-            d.polygon([(6, 5), (8, 4), (8, 9), (6, 8)], fill=bright)
-            d.line((8, 4, 11, 6, 10, 10), fill=glint)
-            if name == "high_purity_silicon":
-                d.point((9, 7), fill=glint)
-                d.point((7, 10), fill=glint)
+    if name == "quartz_dust":
+        return draw_dust(DUSTS[name])
+    if name == "silicon":
+        # Rough graphite-grey silicon fragments with broad metallic fracture planes.
+        d.polygon([(5, 2), (9, 2), (11, 5), (9, 8), (4, 7), (3, 4)], fill=dark)
+        d.polygon([(5, 3), (8, 3), (9, 5), (6, 7), (4, 5)], fill=bright)
+        d.polygon([(8, 3), (10, 5), (8, 7), (6, 7)], fill=body)
+        d.line((5, 3, 8, 3), fill=glint)
+        d.polygon([(2, 8), (5, 5), (9, 5), (13, 8), (14, 11), (10, 14), (5, 13), (2, 11)], fill=dark)
+        d.polygon([(3, 8), (6, 6), (9, 6), (8, 10), (3, 10)], fill=bright)
+        d.polygon([(9, 6), (12, 8), (13, 11), (9, 12), (8, 10)], fill=body)
+        d.polygon([(3, 10), (8, 10), (9, 12), (6, 12), (3, 11)], fill=body)
+        d.line((4, 8, 6, 6, 8, 6), fill=glint)
+        d.line((9, 8, 12, 9), fill=dark)
+    elif name == "high_purity_silicon":
+        # A single refined silver-grey crystal; purity is conveyed by cleaner facets.
+        d.polygon([(2, 5), (7, 2), (12, 4), (14, 9), (11, 13), (5, 14), (2, 10)], fill=dark)
+        d.polygon([(3, 5), (7, 3), (11, 5), (9, 8), (4, 9)], fill=bright)
+        d.polygon([(11, 5), (13, 9), (10, 12), (9, 8)], fill=body)
+        d.polygon([(4, 9), (9, 8), (10, 12), (6, 13), (3, 10)], fill=body)
+        d.line((3, 5, 7, 3, 10, 4), fill=glint)
+        d.line((4, 6, 7, 4), fill=glint)
+        d.line((9, 8, 10, 11), fill=bright)
     elif name == "pcb":
         d.rectangle((2, 3, 13, 12), fill=dark)
         d.rectangle((3, 4, 12, 11), fill=body)
@@ -257,8 +272,8 @@ def update_catalog() -> None:
     existing = {entry["id"] for entry in models}
     new_entries = [
         ("quartz_dust", "石英粉", "电子材料", "下界石英粉碎得到的硅工业基础材料。", "item"),
-        ("silicon", "硅", "电子材料", "由石英粉制成的基础半导体材料。", "item"),
-        ("high_purity_silicon", "高纯硅", "电子材料", "进入电路板加工的高纯半导体材料。", "item"),
+        ("silicon", "硅", "电子材料", SILICON_DESCRIPTIONS["silicon"], "item"),
+        ("high_purity_silicon", "高纯硅", "电子材料", SILICON_DESCRIPTIONS["high_purity_silicon"], "item"),
         ("pcb", "印刷电路板", "电子材料", "电子元件装配使用的绿色电路基板。", "item"),
         ("integrated_circuit", "集成电路", "电子材料", "封装了精细导线的集成芯片。", "item"),
         ("cpu", "CPU", "电子材料", "工业服务器的处理器芯片。", "item"),
@@ -335,8 +350,35 @@ def generate() -> None:
     })
     write_png(item_icon("industrial_ai_core", ITEM_PALETTES["industrial_ai_core"]), item_dir / "industrial_ai_core.png")
     update_catalog()
+    for name in ('non_metal_processor','electronic_fabricator','machine_network_adapter',
+                 'industrial_network_switch','industrial_control_server'):
+        write_device(name)
+
+
+def generate_silicon_only() -> None:
+    """Regenerate the two silicon icons without rewriting other device resources."""
+    for name in SILICON_DESCRIPTIONS:
+        write_png(item_icon(name, ITEM_PALETTES[name]), ASSETS / "textures/item" / f"{name}.png")
+    catalog_path = ROOT / "art/model-catalog.json"
+    previous = catalog_path.read_bytes().decode("utf-8-sig")
+    catalog = json.loads(previous)
+    for entry in catalog["models"]:
+        if entry["id"] in SILICON_DESCRIPTIONS:
+            entry["description"] = SILICON_DESCRIPTIONS[entry["id"]]
+    content = json.dumps(catalog, ensure_ascii=False, indent=2) + "\n"
+    if "\r\n" in previous:
+        content = content.replace("\n", "\r\n")
+    catalog_path.write_bytes(content.encode("utf8"))
+    print("Generated the two neutral-grey silicon icons and updated their catalog descriptions.")
 
 
 if __name__ == "__main__":
-    generate()
-    print("Generated nine electronic item icons, one AI core icon, six machine/network block models, and catalog entries.")
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--silicon-only", action="store_true", help="only regenerate silicon and high-purity silicon")
+    args = parser.parse_args()
+    if args.silicon_only:
+        generate_silicon_only()
+    else:
+        generate()
+        print("Generated nine electronic item icons, one AI core icon, six machine/network block models, and catalog entries.")

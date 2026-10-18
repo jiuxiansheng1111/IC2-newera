@@ -5,6 +5,9 @@
     "ic2newera:chromium_dust",
     "ic2newera:titanium_dust",
     "ic2newera:tungsten_dust",
-    "ic2newera:quartz_dust"
+    "ic2newera:quartz_dust",
+    "ic2newera:zinc_dust",
+    "ic2newera:low_carbon_steel_dust",
+    "ic2newera:high_carbon_steel_dust"
   ]
 }

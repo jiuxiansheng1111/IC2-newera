@@ -39,8 +39,13 @@ public final class ProductionPlanner {
         if (product.startsWith("#")) {
             var tag=new ResourceLocation(product.substring(1));
             var material=ProcessGraph.current().materials().values().stream()
-                    .filter(m -> tag.getNamespace().equals("forge") && tag.getPath().equals("ingots/"+m.id())).findFirst();
-            if (material.isPresent()) expand(material.get().items().get(ProcessGraph.Stage.FINAL_METAL).toString(),amount,path,steps,raw,machines,depth+1);
+                    .filter(m -> tag.getNamespace().equals("forge") && (tag.getPath().equals("ingots/"+m.id())
+                            && m.items().containsKey(ProcessGraph.Stage.FINAL_METAL)
+                            || tag.getPath().equals("dusts/"+m.id()))).findFirst();
+            if (material.isPresent()) {
+                ProcessGraph.Stage stage=tag.getPath().startsWith("dusts/") ? ProcessGraph.Stage.CLEAN_DUST : ProcessGraph.Stage.FINAL_METAL;
+                expand(material.get().items().get(stage).toString(),amount,path,steps,raw,machines,depth+1);
+            }
             else raw.merge(product, amount, Math::addExact);
             return;
         }

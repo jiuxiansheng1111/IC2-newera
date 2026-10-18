@@ -1,0 +1,1014 @@
+{
+  "format": "NER16M01",
+  "stride": 8,
+  "fields": [
+    "x",
+    "y",
+    "z",
+    "u",
+    "v",
+    "nx",
+    "ny",
+    "nz"
+  ],
+  "byte_order": "big-endian",
+  "parts": [
+    "body",
+    "head",
+    "arm_left",
+    "arm_right",
+    "leg_left",
+    "leg_right",
+    "skirt"
+  ],
+  "euler_order": "ZYX (Rz * Ry * Rx)",
+  "coordinates": "x/16, (24-y)/16, z/16; reverse winding for Y reflection",
+  "source_animations": 0,
+  "original_sources_unchanged": true,
+  "characters": [
+    {
+      "character": "anon",
+      "source": "art/robot-mcp-workspace/characters/anon-body-balance-r16/anon-body-balance-r16.bbmodel",
+      "source_sha256": "b64ef1cf9ca3c9202d501a1fe8a284b536e99e77790bd98f9159451a1e86a4ec",
+      "cubes": 615,
+      "quads": 3690,
+      "vertices": 14760,
+      "groups": 19,
+      "multi_axis_cubes": 92,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "anon-tutorial-atlas-64.png",
+          "png_sha256": "e4be3f0d2d597312e4e8cf77c5dc7eb843d05e2c39136caab70f530231d4b613",
+          "rgba_sha256": "55bd48483c515fb3757aebb3dbeb83bed4879a4aa297e0bb309b8e4b453b8298",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 1,
+          "name": "anon-face-atlas-128.png",
+          "png_sha256": "b0ff546b2aa0903f45de7b25d8f40f737787e42e41b316a56ea3e4940312fcd0",
+          "rgba_sha256": "1468e2349de474995c1597b6d1c79e5eeae1766f8975589bc6b5e7ca9f902531",
+          "width": 128,
+          "height": 128,
+          "offset": [
+            0,
+            64
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 2,
+          "name": "original-layer-palette-64.png",
+          "png_sha256": "ead0f1aeced9c35f73b5e44c85ee3c2da97708a3957a04e75bf839a87b08d6d4",
+          "rgba_sha256": "7c0cf1f993b6fa084aa9451c8adb00c96e3fa0df3d7887d7b2028aaf52e0d5bb",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            192
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 3,
+          "name": "original-r4-feature-palette",
+          "png_sha256": "b72d34f983279ad82168415fa98b6da9e88529d88e94898a0c6a584f96770877",
+          "rgba_sha256": "3a8e9db49d5522a91fcd033a28c1c1cf1b17ef91622138fe9cdb4f55b4437a21",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            256
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 4,
+          "name": "original-r5-black-brow",
+          "png_sha256": "ecb38e84eca2ae2105cfbddc6b8591e017d976ae24796b88f029e86db31b0195",
+          "rgba_sha256": "0ddcc86a8f8e35a5c1b10172844d5f5ac83b09dba41c3b8c1dd9f6b1acbcbfb4",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            320
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 5,
+          "name": "original-r6-eye-brow-palette",
+          "png_sha256": "64135332ee2853caa589d9617fb4bc4fc3795975ec9ba5dbc631e0840c6a982b",
+          "rgba_sha256": "c2fa4d7fc300f4a56ea33433568f96c3ee60659b338c5313afd66335b3523f93",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            384
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 6,
+          "name": "anon_original_r8_eye_palette",
+          "png_sha256": "f6f811eab8e650ed69bf807b602e1c4f47c3dc4b30a086fbf642db4c4b174415",
+          "rgba_sha256": "7a1f500388035ce3ef7c228a88c649d7dbab69d6406648e8449aae959c770610",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            448
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 7,
+          "name": "anon_original_r9_brow_mouth",
+          "png_sha256": "bb7c2fa729d19abee8de62343a835e8c22b58fa1643a50699beb8427cd9c46fa",
+          "rgba_sha256": "1ce8c7d111735a3fac1cd9b81cdedac95eb51eb029934b355234a78e145618ff",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            512
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        },
+        {
+          "index": 8,
+          "name": "original-r15-palette",
+          "png_sha256": "4fa1ec5350294d752745bc2bcb27979cbd9a165b0cf915325e1de4a3ba8c0fe0",
+          "rgba_sha256": "0733cd78bd56bffbb0b1039f5e74a7567a85d04cb8b4426eba8c28f6b4889772",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            576
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        128,
+        1024
+      ],
+      "bounds_model_blocks": [
+        -0.3543229797135453,
+        -0.2445672978424429,
+        -0.22924925142502922,
+        0.3543229797135453,
+        1.5,
+        0.23746204807004692
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 288,
+        "head": 13488,
+        "arm_left": 144,
+        "arm_right": 144,
+        "leg_left": 144,
+        "leg_right": 144,
+        "skirt": 408
+      },
+      "max_float32_component_error": 5.796753344000649e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/anon.mesh",
+          "sha256": "9ff2456b33dd201e07cea79dc7a98c09526a95dfab055b8aca5952a379dd328c",
+          "bytes": 472464
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/anon.png",
+          "sha256": "8a0d25b3433a75d42aef4ac344c98aab41a2dc84572d5b89d6f0f8b82f782e52",
+          "bytes": 2461
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/anon.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "tomori",
+      "source": "art/robot-mcp-workspace/characters/tomori-r16-standard/tomori-r16-standard.bbmodel",
+      "source_sha256": "5d0cc46d45e7bd0acaa710ecce4f53c413be32a8ec8fda9bcdb334fc0237f496",
+      "cubes": 578,
+      "quads": 3468,
+      "vertices": 13872,
+      "groups": 19,
+      "multi_axis_cubes": 60,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "26d3c8b7d93590691dd968e694c2799e3256795ffa396d1ee14ba8be603d32eb",
+          "rgba_sha256": "0b2915c183b280b7c9ff021e7fa2e1d6b4df3a9a6ba948672e7b7f7e69a4e033",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31852173548475654,
+        -0.2445672978424429,
+        -0.24132184013164476,
+        0.31852173548475654,
+        1.5,
+        0.23219376796504998
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 624,
+        "head": 12336,
+        "arm_left": 144,
+        "arm_right": 144,
+        "leg_left": 264,
+        "leg_right": 264,
+        "skirt": 96
+      },
+      "max_float32_component_error": 5.7220459037665705e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/tomori.mesh",
+          "sha256": "fd902e970ba8632937f7fce51ed306bc0b0b5643dc87d1b7dbfd7968c1be161d",
+          "bytes": 444048
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/tomori.png",
+          "sha256": "26d3c8b7d93590691dd968e694c2799e3256795ffa396d1ee14ba8be603d32eb",
+          "bytes": 586
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/tomori.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "soyo",
+      "source": "art/robot-mcp-workspace/characters/soyo-r16-standard/soyo-r16-standard.bbmodel",
+      "source_sha256": "c0b6a3406030f055d5a8242bb58e27d9dcb0077000eef33ebf57ba63f598d562",
+      "cubes": 541,
+      "quads": 3246,
+      "vertices": 12984,
+      "groups": 19,
+      "multi_axis_cubes": 115,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "e44d86554d60fbc5b76392c07c2265bd4cd811b9b81bc3682b2268dafc11c70c",
+          "rgba_sha256": "808e04ad3b7884213077fb177337ca6cbb5437197610b47607ed73aee68b2870",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31689607284896937,
+        -0.2445672978424429,
+        -0.24306931795499087,
+        0.31689607284896937,
+        1.5,
+        0.23711289325037174
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 384,
+        "head": 11208,
+        "arm_left": 120,
+        "arm_right": 120,
+        "leg_left": 144,
+        "leg_right": 144,
+        "skirt": 864
+      },
+      "max_float32_component_error": 5.7220459037665705e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/soyo.mesh",
+          "sha256": "cdfadbc10e46af989f7254389dc5e65fac1451da68eb0e74cc6f9e98fdf837c0",
+          "bytes": 415632
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/soyo.png",
+          "sha256": "e44d86554d60fbc5b76392c07c2265bd4cd811b9b81bc3682b2268dafc11c70c",
+          "bytes": 585
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/soyo.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "taki",
+      "source": "art/robot-mcp-workspace/characters/taki-r16-standard/taki-r16-standard.bbmodel",
+      "source_sha256": "bd0e4c0e7d8c27b0f93511629a53cdd6e6e3efee2a8e231f878872d962036a32",
+      "cubes": 613,
+      "quads": 3678,
+      "vertices": 14712,
+      "groups": 19,
+      "multi_axis_cubes": 109,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "de2b479fd70b597477e078306a7074a9864fb8ce77fa3cfa2813f58cd57e1e4e",
+          "rgba_sha256": "cf1c034d999aa7d1ace76406de0a0d050b2779257e251a59130da28717240380",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31852173548475654,
+        -0.2445672978424429,
+        -0.22629353085086845,
+        0.31852173548475654,
+        1.5,
+        0.23705845763357294
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 288,
+        "head": 12984,
+        "arm_left": 144,
+        "arm_right": 144,
+        "leg_left": 120,
+        "leg_right": 120,
+        "skirt": 912
+      },
+      "max_float32_component_error": 5.761013999183717e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/taki.mesh",
+          "sha256": "d7ebd126d3059628096a568a919c34aa1a00269913572c02a0e5a09b3e1c8104",
+          "bytes": 470928
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/taki.png",
+          "sha256": "de2b479fd70b597477e078306a7074a9864fb8ce77fa3cfa2813f58cd57e1e4e",
+          "bytes": 583
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/taki.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "rana",
+      "source": "art/robot-mcp-workspace/characters/rana-r16-standard/rana-r16-standard.bbmodel",
+      "source_sha256": "53040887eaf3ec290279356a0e1f749f224728be427d83d0d5d09726575a51e9",
+      "cubes": 586,
+      "quads": 3516,
+      "vertices": 14064,
+      "groups": 19,
+      "multi_axis_cubes": 77,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "fd86b2812c2157e074da33ad2c3208d0075bf8c384ce32e685844b5e8748c698",
+          "rgba_sha256": "7e9b2a5ee442a430e3078ee07f23e5a5ff4b7b01986f9c8b83498565ca23ae09",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31082400849898323,
+        -0.2445672978424429,
+        -0.22629353085086845,
+        0.31082400849898323,
+        1.5,
+        0.23219376796504998
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 312,
+        "head": 12696,
+        "arm_left": 120,
+        "arm_right": 120,
+        "leg_left": 120,
+        "leg_right": 144,
+        "skirt": 552
+      },
+      "max_float32_component_error": 5.90982092152359e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/rana.mesh",
+          "sha256": "ad84c8bc91500863ea87272db28c309589509832e3ec123a454be057ebf96cb7",
+          "bytes": 450192
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/rana.png",
+          "sha256": "fd86b2812c2157e074da33ad2c3208d0075bf8c384ce32e685844b5e8748c698",
+          "bytes": 642
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/rana.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "sakiko",
+      "source": "art/robot-mcp-workspace/characters/sakiko-r16-standard/sakiko-r16-standard.bbmodel",
+      "source_sha256": "8a612919cd1e4e2e283f663c53565610b135dc27893d189ddefc1b3b7d58824f",
+      "cubes": 584,
+      "quads": 3504,
+      "vertices": 14016,
+      "groups": 19,
+      "multi_axis_cubes": 90,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "9c1079f6772e7bdaa9540337363ee9fd519e9a8333096148c1a8d9eb659988ca",
+          "rgba_sha256": "ab3f8b6a29f16e6aa62cf276e51202a531cf52927b10bbe5e2d116f98dabfda3",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31852173548475654,
+        -0.2445672978424429,
+        -0.24306931795499087,
+        0.31852173548475654,
+        1.5,
+        0.2370448731202887
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 384,
+        "head": 12672,
+        "arm_left": 144,
+        "arm_right": 144,
+        "leg_left": 144,
+        "leg_right": 144,
+        "skirt": 384
+      },
+      "max_float32_component_error": 5.7220459037665705e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/sakiko.mesh",
+          "sha256": "42c3da1b0268387896f87a8c4c36d5fe76c09a18d286947d9645e03069ae1f20",
+          "bytes": 448656
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/sakiko.png",
+          "sha256": "9c1079f6772e7bdaa9540337363ee9fd519e9a8333096148c1a8d9eb659988ca",
+          "bytes": 587
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/sakiko.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "uika",
+      "source": "art/robot-mcp-workspace/characters/uika-r16-standard/uika-r16-standard.bbmodel",
+      "source_sha256": "cf9323e48d521e9f36b41ef2fc991c9d384767baf1277debd099a864ac920e7a",
+      "cubes": 586,
+      "quads": 3516,
+      "vertices": 14064,
+      "groups": 19,
+      "multi_axis_cubes": 80,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "41d623ea9b916d2f35fb6ca052387661822cfe4c4d69cadab812c9cc565b2997",
+          "rgba_sha256": "dfcc30159665e040cac1db8ae10c21a14720c919a770410f460e11acd45b9517",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.3293838710855418,
+        -0.2445672978424429,
+        -0.22839050423888385,
+        0.3293838710855418,
+        1.5,
+        0.23219376796504998
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 336,
+        "head": 12792,
+        "arm_left": 120,
+        "arm_right": 120,
+        "leg_left": 120,
+        "leg_right": 120,
+        "skirt": 456
+      },
+      "max_float32_component_error": 5.857840790213231e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/uika.mesh",
+          "sha256": "f6ba7de594e9422c6fd703a1a0c3e6a8006a776739b88037f07bc15a76a46d33",
+          "bytes": 450192
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/uika.png",
+          "sha256": "41d623ea9b916d2f35fb6ca052387661822cfe4c4d69cadab812c9cc565b2997",
+          "bytes": 581
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/uika.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    },
+    {
+      "character": "umiri",
+      "source": "art/robot-mcp-workspace/characters/umiri-r16-standard/umiri-r16-standard.bbmodel",
+      "source_sha256": "62933d7340fbc11847e497b069b8c14189eb9b73fb7c7de8cb2f03a98ea1b73d",
+      "cubes": 569,
+      "quads": 3414,
+      "vertices": 13656,
+      "groups": 19,
+      "multi_axis_cubes": 77,
+      "rotated_uv_faces": 0,
+      "textures": [
+        {
+          "index": 0,
+          "name": "original-atlas-64",
+          "png_sha256": "faacc97ff604021da4434bba5dad2ffe811f691950348bc1f4c2f254ba505abc",
+          "rgba_sha256": "1873dc6b3eec21d08592a9a1c171c290b6327bbe54bc8092530753253c2eaf68",
+          "width": 64,
+          "height": 64,
+          "offset": [
+            0,
+            0
+          ],
+          "pixels_identical": true,
+          "alpha_values": [
+            0,
+            255
+          ]
+        }
+      ],
+      "atlas_size": [
+        64,
+        64
+      ],
+      "bounds_model_blocks": [
+        -0.31852173548475654,
+        -0.2445672978424429,
+        -0.2472632647310215,
+        0.31852173548475654,
+        1.5,
+        0.23219376796504998
+      ],
+      "pivots_model_blocks": {
+        "body": [
+          0.0,
+          0.64375,
+          0.0
+        ],
+        "head": [
+          0.0,
+          0.2406250000000001,
+          0.0
+        ],
+        "arm_left": [
+          0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "arm_right": [
+          -0.2125,
+          0.2437499999999999,
+          0.0
+        ],
+        "leg_left": [
+          0.095625,
+          0.6625,
+          0.0
+        ],
+        "leg_right": [
+          -0.095625,
+          0.6625,
+          0.0
+        ],
+        "skirt": [
+          0.0,
+          0.64375,
+          0.0
+        ]
+      },
+      "part_vertices": {
+        "body": 552,
+        "head": 12264,
+        "arm_left": 144,
+        "arm_right": 144,
+        "leg_left": 120,
+        "leg_right": 120,
+        "skirt": 312
+      },
+      "max_float32_component_error": 5.7220459037665705e-08,
+      "resources": [
+        {
+          "path": "src/main/resources/assets/ic2newera/robot_models/r16/umiri.mesh",
+          "sha256": "b415c7cfe185f694b4a9a4d0038ad24a85cac9d66d31356c85a666c4b91f98f4",
+          "bytes": 437136
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/umiri.png",
+          "sha256": "faacc97ff604021da4434bba5dad2ffe811f691950348bc1f4c2f254ba505abc",
+          "bytes": 588
+        },
+        {
+          "path": "src/main/resources/assets/ic2newera/textures/entity/robot/r16/umiri.png.mcmeta",
+          "sha256": "70c94936472c179af32903a26e9576e0e79c1f17574d236037cb239b259987e9",
+          "bytes": 41
+        }
+      ]
+    }
+  ]
+}

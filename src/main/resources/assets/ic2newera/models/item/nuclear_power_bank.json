@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:item/generated",
+  "loader": "forge:item_layers",
+  "textures": {
+    "layer0": "ic2newera:item/nuclear_power_bank",
+    "layer1": "ic2newera:item/nuclear_power_bank_emissive"
+  },
+  "emissive_layers": [
+    1
+  ]
+}

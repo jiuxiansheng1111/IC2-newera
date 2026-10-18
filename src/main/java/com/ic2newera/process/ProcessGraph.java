@@ -27,7 +27,16 @@ public final class ProcessGraph {
 
     public enum Stage { RAW, IMPURE_DUST, CLEAN_DUST, FINAL_METAL }
     public enum Classification { LEGACY_PROCESS, APPROVED_INDUSTRIAL_PROCESS, BLOCKED_BYPASS }
-    public record Material(String id, boolean advanced, Map<Stage, ResourceLocation> items) { }
+    public record Material(String id, boolean advanced, Map<Stage, ResourceLocation> items,
+                           List<ResourceLocation> rawVariants, List<ResourceLocation> grindingInputs) {
+        public Stage stage(ResourceLocation item) {
+            for (var entry : items.entrySet()) if (entry.getValue().equals(item)) return entry.getKey();
+            return rawVariants.contains(item) ? Stage.RAW : null;
+        }
+        public ResourceLocation legacyOutput() {
+            return items.containsKey(Stage.FINAL_METAL) ? items.get(Stage.FINAL_METAL) : grindingInputs.get(0);
+        }
+    }
     public record Input(String item, String tag, int count) {
         public String key() { return item.isEmpty() ? "#" + tag : item; }
     }
@@ -39,13 +48,13 @@ public final class ProcessGraph {
 
     public static Material materialFor(ItemStack stack) {
         ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        return current.materials.values().stream().filter(material -> material.items.containsValue(id)).findFirst().orElse(null);
+        return current.materials.values().stream().filter(material -> material.stage(id) != null).findFirst().orElse(null);
     }
     public static Stage stageFor(ItemStack stack) {
         Material material = materialFor(stack);
         if (material == null) return null;
         ResourceLocation id = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        return material.items.entrySet().stream().filter(entry -> entry.getValue().equals(id)).map(Map.Entry::getKey).findFirst().orElse(null);
+        return material.stage(id);
     }
     public static Route route(ResourceLocation id) {
         return current.routes.stream().filter(route -> route.id.equals(id)).findFirst().orElse(null);
@@ -70,8 +79,16 @@ public final class ProcessGraph {
                         String name = string(object, "id");
                         Map<Stage, ResourceLocation> stages = new LinkedHashMap<>();
                         JsonObject stageObject = object.getAsJsonObject("stages");
-                        for (Stage stage : Stage.values()) stages.put(stage, id(stageObject.get(stage.name()).getAsString()));
-                        if (materials.putIfAbsent(name, new Material(name, object.get("advanced").getAsBoolean(), Map.copyOf(stages))) != null)
+                        for (Stage stage : Stage.values()) if (stageObject.has(stage.name()))
+                            stages.put(stage, id(stageObject.get(stage.name()).getAsString()));
+                        List<ResourceLocation> rawVariants = ids(object, "raw_variants");
+                        List<ResourceLocation> grindingInputs = ids(object, "grinding_inputs");
+                        if (!stages.keySet().containsAll(java.util.Set.of(Stage.RAW, Stage.IMPURE_DUST, Stage.CLEAN_DUST))
+                                || rawVariants.size()>16 || grindingInputs.size()>8
+                                || (!stages.containsKey(Stage.FINAL_METAL) && grindingInputs.isEmpty()))
+                            throw new IllegalArgumentException("Incomplete or oversized mineral stages " + name);
+                        if (materials.putIfAbsent(name, new Material(name, object.get("advanced").getAsBoolean(),
+                                Map.copyOf(stages), rawVariants, grindingInputs)) != null)
                             throw new IllegalArgumentException("Duplicate material " + name);
                     }
                     for (JsonElement value : array(root, "routes")) {
@@ -113,7 +130,11 @@ public final class ProcessGraph {
                     for (var input : route.inputs) if (!input.item.isEmpty()) requireItem(id(input.item));
                     validateStages(route, materials);
                 }
-                for (var material : materials.values()) for (var item : material.items.values()) requireItem(item);
+                for (var material : materials.values()) {
+                    for (var item : material.items.values()) requireItem(item);
+                    material.rawVariants.forEach(ProcessGraph::requireItem);
+                    material.grindingInputs.forEach(ProcessGraph::requireItem);
+                }
                 current = new Snapshot(Map.copyOf(materials), List.copyOf(routes));
                 LOGGER.info("ProcessGraph loaded {} controlled materials and {} routes", materials.size(), routes.size());
             } catch (RuntimeException failure) {
@@ -122,6 +143,12 @@ public final class ProcessGraph {
         }
     }
     private static JsonArray array(JsonObject object, String key) { return object.has(key) ? object.getAsJsonArray(key) : new JsonArray(); }
+    private static List<ResourceLocation> ids(JsonObject object, String key) {
+        List<ResourceLocation> values = new ArrayList<>();
+        for (JsonElement value : array(object, key)) values.add(id(value.getAsString()));
+        if (values.stream().distinct().count()!=values.size()) throw new IllegalArgumentException("Duplicate " + key);
+        return List.copyOf(values);
+    }
     private static String string(JsonObject object, String key) { return object.get(key).getAsString(); }
     private static ResourceLocation id(String value) { return new ResourceLocation(value); }
     private static void requireItem(ResourceLocation id) {
@@ -130,19 +157,26 @@ public final class ProcessGraph {
     }
     private static void validateStages(Route route, Map<String, Material> materials) {
         for (var material : materials.values()) for (var input : route.inputs) {
-            Stage stage=null;
-            for (var entry : material.items.entrySet()) if (entry.getValue().toString().equals(input.item)) stage=entry.getKey();
+            if (input.item.isEmpty()) continue;
+            ResourceLocation source=id(input.item);
+            Stage stage=material.stage(source);
+            if (material.grindingInputs.contains(source) && java.util.Set.of("macerator","crushing").contains(route.format)) {
+                if (!route.output.equals(material.items.get(Stage.IMPURE_DUST)) || route.outputCount>input.count)
+                    throw new IllegalArgumentException("Unwashed resource grinding " + route.id);
+                continue;
+            }
             if (stage==null || stage==Stage.FINAL_METAL) continue;
             boolean valid=switch(stage) {
                 case RAW -> route.classification==Classification.LEGACY_PROCESS
                         ? java.util.Set.of("smelting","blasting").contains(route.format)
-                          && route.output.equals(material.items.get(Stage.FINAL_METAL)) && route.outputCount==1 && input.count==1
+                          && route.output.equals(material.legacyOutput()) && route.outputCount==1 && input.count==1
                         : java.util.Set.of("macerator","crushing").contains(route.format)
                           && route.output.equals(material.items.get(Stage.IMPURE_DUST)) && route.outputCount<=input.count*2;
                 case IMPURE_DUST -> route.format.equals("splashing") && route.output.equals(material.items.get(Stage.CLEAN_DUST))
                         && route.outputCount<=input.count;
-                case CLEAN_DUST -> route.output.equals(material.items.get(Stage.FINAL_METAL)) && route.outputCount<=input.count
-                        && (material.advanced ? route.format.equals("blast_furnace")
+                // Normal powder remains usable in native downstream recipes (steel, silicon, carbon, etc.).
+                case CLEAN_DUST -> !route.output.equals(material.items.get(Stage.FINAL_METAL))
+                        || route.outputCount<=input.count && (material.advanced ? route.format.equals("blast_furnace")
                         : java.util.Set.of("smelting","blasting","blast_furnace").contains(route.format));
                 default -> true;
             };
