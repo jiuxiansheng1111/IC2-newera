@@ -2,6 +2,8 @@
 
 用户明确要求给朋友测试包、同步既有GitHub并提交CurseForge，随后说明LLM由玩家自行配置，语音可选；此授权覆盖早期“不上传”阶段约定。
 
+最新实际结果：代码与测试包已推送GitHub `902039fb63260ec04ab8928eb21e1c4c86a0273b`。用户随后自行完成CurseForge登录/条款确认，项目1752122与Alpha文件9239238已创建/上传成功；英文介绍、更新日志、源码链接、三张英文说明截图与依赖均保存。文件最后显示 Scanning For Malware，项目审核尚未完成。见[上传回执](curseforge-upload-receipt-2026-10-18.md)；下方材料准备/未登录描述为此前阶段记录。
+
 ## 当前交付
 
 - 公开目标：既有 `jiuxiansheng1111/IC2-newera` 的 `main`。实际提交SHA、远端文件树与安装包哈希核对写入本机 `build-isolated/publication-20261018/`，不得在未核实前宣称已推送。

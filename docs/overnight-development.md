@@ -1,5 +1,9 @@
 # 持续开发交接
 
+## 2026-10-18 最新：CurseForge 实际上传已完成
+
+项目1752122（IC2: New Era，slug ic2-new-era），Alpha文件9239238（0.1.0 Alpha - Phone Chat）已实际上传并回读元数据/依赖。英文介绍、更新日志、三张截图标题与说明、MIT许可及GitHub源码链接已保存。文件最后状态 Scanning For Malware，项目仍待审核，未宣称公开可下载。用户已自行完成本次账号/条款确认，不再重复要求登录。后台：https://authors.curseforge.com/#/projects/1752122/files 。回执见[CurseForge上传记录](curseforge-upload-receipt-2026-10-18.md)。本轮仅发布材料与元数据，不恢复游戏验收、十小时跟进或改原LLM。此前代码/包GitHub提交为902039fb63260ec04ab8928eb21e1c4c86a0273b；发布文档同步另记本机回执。下面的“未登录/尚未提交”属于历史阶段。
+
 ## 2026-10-18 最新：Phone-Chat已交包，GitHub/CurseForge发布跟进
 
 最新JAR `0CEB7B30161CA4668B34B02C97728380C2C8AA6DDF3A06C80205BE59DE8C5770`，2,025,342字节，30秒offline build -x test通过；PCL/停止的隔离服已安装。朋友包用`dist/IC2-New-Era-Test-2026.10.18-Phone-Chat.zip`（SHA256 `2782A85D28BD13F9536EC1ABFAC09F669F80FAF1B50299453A5E500838421348`）。新增自然语言任务派发、中文物品目录/数量核对、服务端实际回执与聊天票据去重；原LLM配置不改。详情[聊天采集交付](chat-collection-delivery-2026-10-18.md)。
