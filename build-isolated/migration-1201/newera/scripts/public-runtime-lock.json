@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "release": "r45",
+  "release": "r46",
   "minecraft": "1.20.1",
   "forge": "47.4.28",
-  "status": "Local complete build and installation succeeded; new mirror/pet/eating gameplay acceptance pending. Public source omits private assets.",
+  "status": "Local r46 build; installation and packaging receipts in release docs. Cooperative building, imports and configured vision AI are implemented but not playtested. Public source omits private assets.",
   "runtimeMods": [
     {
       "modId": "ad_astra",

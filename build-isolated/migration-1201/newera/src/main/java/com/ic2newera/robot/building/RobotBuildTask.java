@@ -20,6 +20,8 @@ public final class RobotBuildTask {
     private final BitSet done;
     private final Set<BlockPos> plannedPositions;
     private final Map<BlockPos, Integer> plannedIndices;
+    private UUID projectId;
+    private UUID leaderId;
 
     public RobotBuildTask(RobotBuildPlan plan, UUID owner, ResourceLocation dimension, BlockPos origin) {
         if (plan == null || owner == null || dimension == null || origin == null)
@@ -41,10 +43,26 @@ public final class RobotBuildTask {
         this.done.or(done);
     }
 
+    private RobotBuildTask(RobotBuildTask source, UUID projectId, UUID leaderId) {
+        this(source.plan, source.owner, source.dimension, source.origin, source.done);
+        this.projectId = projectId;
+        this.leaderId = leaderId;
+    }
+
     public RobotBuildPlan plan() { return plan; }
     public UUID owner() { return owner; }
     public ResourceLocation dimension() { return dimension; }
     public BlockPos origin() { return origin; }
+    /** Null identifies a legacy single-robot task. */
+    public UUID projectId() { return projectId; }
+    /** Null identifies a legacy single-robot task. */
+    public UUID leaderId() { return leaderId; }
+    public RobotBuildTask forProject(UUID projectId, UUID leaderId) {
+        if (projectId == null || leaderId == null) throw new IllegalArgumentException("missing construction project identity");
+        return new RobotBuildTask(this, projectId, leaderId);
+    }
+    /** Snapshot of the finished shared plan for the robot's ordinary completed-task lifecycle. */
+    public RobotBuildTask withoutProject() { return new RobotBuildTask(plan, owner, dimension, origin, done); }
     public boolean done(int index) { return index >= 0 && index < plan.parts().size() && done.get(index); }
     public void markDone(int index) {
         if (index < 0 || index >= plan.parts().size()) throw new IndexOutOfBoundsException("construction part index " + index);
@@ -62,6 +80,8 @@ public final class RobotBuildTask {
         CompoundTag tag = new CompoundTag(); tag.put("Plan", plan.save());
         tag.putUUID("Owner", owner); tag.putString("Dimension", dimension.toString());
         tag.putLong("Origin", origin.asLong()); tag.putLongArray("Done", done.toLongArray());
+        if (projectId != null) tag.putUUID("Project", projectId);
+        if (leaderId != null) tag.putUUID("Leader", leaderId);
         return tag;
     }
 
@@ -71,6 +91,13 @@ public final class RobotBuildTask {
         if (dimension == null || !tag.hasUUID("Owner")) throw new IllegalArgumentException("invalid construction task identity");
         long[] bits = tag.getLongArray("Done");
         if (bits.length > (RobotBuildPlan.MAX_PARTS + 63) / 64) throw new IllegalArgumentException("construction progress is too large");
-        return new RobotBuildTask(plan, tag.getUUID("Owner"), dimension, BlockPos.of(tag.getLong("Origin")), BitSet.valueOf(bits));
+        RobotBuildTask task = new RobotBuildTask(plan, tag.getUUID("Owner"), dimension,
+                BlockPos.of(tag.getLong("Origin")), BitSet.valueOf(bits));
+        if (tag.hasUUID("Project") != tag.hasUUID("Leader")) throw new IllegalArgumentException("incomplete construction project identity");
+        if (tag.hasUUID("Project")) {
+            task.projectId = tag.getUUID("Project");
+            task.leaderId = tag.getUUID("Leader");
+        }
+        return task;
     }
 }

@@ -15,7 +15,8 @@ import java.util.regex.Pattern;
 public final class LLMKnowledgeBase {
     // The isolated 1.20.1 runtime must not retrieve Classic 1.19.2 machine instructions.
     private static final String DOCUMENT = readDocument("robot_capabilities_zh.md") + "\n\n"
-            + readDocument("migration_runtime_zh.md") + "\n\n" + readDocument("wormhole_and_orders_zh.md") + "\n\n" + readDocument("mechanical_pets_zh.md");
+            + readDocument("migration_runtime_zh.md") + "\n\n" + readDocument("wormhole_and_orders_zh.md")
+            + "\n\n" + readDocument("mechanical_pets_zh.md") + "\n\n" + readDocument("blueprint_building_zh.md");
     private static final List<Section> SECTIONS = List.copyOf(splitSections(DOCUMENT));
     private static final int MAX_CONTEXT_CHARS = 6_000;
 
@@ -37,7 +38,7 @@ public final class LLMKnowledgeBase {
         if (ranked.isEmpty()) return "[随包指南未找到与本问题匹配的章节。]";
 
         StringBuilder context = new StringBuilder("【随包 Markdown 知识库相关章节】\n"
-                + "适用 Minecraft 1.20.1、IC2 Refactored 2.10.33-ex120、Create 0.5.1.j 与新纪元隔离迁移版。"
+                + "适用 Minecraft 1.20.1、IC2 Refactored 2.10.33-ex120、Create 6.0.8 与新纪元隔离迁移版。"
                 + "EU 与转速各自独立，只有新纪元 EU 电动机提供单向 EU→转轴动力。精确配方查当前 JEI，结构查看目标版本实际界面、已安装资料与 Create Ponder。"
                 + "化学实验和 IC2C Extras 已撤出。受控矿物、硅基电子与工业网络的数量和生产步骤以当前服务器批准工艺图为准；旧指南不能覆盖工艺裁决。普通矿物阶段为含杂质粉、水洗中间物、最终净粉与锭；Create水洗后用IC2离心机取得较高净粉产量，含杂质粉也可直离取得较低产量，具体数量和机器由服务器同步工艺图决定。铅纳入普通路线；铀保留IC2原生核燃料及副产物路线。1.20.1的合金与高级熔炼使用新纪元兼容炉，材料与设备以当前注册和批准图为准，不能混用Classic旧ID。以下是相关章节，未检索到的细节不能猜测。\n\n");
         for (Section section : ranked) {

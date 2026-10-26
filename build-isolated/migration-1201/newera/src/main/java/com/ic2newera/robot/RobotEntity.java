@@ -87,6 +87,7 @@ public final class RobotEntity extends TamableAnimal {
     private com.ic2newera.robot.building.RobotLineRefitTask lineRefitTask;
     private boolean industrialRecoveryBlocked;
     private CompoundTag invalidLineRefitRecord = new CompoundTag();
+    private CompoundTag invalidBuildTaskRecord = new CompoundTag();
     public RobotEntity(EntityType<? extends RobotEntity> type, Level level) { super(type, level); setPersistenceRequired(); }
     @Override protected float getStandingEyeHeight(Pose pose, EntityDimensions size) {
         // R16/R17 share the accepted eye placement; match rays/look control to the 1.8-block visible rig.
@@ -416,19 +417,69 @@ public final class RobotEntity extends TamableAnimal {
     }
     public void pauseLineRefit() { if (!level().isClientSide) { setMode(STAY); workStatus("改造已暂停，恢复记录保留；完成或修复前生产保持暂停"); } }
     public void beginBuild(com.ic2newera.robot.building.RobotBuildTask task) {
-        if (level().isClientSide || task == null) return;
+        if (level().isClientSide || task == null || industrialRecoveryBlocked || !invalidBuildTaskRecord.isEmpty()) return;
         if (productionGoal != null) productionGoal.reset();
         if (industrialGoal != null) industrialGoal.reset();
         buildTask = task; setMode(BUILDING); workStatus("施工准备：" + task.plan().title());
     }
     public void completeBuild() {
-        if (level().isClientSide || buildTask == null || !buildTask.completed()) return;
+        if (level().isClientSide || buildTask == null) return;
+        if (buildTask.projectId() != null) {
+            var shared = com.ic2newera.robot.building.RobotBuildTeams.taskFor(this, buildTask);
+            if (shared != null && shared.completed())
+                com.ic2newera.robot.building.RobotBuildTeams.completeMember(this, shared);
+            return;
+        }
+        if (!buildTask.completed()) return;
         if (buildTask.plan().kind().equals("production")) {
             setMode(PRODUCTION); workStatus("设备搭建完成，检查供能、水洗与物流；尚未确认试产");
         } else { setMode(STAY); workStatus("房屋施工完成：" + buildTask.plan().title()); }
     }
-    public void pauseBuild() { if (!level().isClientSide) { setMode(STAY); workStatus("施工/生产已暂停，任务记录保留"); } }
+    /** Keeps a loaded team's shared plan while stopping only this entity's active goal. */
+    public void setTeamBuildState(int mode, String status) {
+        if (level().isClientSide) return;
+        getNavigation().stop(); setWorking(false); setWorkTaskActive(false); activeThisTick = false;
+        setMode(mode);
+        workStatus(status == null ? "团队施工状态已更新" : status);
+    }
+    public void clearTeamBuild(String status) {
+        if (level().isClientSide) return;
+        if (buildTask != null && buildTask.projectId() != null) buildTask = null;
+        lineRefitTask = null; getNavigation().stop(); setWorking(false); setWorkTaskActive(false);
+        activeThisTick = false; setMode(STAY);
+        workStatus(status == null ? "团队施工已停止" : status);
+    }
+    public void finishTeamBuild(boolean productionLeader, String title) {
+        if (level().isClientSide) return;
+        getNavigation().stop(); setWorking(false); setWorkTaskActive(false); activeThisTick = false;
+        setMode(productionLeader ? PRODUCTION : STAY);
+        workStatus(productionLeader ? "团队生产线施工完成，领队进入生产协作待命：" + title
+                : "团队施工完成：" + title + "；此成员保持待命");
+    }
+    public void syncTeamBuildTask(com.ic2newera.robot.building.RobotBuildTask authority) {
+        if (level().isClientSide || authority == null || buildTask == null
+                || !java.util.Objects.equals(buildTask.projectId(), authority.projectId())) return;
+        buildTask = authority.withoutProject();
+    }
+    public void restoreTeamBuildTask(com.ic2newera.robot.building.RobotBuildTask authority, boolean active) {
+        if (level().isClientSide || authority == null || industrialRecoveryBlocked || !invalidBuildTaskRecord.isEmpty()) return;
+        if (productionGoal != null) productionGoal.reset();
+        if (industrialGoal != null) industrialGoal.reset();
+        buildTask = authority.forProject(authority.projectId(), authority.leaderId());
+        setMode(active ? BUILDING : STAY);
+        workStatus(active ? "团队施工恢复：" + authority.plan().title() : "团队施工记录已恢复；等待团队继续");
+    }
+    public void pauseBuild() {
+        if (level().isClientSide) return;
+        if (buildTask != null && buildTask.projectId() != null
+                && com.ic2newera.robot.building.RobotBuildTeams.pause(this)) return;
+        setMode(STAY); workStatus("施工/生产已暂停，任务记录保留");
+    }
     public void resumeBuild() {
+        if (buildTask != null && buildTask.projectId() != null) {
+            if (!level().isClientSide && com.ic2newera.robot.building.RobotBuildTeams.resume(this)) return;
+            return;
+        }
         if (level().isClientSide || buildTask == null && lineRefitTask == null
                 && (industrialGoal == null || !industrialGoal.hasSavedState()) && !industrialRecoveryBlocked) return;
         if (industrialRecoveryBlocked) { setMode(STAY); workStatus("工业恢复记录损坏，已锁定恢复；原记录和实物保留，请先核对修复"); return; }
@@ -441,6 +492,11 @@ public final class RobotEntity extends TamableAnimal {
     }
     public void cancelBuild() {
         if (level().isClientSide) return;
+        if (buildTask != null && buildTask.projectId() != null) {
+            if (!com.ic2newera.robot.building.RobotBuildTeams.cancel(this))
+                workStatus("团队施工无法取消；请由项目成员核对当前状态");
+            return;
+        }
         if (industrialRecoveryBlocked) { setMode(STAY); workStatus("工业恢复记录损坏，保留现场和原记录，不能通过取消绕过恢复检查"); return; }
         if (lineRefitTask != null) { setMode(STAY); workStatus("改造已部分执行，安全恢复记录保留；请继续改造或修复现场，不能取消记录后恢复生产"); return; }
         setMode(STAY); buildTask = null;
@@ -451,6 +507,10 @@ public final class RobotEntity extends TamableAnimal {
     public com.ic2newera.robot.cooking.RobotCookingState cookingState() { return cookingState; }
     public com.ic2newera.robot.cooking.RobotCookingOrder cookingOrder() { return cookingOrder; }
     public boolean hasCookingTask() { return cookingState != null || cookingOrder != null; }
+    public boolean hasSavedSmeltingOrder() {
+        return smeltingGoal != null && smeltingGoal.save().getBoolean("InputBudgetInitialized");
+    }
+    public boolean hasInvalidBuildTaskRecord() { return !invalidBuildTaskRecord.isEmpty(); }
     public boolean resumeCookingTask() {
         if (level().isClientSide || !hasCookingTask() || industrialRecoveryBlocked || lineRefitTask != null) return false;
         movementIntent = RobotMovementIntent.NONE; movementTarget = null; movementDimension = "";
@@ -604,6 +664,15 @@ public final class RobotEntity extends TamableAnimal {
                 armor.hurtAndBreak(Math.max(1, (int) amount / 4), this, owner -> owner.broadcastBreakEvent(slot));
         }
     }
+    @Override public void onAddedToWorld() {
+        super.onAddedToWorld();
+        if (!level().isClientSide && buildTask != null && buildTask.projectId() != null)
+            com.ic2newera.robot.building.RobotBuildTeams.reconcile(this);
+    }
+    @Override public void remove(Entity.RemovalReason reason) {
+        if (!level().isClientSide) com.ic2newera.robot.building.RobotBuildTeams.releaseAllClaims(this);
+        super.remove(reason);
+    }
     @Override public void tick() {
         // Recharge before AI checks power, so a discharged robot can resume without battery removal.
         if (!level().isClientSide && isAlive()) {
@@ -614,6 +683,8 @@ public final class RobotEntity extends TamableAnimal {
         }
         super.tick();
         if (level().isClientSide || !isAlive()) return;
+        if (buildTask != null && buildTask.projectId() != null)
+            com.ic2newera.robot.building.RobotBuildTeams.reconcile(this);
         if (getTarget() != null && !mayAttack(getTarget())) { setTarget(null); getNavigation().stop(); }
         tickHunger();
         if (entityData.get(EATING) && level().getGameTime() - entityData.get(EATING_START_TIME) >= EATING_DURATION_TICKS) {
@@ -679,8 +750,10 @@ public final class RobotEntity extends TamableAnimal {
         state.putLong("HomePos", homePos().asLong()); state.putString("HomeDimension", homeDimension());
         state.putBoolean("HomeInitialized", homeInitialized);
         state.putBoolean("NewEraWormholeModule", getPersistentData().getBoolean("NewEraWormholeModule"));
+        state.putUUID("RobotSourceUUID", getUUID());
         if (getOwnerUUID() != null) state.putUUID("Owner", getOwnerUUID());
         if (buildTask != null) state.put("BuildTask", buildTask.save());
+        else if (!invalidBuildTaskRecord.isEmpty()) state.put("InvalidBuildTask", invalidBuildTaskRecord.copy());
         if (industrialGoal != null) {
             CompoundTag industrial = industrialGoal.save();
             if (!industrial.isEmpty()) state.put("IndustrialTask", industrial);
@@ -734,15 +807,22 @@ public final class RobotEntity extends TamableAnimal {
             cookingOrder = com.ic2newera.robot.cooking.RobotCookingOrder.load(state.getCompound("CookingOrder"));
             if (!cookingOrder.owner().equals(getOwnerUUID())) { cookingOrder = null; invalidSavedTask = true; }
         } catch (RuntimeException invalid) { invalidSavedTask = true; }
-        buildTask = null; lineRefitTask = null;
+        buildTask = null; lineRefitTask = null; invalidBuildTaskRecord = new CompoundTag();
         industrialRecoveryBlocked = state.getBoolean("IndustrialRecoveryBlocked");
+        if (state.contains("InvalidBuildTask", 10)) {
+            invalidBuildTaskRecord = state.getCompound("InvalidBuildTask").copy();
+            industrialRecoveryBlocked = true; invalidSavedTask = true;
+        }
         invalidLineRefitRecord = new CompoundTag();
         if (industrialGoal != null) industrialGoal.reset();
         if (productionGoal != null) productionGoal.reset();
         if (state.contains("BuildTask")) try {
             CompoundTag saved = boundedDollTask(state, "BuildTask", 2_000_000);
             buildTask = com.ic2newera.robot.building.RobotBuildTask.load(saved);
-        } catch (RuntimeException invalid) { invalidSavedTask = true; industrialRecoveryBlocked = true; }
+        } catch (RuntimeException invalid) {
+            invalidBuildTaskRecord = state.getCompound("BuildTask").copy();
+            invalidSavedTask = true; industrialRecoveryBlocked = true;
+        }
         if (state.contains("IndustrialTask") && industrialGoal != null) try {
             industrialGoal.load(boundedDollTask(state, "IndustrialTask", 1_000_000));
         } catch (RuntimeException invalid) { industrialGoal.reset(); invalidSavedTask = true; industrialRecoveryBlocked = true; }
@@ -768,6 +848,8 @@ public final class RobotEntity extends TamableAnimal {
         }
         tag.putInt("RobotHealthVersion", HEALTH_SCHEMA);
         entityData.set(ENERGY, energy());
+        if (buildTask != null && buildTask.projectId() != null && state.hasUUID("RobotSourceUUID"))
+            com.ic2newera.robot.building.RobotBuildTeams.restoreMember(this, state.getUUID("RobotSourceUUID"));
     }
 
     private static CompoundTag boundedDollTask(CompoundTag state, String key, int maxChars) {
@@ -880,6 +962,7 @@ public final class RobotEntity extends TamableAnimal {
         tag.put("RobotCompanionship", companionship.saveWorld());
         if (smeltingGoal != null) tag.put("RobotSmeltingTask", smeltingGoal.save());
         if (buildTask != null) tag.put("RobotBuildTask", buildTask.save());
+        else if (!invalidBuildTaskRecord.isEmpty()) tag.put("RobotBuildTask", invalidBuildTaskRecord.copy());
         if (productionGoal != null) tag.put("RobotProductionTask", productionGoal.save());
         if (industrialGoal != null) tag.put("RobotIndustrialTask", industrialGoal.save());
         if (lineRefitTask != null) tag.put("RobotLineRefitTask", lineRefitTask.save());
@@ -948,11 +1031,15 @@ public final class RobotEntity extends TamableAnimal {
         if (smeltingGoal != null) try { smeltingGoal.load(tag.getCompound("RobotSmeltingTask")); }
         catch (RuntimeException invalid) { invalidTaskRecord = true; recordTaskLoadFailure("烧矿"); }
         buildTask = null;
+        invalidBuildTaskRecord = new CompoundTag();
         lineRefitTask = null;
         industrialRecoveryBlocked = tag.getBoolean("RobotIndustrialRecoveryBlocked");
         invalidLineRefitRecord = new CompoundTag();
         if (tag.contains("RobotBuildTask")) try { buildTask = com.ic2newera.robot.building.RobotBuildTask.load(tag.getCompound("RobotBuildTask")); }
-        catch (RuntimeException invalid) { invalidTaskRecord = true; industrialRecoveryBlocked = true; recordTaskLoadFailure("建造"); }
+        catch (RuntimeException invalid) {
+            invalidBuildTaskRecord = tag.getCompound("RobotBuildTask").copy();
+            invalidTaskRecord = true; industrialRecoveryBlocked = true; recordTaskLoadFailure("建造");
+        }
         if (productionGoal != null) try { productionGoal.load(tag.getCompound("RobotProductionTask")); }
         catch (RuntimeException invalid) { productionGoal.reset(); invalidTaskRecord = true; recordTaskLoadFailure("旧生产"); }
         if (industrialGoal != null) try { industrialGoal.load(tag.getCompound("RobotIndustrialTask")); }

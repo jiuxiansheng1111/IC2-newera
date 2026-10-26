@@ -23,7 +23,7 @@ import java.util.*;
 /** A bounded, owner-approved description of a robot construction. */
 public record RobotBuildPlan(String kind, String title, List<Part> parts, List<String> notes,
                              CompoundTag metadata) {
-    public static final int MAX_PARTS = 2048;
+    public static final int MAX_PARTS = 16384;
     private static final int MAX_NOTES = 64;
     private static final Set<Block> FORBIDDEN = Set.of(Blocks.AIR, Blocks.CAVE_AIR, Blocks.VOID_AIR,
             Blocks.COMMAND_BLOCK, Blocks.CHAIN_COMMAND_BLOCK, Blocks.REPEATING_COMMAND_BLOCK,
@@ -33,7 +33,7 @@ public record RobotBuildPlan(String kind, String title, List<Part> parts, List<S
     public RobotBuildPlan {
         if (!"house".equals(kind) && !"production".equals(kind)) throw new IllegalArgumentException("kind must be house or production");
         title = bounded(title, 96);
-        if (parts == null || parts.isEmpty() || parts.size() > MAX_PARTS) throw new IllegalArgumentException("construction must contain 1 to 2048 parts");
+        if (parts == null || parts.isEmpty() || parts.size() > MAX_PARTS) throw new IllegalArgumentException("construction must contain 1 to 16384 parts");
         parts = List.copyOf(parts);
         if (notes == null || notes.size() > MAX_NOTES) throw new IllegalArgumentException("too many notes");
         notes = notes.stream().map(s -> bounded(s, 256)).toList();
@@ -61,7 +61,7 @@ public record RobotBuildPlan(String kind, String title, List<Part> parts, List<S
             if (offset == null) throw new IllegalArgumentException("missing part position");
             offset = offset.immutable();
             if (offset.getX() < -48 || offset.getX() > 48 || offset.getZ() < -48 || offset.getZ() > 48
-                    || offset.getY() < 0 || offset.getY() > 16)
+                    || offset.getY() < 0 || offset.getY() > 64)
                 throw new IllegalArgumentException("part is outside the supported construction bounds");
             ResourceLocation id = ResourceLocation.tryParse(blockId == null ? "" : blockId);
             if (id == null) throw new IllegalArgumentException("invalid block id");

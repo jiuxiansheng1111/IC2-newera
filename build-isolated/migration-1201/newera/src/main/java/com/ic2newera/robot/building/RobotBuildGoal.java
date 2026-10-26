@@ -55,19 +55,27 @@ public final class RobotBuildGoal extends Goal {
     private final int[] standRejections = new int[6];
     private long nextSearchDiagnostic;
     private final Set<BlockPos> rejectedStands = new HashSet<>();
+    private final Map<Integer, Long> blockedPartUntil = new HashMap<>();
+    private final Map<Item, Integer> missingMaterials = new LinkedHashMap<>();
     private Vec3 movementCheckpoint;
     private long movementCheckpointTick;
 
     public RobotBuildGoal(RobotEntity robot) { this.robot = robot; setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK)); }
     @Override public boolean requiresUpdateEveryTick() { return true; }
 
-    private RobotBuildTask task() { return robot.buildTask(); }
+    private RobotBuildTask task() { return RobotBuildTeams.taskFor(robot, robot.buildTask()); }
     @Override public boolean canUse() {
+        RobotBuildTask local = robot.buildTask();
         RobotBuildTask task = task();
-        if (robot.level().isClientSide || robot.mode() != RobotEntity.BUILDING || task == null) return false;
+        if (robot.level().isClientSide || robot.mode() != RobotEntity.BUILDING || local == null || task == null) return false;
+        if (!RobotBuildTeams.canWork(robot, local)) {
+            robot.workStatus("团队施工当前已暂停或已结束；共享记录保留");
+            return false;
+        }
         if (!(robot.level() instanceof ServerLevel level)) return false;
         if (!robot.isAlive() || robot.getOwnerUUID() == null || !robot.getOwnerUUID().equals(task.owner())) return false;
         if (!robot.powered()) { block("施工暂停：机器人电量不足"); return false; }
+        if (robot.hunger() <= 0) { block("施工暂停：机器人饥饿停机，请先补充食物"); return false; }
         if (robot.getTarget() != null) { block("施工暂停：机器人正在战斗"); return false; }
         if (robot.collectionTask() != null) { block("施工暂停：机器人仍有采集任务"); return false; }
         if (!level.dimension().location().equals(task.dimension())) { block("施工暂停：计划所在维度与机器人当前维度不同"); return false; }
@@ -79,44 +87,74 @@ public final class RobotBuildGoal extends Goal {
 
     @Override public void start() {
         scanCursor = 0; scannedTask = null; scannedPart = -1; clearStandSearch();
-        rejectedStands.clear(); movementCheckpoint = null; blockedReason = "";
+        rejectedStands.clear(); missingMaterials.clear();
+        movementCheckpoint = null; retryAt = 0; blockedReason = "";
         robot.getNavigation().setMaxVisitedNodesMultiplier(4F);
     }
 
     @Override public void stop() {
         robot.getNavigation().stop(); robot.setWorking(false); robot.setWorkTaskActive(false);
+        RobotBuildTeams.releaseAllClaims(robot);
         robot.getNavigation().resetMaxVisitedNodesMultiplier();
     }
 
     @Override public void tick() {
         if (!(robot.level() instanceof ServerLevel level)) return;
-        RobotBuildTask task = task(); if (task == null) return;
+        RobotBuildTask local = robot.buildTask();
+        RobotBuildTask task = task(); if (task == null || !RobotBuildTeams.canWork(robot, local)) return;
         if (level.getGameTime() < retryAt) return;
-        if (!robot.powered() || robot.getTarget() != null || robot.collectionTask() != null) return;
+        if (!robot.powered() || robot.hunger() <= 0 || robot.getTarget() != null || robot.collectionTask() != null) return;
         BlockPos origin = task.origin();
         if (!level.hasChunkAt(origin) || !level.getWorldBorder().isWithinBounds(origin)) { block("施工暂停：原点区块未加载或超出世界边界"); return; }
         RobotBuildPlan plan = task.plan();
-        if (scannedTask != task) { scannedTask = task; scanCursor = 0; scannedPart = -1; clearStandSearch(); }
+        if (scannedTask != task) {
+            scannedTask = task; scanCursor = 0; scannedPart = -1; clearStandSearch();
+            blockedPartUntil.clear(); missingMaterials.clear();
+        }
         int chosen = -1;
         int scans = 0;
         for (int i = scanCursor; i < plan.parts().size() && scans < SCAN_BUDGET; i++, scans++) {
             scanCursor = i;
             if (task.done(i)) { scanCursor = i + 1; continue; }
+            Long blockedUntil = blockedPartUntil.get(i);
+            if (blockedUntil != null) {
+                if (level.getGameTime() < blockedUntil) { scanCursor = i + 1; continue; }
+                blockedPartUntil.remove(i);
+            }
             RobotBuildPlan.Part part = plan.parts().get(i);
             BlockPos target = origin.offset(part.offset());
-            if (!level.hasChunkAt(target)) { block("施工暂停：目标区块尚未加载，请靠近目标区域后继续"); return; }
+            if (!level.hasChunkAt(target)) {
+                scannedPart = i; cachedTarget = target.immutable();
+                block("施工暂停：目标区块尚未加载，请靠近目标区域后继续"); return;
+            }
             try {
                 BlockState expected = part.state();
-                if (matches(level.getBlockState(target), expected, part)) { task.markDone(i); scanCursor = i + 1; continue; }
-                if (targetOccupied(level, target, expected, part)) { block("施工暂停：目标位置已有方块，不会拆除或覆盖：" + target.toShortString()); return; }
+                if (matches(level.getBlockState(target), expected, part)) {
+                    RobotBuildTeams.markDone(robot, task, i); scanCursor = i + 1; continue;
+                }
+                if (targetOccupied(level, target, expected, part)) {
+                    scannedPart = i; cachedTarget = target.immutable();
+                    block("施工暂停：目标位置已有方块，不会拆除或覆盖：" + target.toShortString()); return;
+                }
+                if (findCargo(part.materialItem()) < 0) {
+                    missingMaterials.merge(part.materialItem(), 1, Integer::sum);
+                    scanCursor = i + 1; continue;
+                }
+                if (!RobotBuildTeams.claim(robot, task, target)) { scanCursor = i + 1; continue; }
                 chosen = i; break;
             } catch (RuntimeException invalid) {
+                scannedPart = i; cachedTarget = target.immutable();
                 block("施工计划方块无效：" + invalid.getMessage()); return;
             }
         }
         if (chosen < 0) {
             if (scanCursor >= plan.parts().size()) {
                 if (task.completed()) { robot.completeBuild(); return; }
+                if (!missingMaterials.isEmpty()) robot.workStatus(missingMaterialStatus(local));
+                else if (local.projectId() != null)
+                    robot.workStatus("等待队友完成已认领部件；" + RobotBuildTeams.materialsSummary(robot));
+                missingMaterials.clear();
+                scanCursor = 0;
             }
             return;
         }
@@ -295,6 +333,9 @@ public final class RobotBuildGoal extends Goal {
 
     private void place(ServerLevel level, RobotBuildTask task, int index, BlockPos target,
                        BlockPos support, Direction face) {
+        if (!RobotBuildTeams.ownsClaim(robot, task, target)) {
+            clearStandSearch(); scanCursor = Math.min(scanCursor, index); return;
+        }
         RobotBuildPlan.Part part = task.plan().parts().get(index);
         BlockState expected;
         try { expected = part.state(); }
@@ -302,7 +343,7 @@ public final class RobotBuildGoal extends Goal {
         if (!level.hasChunkAt(target) || !level.hasChunkAt(support)) { block("施工暂停：所需区块未加载"); return; }
         if (level.isOutsideBuildHeight(target)) { block("施工暂停：目标超出建筑高度"); return; }
         BlockState current = level.getBlockState(target);
-        if (matches(current, expected, part)) { task.markDone(index); scanCursor = index + 1; return; }
+        if (matches(current, expected, part)) { RobotBuildTeams.markDone(robot, task, index); scanCursor = index + 1; return; }
         if (targetOccupied(level, target, expected, part)) { block("施工暂停：目标位置已有方块，不会拆除或覆盖：" + target.toShortString()); return; }
         if (!authorized(level, support, target)) { block("施工暂停：领地保护或 mobGriefing 规则禁止放置"); return; }
         Item wanted = part.materialItem();
@@ -353,7 +394,7 @@ public final class RobotBuildGoal extends Goal {
         }
         BlockState placed = level.getBlockState(target);
         if (failure == null && result.consumesAction() && matches(placed, expected, part)) {
-            task.markDone(index); scanCursor = index + 1; nextPlacement = level.getGameTime() + 10; blockedReason = "";
+            RobotBuildTeams.markDone(robot, task, index); scanCursor = index + 1; nextPlacement = level.getGameTime() + 10; blockedReason = "";
             robot.workStatus("施工完成：" + task.finished() + "/" + task.plan().parts().size());
         } else if (failure != null) {
             block("原生放置接口异常；任务保留，已使用物品与桶回收结果已回写，请检查模组日志");
@@ -444,7 +485,30 @@ public final class RobotBuildGoal extends Goal {
     }
 
     private void block(String reason) {
+        if (cachedTarget != null) {
+            RobotBuildTeams.releaseClaim(robot, cachedTarget);
+            if (scannedPart >= 0) {
+                long now = robot.level().getGameTime();
+                blockedPartUntil.put(scannedPart, now + 40);
+                scanCursor = Math.max(scanCursor, scannedPart + 1);
+            }
+        }
         robot.workBlocked(reason); blockedReason = reason;
-        if (robot.level() instanceof ServerLevel level) retryAt = Math.max(retryAt, level.getGameTime() + 20);
+        if (robot.level() instanceof ServerLevel level) {
+            long retryDelay = cachedTarget != null && scannedPart >= 0 ? 1 : 20;
+            retryAt = Math.max(retryAt, level.getGameTime() + retryDelay);
+        }
+    }
+
+    private String missingMaterialStatus(RobotBuildTask task) {
+        List<String> missing = new ArrayList<>();
+        for (Map.Entry<Item, Integer> entry : missingMaterials.entrySet()) {
+            if (missing.size() >= 4) break;
+            missing.add(com.ic2newera.robot.RobotChatItems.displayName(entry.getKey()) + "×" + entry.getValue());
+        }
+        String prefix = task.projectId() == null ? "施工缺料：" : "本机缺料（队友可继续）：";
+        String status = prefix + String.join("、", missing) + (missingMaterials.size() > missing.size() ? "等" : "");
+        if (task.projectId() != null) status += "；全队" + RobotBuildTeams.materialsSummary(robot);
+        return status;
     }
 }

@@ -45,6 +45,58 @@ public final class LLMTransport {
             "glm-4.5", "glm-4.5-flash", "glm-4.6", "glm-4.7", "glm-4.7-flash");
     private LLMTransport() { }
 
+    /** Explicit local-client planning action; only blueprint geometry is later sent to the game server. */
+    public static CompletableFuture<String> blueprint(LLMConfig config, String system, String prompt, String imageDataUrl) {
+        try {
+            if (!config.enabled() || config.model().isBlank()) throw new IllegalStateException("请先在AI设置开启连接并选择模型；参考图片需要支持视觉的模型。");
+            URI address = endpoint(config.baseUrl());
+            JsonObject body = new JsonObject();
+            body.addProperty("model", config.model()); body.addProperty("stream", false);
+            body.addProperty("max_tokens", Math.min(config.maxTokens(), 16384));
+            JsonArray messages = new JsonArray(); messages.add(message("system", system));
+            if (imageDataUrl == null) messages.add(message("user", prompt));
+            else {
+                if (!imageDataUrl.startsWith("data:image/png;base64,") || imageDataUrl.length() > 8_000_000)
+                    throw new IllegalArgumentException("图片编码无效或过大。");
+                JsonArray content = new JsonArray();
+                JsonObject textPart = new JsonObject(); textPart.addProperty("type", "text"); textPart.addProperty("text", prompt); content.add(textPart);
+                JsonObject picture = new JsonObject(); picture.addProperty("type", "image_url");
+                JsonObject url = new JsonObject(); url.addProperty("url", imageDataUrl); picture.add("image_url", url); content.add(picture);
+                JsonObject user = new JsonObject(); user.addProperty("role", "user"); user.add("content", content); messages.add(user);
+            }
+            body.add("messages", messages);
+            var request = HttpRequest.newBuilder(address).timeout(Duration.ofSeconds(config.timeoutSeconds()))
+                    .header("Content-Type", "application/json; charset=utf-8");
+            if (!config.apiKey().isBlank()) request.header("Authorization", "Bearer " + config.apiKey());
+            AtomicReference<InputStream> stream = new AtomicReference<>();
+            CompletableFuture<String> result = new CompletableFuture<>();
+            var response = HTTP.sendAsync(request.POST(HttpRequest.BodyPublishers.ofString(body.toString())).build(), HttpResponse.BodyHandlers.ofInputStream());
+            result.orTimeout(config.timeoutSeconds(), TimeUnit.SECONDS);
+            result.whenComplete((value, error) -> { if (error != null) response.cancel(true); close(stream.getAndSet(null)); });
+            response.whenComplete((reply, error) -> {
+                if (error != null) { result.completeExceptionally(error); return; }
+                stream.set(reply.body());
+                if (result.isDone()) { close(stream.getAndSet(null)); return; }
+                REPLIES.execute(() -> {
+                    try (InputStream input = reply.body()) {
+                        if (reply.statusCode() == 400 && imageDataUrl != null)
+                            throw new IllegalStateException("图片规划请求被模型拒绝，请核对该模型是否支持图片及接口格式（HTTP 400）。");
+                        checkStatus(reply.statusCode());
+                        byte[] data = input.readNBytes(2_000_001);
+                        if (data.length > 2_000_000) throw new IllegalStateException("AI图纸回复超过大小限制。");
+                        JsonObject choice = JsonParser.parseString(new String(data, StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("choices").get(0).getAsJsonObject();
+                        if (choice.has("finish_reason") && "length".equals(choice.get("finish_reason").getAsString()))
+                            throw new IllegalStateException("图纸回复被截断，请简化外观要求或提高AI输出长度后重新生成。");
+                        String answer = text(choice.getAsJsonObject("message").get("content"));
+                        if (answer.isBlank() || answer.length() > 200_000) throw new IllegalStateException("AI没有返回可用的建筑图纸。");
+                        result.complete(answer);
+                    } catch (Exception problem) { result.completeExceptionally(problem); }
+                });
+            });
+            return result;
+        } catch (RuntimeException error) { return CompletableFuture.failedFuture(error); }
+    }
+
     public static CompletableFuture<String> complete(LLMConfig config, List<Message> history,
                                                             String systemPrompt, String context, Consumer<String> onPartial) {
         try {

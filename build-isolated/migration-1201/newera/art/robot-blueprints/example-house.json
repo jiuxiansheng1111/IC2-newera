@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "title": "橡木玻璃小屋",
+  "kind": "house",
+  "palette": {
+    "floor": "minecraft:oak_planks",
+    "wall": "minecraft:oak_planks",
+    "window": "minecraft:glass",
+    "door": "minecraft:oak_door[facing=south,half=lower,hinge=left,open=false,powered=false]",
+    "roof": "minecraft:dark_oak_slab[type=bottom,waterlogged=false]",
+    "chimney": "minecraft:bricks"
+  },
+  "ops": [
+    { "type": "fill", "from": [0, 0, 0], "to": [8, 0, 6], "palette": "floor" },
+    { "type": "box", "from": [0, 0, 0], "to": [8, 4, 6], "palette": "wall", "hollow": true },
+    { "type": "clear", "from": [4, 1, 0], "to": [4, 2, 0] },
+    { "type": "clear", "from": [1, 2, 0], "to": [2, 3, 0] },
+    { "type": "clear", "from": [6, 2, 0], "to": [7, 3, 0] },
+    { "type": "clear", "from": [1, 2, 6], "to": [2, 3, 6] },
+    { "type": "clear", "from": [6, 2, 6], "to": [7, 3, 6] },
+    { "type": "fill", "from": [0, 5, 0], "to": [8, 5, 6], "palette": "roof" },
+    { "type": "box", "from": [1, 6, 1], "to": [2, 7, 2], "palette": "chimney", "hollow": false }
+  ],
+  "blocks": [
+    { "pos": [4, 1, 0], "palette": "door" },
+    { "pos": [1, 2, 0], "palette": "window" },
+    { "pos": [2, 2, 0], "palette": "window" },
+    { "pos": [1, 3, 0], "palette": "window" },
+    { "pos": [2, 3, 0], "palette": "window" },
+    { "pos": [6, 2, 0], "palette": "window" },
+    { "pos": [7, 2, 0], "palette": "window" },
+    { "pos": [6, 3, 0], "palette": "window" },
+    { "pos": [7, 3, 0], "palette": "window" },
+    { "pos": [1, 2, 6], "palette": "window" },
+    { "pos": [2, 2, 6], "palette": "window" },
+    { "pos": [1, 3, 6], "palette": "window" },
+    { "pos": [2, 3, 6], "palette": "window" },
+    { "pos": [6, 2, 6], "palette": "window" },
+    { "pos": [7, 2, 6], "palette": "window" },
+    { "pos": [6, 3, 6], "palette": "window" },
+    { "pos": [7, 3, 6], "palette": "window" }
+  ]
+}

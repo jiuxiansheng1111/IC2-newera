@@ -15,6 +15,7 @@ public final class RobotClientEvents {
 
     @SubscribeEvent
     public static void setup(net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent event) {
+        event.enqueueWork(() -> com.ic2newera.client.robot.blueprint.BlueprintClientBridge.setProvider(new com.ic2newera.client.robot.blueprint.DefaultBlueprintClient()));
         event.enqueueWork(() -> net.minecraft.client.gui.screens.MenuScreens.register(RobotRegistry.INVENTORY.get(), RobotInventoryScreen::new));
     }
 

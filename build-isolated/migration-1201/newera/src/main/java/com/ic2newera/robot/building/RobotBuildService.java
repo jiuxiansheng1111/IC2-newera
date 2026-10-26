@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 public final class RobotBuildService {
     public static final int PREVIEW = 0, START = 1, PAUSE = 2, RESUME = 3, CANCEL = 4, STATUS = 5, PAUSE_AFTER_CYCLE = 6;
     public static final UUID NONE = new UUID(0, 0);
-    private record Proposal(UUID id, UUID robot, RobotBuildTask task, RobotLineRefitTask refit, long expires) { }
+    private record Proposal(UUID id, UUID robot, RobotBuildTask task, RobotLineRefitTask refit, List<UUID> members, long expires) { }
     public record Result(boolean accepted, UUID proposal, String report, boolean hasTask, boolean running, int done, int total) { }
     private static final Map<UUID, Proposal> PROPOSALS = new LinkedHashMap<>();
     private static final Pattern ORDER = Pattern.compile("^(?:机器人)?(?:请|帮我|给我|麻烦)?(?:先)?(?:规划|设计|建造|搭建|改造|改产|更换|换|建|造|盖|把).*(?:房|屋|生产线|流水线|电缆|电线|缆线|物料|原料|铜锭|铁锭|锡锭|钢锭).*$");
@@ -34,7 +34,7 @@ public final class RobotBuildService {
         String value = normalize(text);
         if (value.length() > 1200 || value.matches("(?s).*[\"'“”‘’「」『』?？].*")
                 || value.matches("(?s).*(?:不要|不用|别|如果|假如|例如|比如|能不能|是否|怎么|如何|教程|解释|吗|呢).*") ) return false;
-        return CONTROLS.contains(value) || ORDER.matcher(value).matches();
+        return CONTROLS.contains(value) || ORDER.matcher(value.replaceFirst("^(?:协作|一起|共同)", "")).matches();
     }
     public static String chat(ServerPlayer player, RobotEntity robot, boolean remote, String text) {
         if (robot == null) return "角色当前离线或不可访问，请靠近角色后重试。";
@@ -50,16 +50,25 @@ public final class RobotBuildService {
         };
         Proposal proposal = PROPOSALS.get(player.getUUID());
         UUID id = proposal != null && proposal.robot.equals(robot.getUUID()) ? proposal.id : NONE;
-        return handle(player, robot, remote, action, id, value).report();
+        int workers = (value.contains("协作") || value.contains("一起") || value.contains("共同")) ? 8 : 1;
+        var count = Pattern.compile("([1-8])\\s*(?:个|名|台)机器人").matcher(value);
+        if (count.find()) workers = Integer.parseInt(count.group(1));
+        return handle(player, robot, remote, action, id, value, workers).report();
     }
 
     public static Result handle(ServerPlayer player, RobotEntity robot, boolean remote, int action, UUID proposalId, String description) {
+        return handle(player, robot, remote, action, proposalId, description, 1);
+    }
+
+    public static Result handle(ServerPlayer player, RobotEntity robot, boolean remote, int action, UUID proposalId, String description, int workers) {
         if (robot == null || !player.isAlive() || player.isSpectator() || !robot.isAlive() || !robot.isOwnedBy(player)
                 || !(robot.level() instanceof ServerLevel level)
                 || (remote ? !IndustrialMobileAccess.canReachRobot(player, robot) : !robot.canManage(player)))
             return rejected("角色离线、超出操作距离或不属于你；远程操作需要手持手机。");
+        if (workers < 1 || workers > 8) return rejected("协作人数应为1至8名。");
         if (action < PREVIEW || action > PAUSE_AFTER_CYCLE) return rejected("未知建造操作。");
         if (robot.industrialRecoveryBlocked()) return rejected("工业任务恢复记录损坏，已锁定施工与生产恢复；原记录和实物保留，请先核对修复，不能用取消任务跳过。");
+        if (robot.buildTask() != null && RobotBuildTeams.taskFor(robot, robot.buildTask()) == null) return rejected("共享施工记录不完整，任务已停止并保留；请恢复该世界的施工记录。 ");
         try {
             PROPOSALS.entrySet().removeIf(entry -> entry.getValue().expires < System.nanoTime());
             if (action == PREVIEW) {
@@ -100,6 +109,7 @@ public final class RobotBuildService {
                     plan = description.contains("生产线") || description.contains("流水线")
                             ? RobotProductionPlanner.plan(description) : RobotHousePlanner.plan(description);
                 }
+                if (refit != null && workers > 1) return rejected("已有生产线换线/改产由原负责人完成；新建筑和新生产线可协作。 ");
                 int minX = plan.parts().stream().mapToInt(p -> p.offset().getX()).min().orElse(0);
                 int maxX = plan.parts().stream().mapToInt(p -> p.offset().getX()).max().orElse(0);
                 int maxZ = plan.parts().stream().mapToInt(p -> p.offset().getZ()).max().orElse(0);
@@ -107,9 +117,9 @@ public final class RobotBuildService {
                 if (refit != null) origin = refit.origin();
                 RobotBuildTask task = new RobotBuildTask(plan, player.getUUID(), level.dimension().location(), origin);
                 while (PROPOSALS.size() >= 256) PROPOSALS.remove(PROPOSALS.keySet().iterator().next());
-                Proposal proposal = new Proposal(UUID.randomUUID(), robot.getUUID(), task, refit, System.nanoTime() + 600_000_000_000L);
+                Proposal proposal = new Proposal(UUID.randomUUID(), robot.getUUID(), task, refit, previewMembers(robot, workers), System.nanoTime() + 600_000_000_000L);
                 PROPOSALS.put(player.getUUID(), proposal);
-                return result(robot, proposal.id, refit == null ? report(robot, task, true)
+                return result(robot, proposal.id, refit == null ? teamPreview(level, proposal.members) + report(robot, task, true)
                         : refit.kind() == RobotLineRefitTask.CABLE ? reportRefit(robot, refit) : reportReplan(robot, refit, level), true);
             }
             if (action == START) {
@@ -148,8 +158,21 @@ public final class RobotBuildService {
                     return result(robot, proposal.id, "已有建造或生产线记录。可继续原任务，或明确取消后再开始新方案；已放方块不会自动拆除。", false);
                 if (robot.blockPosition().distSqr(proposal.task.origin()) > 64 * 64)
                     return rejected("角色已远离预览场地，请重新生成方案。");
+                String conflict = RobotBuildTeams.conflict(level, proposal.task);
+                if (!conflict.isBlank()) return result(robot, proposal.id, conflict, false);
                 String obstacle = obstruction(level, proposal.task);
                 if (!obstacle.isBlank()) return result(robot, proposal.id, obstacle + "\n先整理场地，再用同一方案开始；不会自动拆掉现有建筑。", false);
+                if (proposal.members.size() > 1) {
+                    List<RobotEntity> team = new ArrayList<>();
+                    for (UUID member : proposal.members) {
+                        if (!(level.getEntity(member) instanceof RobotEntity entity)) return result(robot, proposal.id, "预览中的成员已离线，请重新生成方案。", false);
+                        team.add(entity);
+                    }
+                    var started = RobotBuildTeams.start(robot, proposal.task, team);
+                    if (!started.started()) return result(robot, proposal.id, started.message(), false);
+                    PROPOSALS.remove(player.getUUID());
+                    return result(robot, NONE, started.message() + "\n" + started.materialsSummary(), true);
+                }
                 if (!robot.spendEnergy(200)) return result(robot, proposal.id, "启动施工需要200 EU，请补电。", false);
                 robot.beginBuild(proposal.task);
                 PROPOSALS.remove(player.getUUID());
@@ -157,6 +180,7 @@ public final class RobotBuildService {
             }
             if (action == PAUSE) {
                 if (robot.buildTask() == null) return rejected("没有建造或生产线任务。");
+                if (robot.buildTask().projectId() != null) { RobotBuildTeams.pause(robot); return result(robot, NONE, RobotBuildTeams.status(robot), true); }
                 robot.pauseBuild();
                 return result(robot, NONE, "已暂停角色施工/生产作业，进度保留；原生炉子和发电设备仍按自身规则运行。", true);
             }
@@ -172,17 +196,19 @@ public final class RobotBuildService {
                         || !robot.buildTask().dimension().equals(level.dimension().location())) return rejected("没有属于你且在本维度的可恢复任务。");
                 if (!robot.powered()) return rejected("角色缺电，请先补电。");
                 if (robot.buildTask().completed() && !robot.buildTask().plan().kind().equals("production")) return rejected("这座房屋已完成，无需重复施工。");
+                if (robot.buildTask().projectId() != null) { boolean ok = RobotBuildTeams.resume(robot); return result(robot, NONE, RobotBuildTeams.status(robot), ok); }
                 robot.resumeBuild();
                 return result(robot, NONE, "已恢复任务；会重新检查方块、权限、材料和通路。", true);
             }
             if (action == CANCEL) {
                 PROPOSALS.remove(player.getUUID());
+                if (robot.buildTask() != null && robot.buildTask().projectId() != null) { RobotBuildTeams.cancel(robot); return result(robot, NONE, "协作项目已取消，所有成员停止，已放方块和剩余材料保留。", true); }
                 robot.cancelBuild();
                 return result(robot, NONE, robot.lineRefitTask() == null ? "已取消任务与待确认方案。已放建筑、机器和炉内物品保留，未消耗材料仍在角色货物槽。" : "改造已停在待命，部分拆装的恢复记录保留；请继续改造或修复现场，生产不会自动恢复。", true);
             }
             Proposal pending = PROPOSALS.get(player.getUUID());
             if (pending != null && pending.robot.equals(robot.getUUID())) return result(robot, pending.id,
-                    pending.refit == null ? report(robot, pending.task, true)
+                    pending.refit == null ? teamPreview(level, pending.members) + report(robot, pending.task, true)
                             : pending.refit.kind() == RobotLineRefitTask.CABLE ? reportRefit(robot, pending.refit) : reportReplan(robot, pending.refit, level), true);
             if (robot.lineRefitTask() != null && robot.lineRefitTask().kind() == RobotLineRefitTask.REPLAN)
                 return result(robot, NONE, reportReplan(robot, robot.lineRefitTask(), level) + "\n改产恢复记录已保存。状态：" + robot.status(), true);
@@ -190,11 +216,57 @@ public final class RobotBuildService {
                 return result(robot, NONE, reportRefit(robot, robot.lineRefitTask()) + "\n已换线 "
                         + robot.lineRefitTask().cableIndex() + "/" + robot.lineRefitTask().cablePositions().size()
                         + "；当前状态：" + robot.status(), true);
-            if (robot.buildTask() != null) return result(robot, NONE, report(robot, robot.buildTask(), false), true);
+            if (robot.buildTask() != null) return result(robot, NONE, RobotBuildTeams.status(robot) + "\n" + report(robot, RobotBuildTeams.taskFor(robot, robot.buildTask()), false), true);
             return result(robot, NONE, "尚无建造任务。描述例如：建一间9x7的木屋，有玻璃窗；或搭建锡生产线，用低压太阳能供电。电源可指定火力发电机或低压太阳能，未指定时默认火力。先生成方案，再开始施工。", true);
         } catch (IllegalArgumentException | IllegalStateException invalid) {
             return result(robot, NONE, "未执行：" + invalid.getMessage(), false);
         }
+    }
+
+    /** Import packets can only propose a validated construction, never execute it. */
+    public static Result previewBlueprint(ServerPlayer player, RobotEntity robot, boolean remote, RobotBuildPlan plan, int workers) {
+        if (robot == null || !robot.isOwnedBy(player) || !robot.isAlive() || !player.isAlive() || player.isSpectator()
+                || !(robot.level() instanceof ServerLevel level) || robot.industrialRecoveryBlocked()
+                || (remote ? !IndustrialMobileAccess.canReachRobot(player, robot) : !robot.canManage(player))) return rejected("无法操作这名机器人。");
+        if (!plan.kind().equals("house") || workers < 1 || workers > 8) return rejected("外部图纸仅作建筑；人数1至8名。");
+        try {
+            // External metadata never becomes an approved industrial program.
+            plan = new RobotBuildPlan("house", plan.title(), plan.parts(), plan.notes(), new net.minecraft.nbt.CompoundTag());
+            plan.materials();
+            int minX = plan.parts().stream().mapToInt(p -> p.offset().getX()).min().orElse(0);
+            int maxX = plan.parts().stream().mapToInt(p -> p.offset().getX()).max().orElse(0);
+            int maxZ = plan.parts().stream().mapToInt(p -> p.offset().getZ()).max().orElse(0);
+            var task = new RobotBuildTask(plan, player.getUUID(), level.dimension().location(),
+                    robot.blockPosition().offset(-(minX + maxX) / 2, 0, -maxZ - 4));
+            while (PROPOSALS.size() >= 256) PROPOSALS.remove(PROPOSALS.keySet().iterator().next());
+            var proposal = new Proposal(UUID.randomUUID(), robot.getUUID(), task, null, previewMembers(robot, workers), System.nanoTime() + 600_000_000_000L);
+            PROPOSALS.put(player.getUUID(), proposal);
+            return result(robot, proposal.id, teamPreview(level, proposal.members) + report(robot, task, true), true);
+        } catch (IllegalArgumentException | IllegalStateException invalid) { return rejected("图纸未通过：" + invalid.getMessage()); }
+    }
+
+    public static RobotBuildPlan visiblePlan(ServerPlayer player, RobotEntity robot, UUID proposalId) {
+        Proposal p = PROPOSALS.get(player.getUUID());
+        if (p != null && p.robot.equals(robot.getUUID()) && p.id.equals(proposalId) && p.expires >= System.nanoTime()) return p.task.plan();
+        RobotBuildTask visible = robot.isOwnedBy(player) ? RobotBuildTeams.taskFor(robot, robot.buildTask()) : null;
+        return visible == null ? null : visible.plan();
+    }
+
+    public static void discardProposal(ServerPlayer player, UUID id) {
+        Proposal proposal = PROPOSALS.get(player.getUUID());
+        if (proposal != null && proposal.id.equals(id)) PROPOSALS.remove(player.getUUID());
+    }
+
+    private static List<UUID> previewMembers(RobotEntity leader, int requested) {
+        if (requested == 1) return List.of(leader.getUUID());
+        List<RobotEntity> available = RobotBuildTeams.candidates(leader);
+        if (available.size() < 2) throw new IllegalArgumentException("附近64格没有第二名同主人、空闲且有电的机器人；可先选择单人。 ");
+        return available.stream().limit(requested).map(RobotEntity::getUUID).toList();
+    }
+    private static String teamPreview(ServerLevel level, List<UUID> members) {
+        StringBuilder out = new StringBuilder("施工人数：").append(members.size()).append(" / 最多8名；预览已锁定成员，启动时重新核对。\n");
+        for (UUID id : members) if (level.getEntity(id) instanceof RobotEntity member) out.append("• ").append(member.getName().getString()).append("\n");
+        return out.toString();
     }
 
     private static boolean isCableRefit(String description) {
@@ -413,7 +485,7 @@ public final class RobotBuildService {
     }
 
     private static Result result(RobotEntity robot, UUID id, String report, boolean accepted) {
-        var task = robot.buildTask();
+        var task = robot.buildTask() == null ? null : RobotBuildTeams.taskFor(robot, robot.buildTask());
         var refit = robot.lineRefitTask();
         int done = task == null ? 0 : task.finished(), total = task == null ? 0 : task.plan().parts().size();
         if (refit != null) {
