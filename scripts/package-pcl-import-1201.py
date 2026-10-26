@@ -18,20 +18,20 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "build-isolated/player-packaging/20261027-collaborative-building-r46"
+OUT = ROOT / "build-isolated/player-packaging/20261027-cooperative-playtest-r47"
 LOCK = ROOT / "build-isolated/migration-1201/dependencies/runtime-lock-1201.json"
 DEPS = LOCK.parent
-CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build46-collaborative-building"
+CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build47-cooperative-playtest"
 OWN_JAR = "ic2newera-0.2.0-migration1201-all.jar"
-OWN_SHA256 = "3B2F972B466B12EE1495E8628C702DDF324AE04214C687ABC324EB1AEBFD1D75"
+OWN_SHA256 = "E966A336DD9E9FE6DE35716EF8B39EFB96C70BD0B9C6BC904533A50CACBEEBEA"
 JAVA_DIR = ROOT / "build-isolated/player-packaging/20261024-r41-java17/java-source"
 JAVA_ZIP = "OpenJDK17U-jdk_x64_windows_hotspot_17.0.20_8.zip"
 JAVA_SOURCE = "OpenJDK17U-jdk-sources_17.0.20_8.tar.gz"
 JAVA_ZIP_SHA256 = "418497BE5CF585BDD2203D6486A565D66D3F5E992D5630D45104CB873FAB8122"
 JAVA_SOURCE_SHA256 = "A9FADD969738666D59A241BC6FB01D0963154489D934EE387630DD4DCA5E8F54"
 JAVA_ROOT = "jdk-17.0.20+8"
-PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r46.mrpack"
-PACK_VERSION = "0.2.0-playtest.20261027-r46-blueprints"
+PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r47.mrpack"
+PACK_VERSION = "0.2.0-playtest.20261027-r47-cooperative-playtest"
 
 
 def json_bytes(value: object) -> bytes:
@@ -213,7 +213,7 @@ def build_pack() -> dict:
             "Source reference: https://github.com/adoptium/jdk17u/tree/jdk-17.0.20+8_adopt\n"
             "OpenJDK and its components retain their own licenses.\n").encode("utf-8")
     }
-    for name in ("README.md", "example-house.json"):
+    for name in ("README.md", "example-house.json", "simple-pavilion.json"):
         managed["overrides/IC2-NewEra-blueprints/inbox/" + name] = ROOT / "build-isolated/migration-1201/newera/art/robot-blueprints" / name
     # Version-local Java discovery in PCL finds javaw.exe below the profile folder.
     for notice in ("README-zh_CN.txt", "README-en_US.txt", "THIRD-PARTY-NOTICES.txt", "PLAYTEST-STATUS.txt"):

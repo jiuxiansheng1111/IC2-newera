@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "kind": "house",
+  "title": "青白小亭",
+  "palette": {
+    "plinth_and_steps": "minecraft:light_gray_concrete",
+    "pillars": "minecraft:cyan_concrete",
+    "roof_white": "minecraft:white_concrete",
+    "roof_light_gray": "minecraft:light_gray_concrete"
+  },
+  "ops": [
+    { "type": "fill", "from": [0, 0, 0], "to": [4, 0, 4], "palette": "plinth_and_steps" },
+    { "type": "fill", "from": [2, 0, 7], "to": [2, 0, 7], "palette": "plinth_and_steps" },
+    { "type": "fill", "from": [2, 0, 6], "to": [2, 1, 6], "palette": "plinth_and_steps" },
+    { "type": "fill", "from": [2, 0, 5], "to": [2, 2, 5], "palette": "plinth_and_steps" },
+    { "type": "fill", "from": [0, 1, 0], "to": [0, 2, 0], "palette": "pillars" },
+    { "type": "fill", "from": [4, 1, 0], "to": [4, 2, 0], "palette": "pillars" },
+    { "type": "fill", "from": [0, 1, 4], "to": [0, 2, 4], "palette": "pillars" },
+    { "type": "fill", "from": [4, 1, 4], "to": [4, 2, 4], "palette": "pillars" },
+    { "type": "fill", "from": [0, 3, 0], "to": [4, 3, 4], "palette": "roof_light_gray" },
+    { "type": "fill", "from": [1, 3, 1], "to": [3, 3, 3], "palette": "roof_white" }
+  ],
+  "blocks": [
+    { "pos": [0, 3, 0], "palette": "roof_white" },
+    { "pos": [4, 3, 0], "palette": "roof_white" },
+    { "pos": [0, 3, 4], "palette": "roof_white" },
+    { "pos": [4, 3, 4], "palette": "roof_white" }
+  ]
+}

@@ -39,6 +39,9 @@ public final class RobotBuildTeams extends SavedData {
     private final Map<UUID, Project> projects = new HashMap<>();
     private final List<CompoundTag> invalidProjectRecords = new ArrayList<>();
     private final Map<LeaseKey, Lease> leases = new HashMap<>(); // transient: unload/pause always frees work
+    // Yield requests are intentionally transient: a restart cannot leave a robot following a stale
+    // evacuation order. One request per blocker prevents a crowd of builders from steering it.
+    private final Map<UUID, YieldRequest> yieldRequests = new HashMap<>();
 
     public record StartResult(boolean started, UUID projectId, List<RobotEntity> members,
                               String materialsSummary, String message) {
@@ -61,6 +64,64 @@ public final class RobotBuildTeams extends SavedData {
     }
     private record LeaseKey(ResourceLocation dimension, long position) { }
     private record Lease(UUID project, UUID robot, long expiresAt) { }
+    private record YieldRequest(UUID project, UUID requester, BlockPos target, long expiresAt) { }
+    private static final long YIELD_MAX_TICKS = 400;
+
+    /** Ask an idle same-project teammate occupying a target block to walk clear of the build. */
+    public static boolean requestYield(RobotEntity requester, RobotEntity blocker, RobotBuildTask task, BlockPos target) {
+        if (requester == null || blocker == null || task == null || task.projectId() == null
+                || !(requester.level() instanceof ServerLevel level) || blocker.level() != level
+                || requester == blocker || !task.owner().equals(requester.getOwnerUUID())
+                || !task.owner().equals(blocker.getOwnerUUID()) || !requester.isAlive() || !blocker.isAlive()
+                || blocker.mode() != RobotEntity.BUILDING || blocker.getTarget() != null
+                || blocker.isWorking() || blocker.workTaskActive()) return false;
+        RobotBuildTeams data = data(level);
+        Project project = data.projects.get(task.projectId());
+        if (project == null || project.state != State.ACTIVE || !project.owner.equals(task.owner())
+                || !project.members.contains(requester.getUUID()) || !project.members.contains(blocker.getUUID())) return false;
+        long now = level.getGameTime();
+        YieldRequest existing = data.yieldRequests.get(blocker.getUUID());
+        if (existing != null && existing.expiresAt() > now)
+            return existing.project().equals(project.id);
+        data.yieldRequests.put(blocker.getUUID(), new YieldRequest(project.id, requester.getUUID(), target.immutable(), now + YIELD_MAX_TICKS));
+        return true;
+    }
+
+    /** Returns a current evacuation target only while the member remains idle and the project active. */
+    public static BlockPos yieldTargetFor(RobotEntity robot, RobotBuildTask local) {
+        if (robot == null || local == null || local.projectId() == null
+                || !(robot.level() instanceof ServerLevel level)) return null;
+        RobotBuildTeams data = data(level);
+        YieldRequest request = data.yieldRequests.get(robot.getUUID());
+        if (request == null) return null;
+        Project project = data.projects.get(request.project());
+        long now = level.getGameTime();
+        if (request.expiresAt() <= now || project == null || project.state != State.ACTIVE
+                || !project.id.equals(local.projectId()) || !project.owner.equals(robot.getOwnerUUID())
+                || !project.members.contains(robot.getUUID()) || !project.members.contains(request.requester())
+                || robot.mode() != RobotEntity.BUILDING || robot.getTarget() != null
+                || robot.isWorking() || !robot.powered() || robot.hunger() <= 0) {
+            data.yieldRequests.remove(robot.getUUID());
+            return null;
+        }
+        boolean targetCompleted = false;
+        for (int i = 0; i < project.task.plan().parts().size(); i++) {
+            if (project.task.origin().offset(project.task.plan().parts().get(i).offset()).equals(request.target())) {
+                targetCompleted = project.task.done(i);
+                break;
+            }
+        }
+        if (targetCompleted) {
+            data.yieldRequests.remove(robot.getUUID());
+            return null;
+        }
+        return request.target();
+    }
+
+    public static void clearYield(RobotEntity robot) {
+        if (robot != null && robot.level() instanceof ServerLevel level)
+            data(level).yieldRequests.remove(robot.getUUID());
+    }
 
     private RobotBuildTeams() { }
     private static RobotBuildTeams data(ServerLevel level) {

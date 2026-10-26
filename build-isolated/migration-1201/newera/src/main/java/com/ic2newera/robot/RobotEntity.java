@@ -140,8 +140,14 @@ public final class RobotEntity extends TamableAnimal {
     public int mode() { return entityData.get(MODE); }
     public boolean following() { return mode() == FOLLOW; }
     public boolean isWorking() { return entityData.get(WORKING); }
-    public void setWorking(boolean working) { entityData.set(WORKING, working); if (working) { activeThisTick = true; stopMovement(); } }
-    public void setWorkTaskActive(boolean active) { workTaskActive = active; if (active) { activeThisTick = true; stopMovement(); } }
+    public void setWorking(boolean working) {
+        entityData.set(WORKING, working);
+        if (working) { activeThisTick = true; clearMovementOrder(); }
+    }
+    public void setWorkTaskActive(boolean active) {
+        workTaskActive = active;
+        if (active) { activeThisTick = true; clearMovementOrder(); }
+    }
     public boolean workTaskActive() { return workTaskActive; }
     /** Explicit livestock/monster slaughter switch; normal hostile defence is always active. */
     public boolean combatEnabled() { return entityData.get(COMBAT); }
@@ -232,8 +238,14 @@ public final class RobotEntity extends TamableAnimal {
     }
     public void stopMovement() {
         if (level().isClientSide) return;
-        movementIntent = RobotMovementIntent.NONE; movementTarget = null; movementDimension = "";
+        clearMovementOrder();
         getNavigation().stop();
+        if (mode() == FOLLOW) entityData.set(MODE, STAY);
+    }
+    /** Clears owner-directed movement without cancelling the active work goal's path. */
+    private void clearMovementOrder() {
+        if (level().isClientSide) return;
+        movementIntent = RobotMovementIntent.NONE; movementTarget = null; movementDimension = "";
         if (mode() == FOLLOW) entityData.set(MODE, STAY);
     }
     public void finishMovement() { stopMovement(); }

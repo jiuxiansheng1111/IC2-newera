@@ -23,7 +23,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ForgeEventFactory;
 
@@ -54,8 +57,13 @@ public final class RobotBuildGoal extends Goal {
     private String blockedReason = "";
     private final int[] standRejections = new int[6];
     private long nextSearchDiagnostic;
+    private long nextNativeFailureDiagnostic;
     private final Set<BlockPos> rejectedStands = new HashSet<>();
     private final Map<Integer, Long> blockedPartUntil = new HashMap<>();
+    private BlockPos yieldingFor;
+    private BlockPos yieldDestination;
+    private long nextYieldPathSearch;
+    private int yieldSearchCursor;
     private final Map<Item, Integer> missingMaterials = new LinkedHashMap<>();
     private Vec3 movementCheckpoint;
     private long movementCheckpointTick;
@@ -93,6 +101,8 @@ public final class RobotBuildGoal extends Goal {
     }
 
     @Override public void stop() {
+        RobotBuildTeams.clearYield(robot);
+        yieldingFor = null; yieldDestination = null;
         robot.getNavigation().stop(); robot.setWorking(false); robot.setWorkTaskActive(false);
         RobotBuildTeams.releaseAllClaims(robot);
         robot.getNavigation().resetMaxVisitedNodesMultiplier();
@@ -104,6 +114,12 @@ public final class RobotBuildGoal extends Goal {
         RobotBuildTask task = task(); if (task == null || !RobotBuildTeams.canWork(robot, local)) return;
         if (level.getGameTime() < retryAt) return;
         if (!robot.powered() || robot.hunger() <= 0 || robot.getTarget() != null || robot.collectionTask() != null) return;
+        BlockPos requestedYieldTarget = RobotBuildTeams.yieldTargetFor(robot, local);
+        if (requestedYieldTarget != null) {
+            tickYield(level, task, requestedYieldTarget);
+            return;
+        }
+        yieldingFor = null; yieldDestination = null;
         BlockPos origin = task.origin();
         if (!level.hasChunkAt(origin) || !level.getWorldBorder().isWithinBounds(origin)) { block("施工暂停：原点区块未加载或超出世界边界"); return; }
         RobotBuildPlan plan = task.plan();
@@ -140,6 +156,11 @@ public final class RobotBuildGoal extends Goal {
                     missingMaterials.merge(part.materialItem(), 1, Integer::sum);
                     scanCursor = i + 1; continue;
                 }
+                RobotEntity blocker = teamRobotOccupying(level, target, task);
+                if (blocker != null && RobotBuildTeams.requestYield(robot, blocker, task, target)) {
+                    scanCursor = i + 1;
+                    continue;
+                }
                 if (!RobotBuildTeams.claim(robot, task, target)) { scanCursor = i + 1; continue; }
                 chosen = i; break;
             } catch (RuntimeException invalid) {
@@ -160,6 +181,14 @@ public final class RobotBuildGoal extends Goal {
         }
         RobotBuildPlan.Part part = plan.parts().get(chosen);
         BlockPos target = origin.offset(part.offset());
+        RobotEntity blocker = teamRobotOccupying(level, target, task);
+        if (blocker != null && RobotBuildTeams.requestYield(robot, blocker, task, target)) {
+            RobotBuildTeams.releaseClaim(robot, target);
+            blockedPartUntil.put(chosen, level.getGameTime() + 40);
+            scanCursor = chosen + 1;
+            clearStandSearch();
+            return;
+        }
         if (scannedPart != chosen || !target.equals(cachedTarget)) {
             scannedPart = chosen; clearStandSearch(); cachedTarget = target.immutable();
             rejectedStands.clear(); movementCheckpoint = null;
@@ -169,10 +198,12 @@ public final class RobotBuildGoal extends Goal {
         if (standSearchActive) searchStand(level, task, target, part, Math.max(0, SCAN_BUDGET - scans));
         if (cachedStand == null) {
             if (standSearchActive) robot.workStatus("正在寻找可达施工站位：" + target.toShortString());
-            else block("施工暂停：目标附近没有已加载、可见且可达的安全站位；请搭通路或脚手架");
+            else block("施工暂停：目标 " + target.toShortString() + "（" + part.blockId()
+                    + "）没有可达站位；请先搭楼梯/脚手架并打通通路");
             return;
         }
-        double standDistance = robot.distanceToSqr(Vec3.atBottomCenterOf(cachedStand));
+        Vec3 standPosition = standPosition(level, cachedStand);
+        double standDistance = robot.distanceToSqr(standPosition);
         boolean visibleHere = robot.onGround()
                 && !new net.minecraft.world.phys.AABB(target).intersects(robot.getBoundingBox())
                 && traceSupport(level, worker(level).getEyePosition(), cachedSupport, cachedFace, part, robot) != null;
@@ -197,7 +228,7 @@ public final class RobotBuildGoal extends Goal {
             if (robot.getNavigation().isDone() && cachedPath != null && cachedPath.canReach())
                 robot.getNavigation().moveTo(cachedPath, 1.0);
             if (robot.getNavigation().isDone() && standDistance < 2.25) {
-                Vec3 center = Vec3.atBottomCenterOf(cachedStand);
+                Vec3 center = standPosition;
                 robot.getMoveControl().setWantedPosition(center.x, center.y, center.z, .65);
             }
             robot.setWorkTaskActive(true);
@@ -208,6 +239,102 @@ public final class RobotBuildGoal extends Goal {
         if (now < nextPlacement || now % 10 != 0) return;
         robot.workStatus("正在施工：" + plan.title() + " " + (task.finished() + 1) + "/" + plan.parts().size());
         place(level, task, chosen, target, cachedSupport, cachedFace);
+    }
+
+    private RobotEntity teamRobotOccupying(ServerLevel level, BlockPos target, RobotBuildTask task) {
+        AABB block = new AABB(target);
+        for (Entity entity : level.getEntities(robot, block, candidate -> candidate instanceof RobotEntity && candidate.isAlive())) {
+            RobotEntity other = (RobotEntity) entity;
+            if (other.getOwnerUUID() != null && other.getOwnerUUID().equals(task.owner())
+                    && task.projectId() != null && other.buildTask() != null
+                    && task.projectId().equals(other.buildTask().projectId())) return other;
+        }
+        return null;
+    }
+
+    /** Move an idle teammate clear through normal pathfinding; no teleport or entity pushing. */
+    private void tickYield(ServerLevel level, RobotBuildTask task, BlockPos target) {
+        if (!target.equals(yieldingFor)) {
+            yieldingFor = target.immutable(); yieldDestination = null; yieldSearchCursor = 0;
+        }
+        if (yieldDestination == null && level.getGameTime() >= nextYieldPathSearch) {
+            nextYieldPathSearch = level.getGameTime() + 20;
+            yieldDestination = findYieldDestination(level, task, target);
+        }
+        if (yieldDestination == null) {
+            robot.getNavigation().stop(); robot.setWorkTaskActive(false);
+            robot.workStatus("施工机器人正在让出目标位置；附近暂时没有安全可达站位");
+            return;
+        }
+        Vec3 destination = yieldStandPosition(level, yieldDestination);
+        if (robot.position().distanceToSqr(destination) <= 0.36
+                && !new AABB(target).inflate(.1).intersects(robot.getBoundingBox())) {
+            robot.getNavigation().stop(); robot.setWorkTaskActive(false);
+            robot.workStatus("已让出队友施工位置，等待后续分工");
+            RobotBuildTeams.clearYield(robot); yieldingFor = null; yieldDestination = null;
+            return;
+        }
+        if (robot.getNavigation().isDone()) {
+            Path path = robot.getNavigation().createPath(yieldDestination, 0, 64);
+            if (path == null || !path.canReach()) {
+                yieldDestination = null;
+                robot.setWorkTaskActive(false);
+                return;
+            }
+            robot.getNavigation().moveTo(path, 0.85);
+        }
+        robot.setWorkTaskActive(true);
+        robot.workStatus("正在为队友让出施工位置");
+    }
+
+    private BlockPos findYieldDestination(ServerLevel level, RobotBuildTask task, BlockPos target) {
+        Set<BlockPos> unfinishedTargets = new HashSet<>();
+        for (int i = 0; i < task.plan().parts().size(); i++) {
+            if (!task.done(i)) unfinishedTargets.add(task.origin().offset(task.plan().parts().get(i).offset()));
+        }
+        int pathChecks = 0, candidateIndex = 0, examined = 0;
+        for (int radius = 1; radius <= 8; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) for (int dz = -radius; dz <= radius; dz++) {
+                if (Math.max(Math.abs(dx), Math.abs(dz)) != radius) continue;
+                for (int dy = -6; dy <= 2; dy++) {
+                    BlockPos feet = target.offset(dx, dy, dz);
+                    int thisCandidate = candidateIndex++;
+                    if (thisCandidate < yieldSearchCursor) continue;
+                    if (++examined > 128) {
+                        yieldSearchCursor = thisCandidate + 1;
+                        return null;
+                    }
+                    if (level.isOutsideBuildHeight(feet) || !level.hasChunkAt(feet)
+                            || !level.getWorldBorder().isWithinBounds(feet)
+                            || !level.getFluidState(feet).isEmpty() || !level.getBlockState(feet).getCollisionShape(level, feet).isEmpty()) continue;
+                    BlockPos floor = feet.below();
+                    double surfaceY = standSurfaceY(level, floor);
+                    if (!Double.isFinite(surfaceY) || !level.getFluidState(floor).isEmpty()) continue;
+                    double x = feet.getX() + 0.5, y = surfaceY, z = feet.getZ() + 0.5;
+                    AABB moved = robot.getBoundingBox().move(x - robot.getX(), y - robot.getY(), z - robot.getZ());
+                    boolean overlapsUnfinishedBlock = false;
+                    for (BlockPos planned : unfinishedTargets) {
+                        if (new AABB(planned).intersects(moved)) { overlapsUnfinishedBlock = true; break; }
+                    }
+                    if (overlapsUnfinishedBlock || new AABB(target).intersects(moved)) continue;
+                    if (!level.noCollision(robot, moved)
+                            || !level.getEntities(robot, moved, Entity::isAlive).isEmpty()) continue;
+                    if (++pathChecks > 12) {
+                        yieldSearchCursor = thisCandidate + 1;
+                        return null;
+                    }
+                    Path path = robot.getNavigation().createPath(feet, 0, 64);
+                    if (path != null && path.canReach()) { yieldSearchCursor = 0; return feet.immutable(); }
+                }
+            }
+        }
+        yieldSearchCursor = 0;
+        return null;
+    }
+
+    private Vec3 yieldStandPosition(ServerLevel level, BlockPos feet) {
+        double surfaceY = standSurfaceY(level, feet.below());
+        return new Vec3(feet.getX() + .5, Double.isFinite(surfaceY) ? surfaceY : feet.getY(), feet.getZ() + .5);
     }
 
     private boolean targetOccupied(ServerLevel level, BlockPos target, BlockState expected, RobotBuildPlan.Part part) {
@@ -230,7 +357,7 @@ public final class RobotBuildGoal extends Goal {
         ArrayList<BlockPos> feet = new ArrayList<>(567);
         for (int dy = -5; dy <= 1; dy++) for (int dx = -4; dx <= 4; dx++) for (int dz = -4; dz <= 4; dz++)
             feet.add(target.offset(dx, dy, dz));
-        feet.sort(Comparator.comparingDouble(pos -> robot.distanceToSqr(Vec3.atBottomCenterOf(pos))));
+        feet.sort(Comparator.comparingDouble(pos -> robot.distanceToSqr(standPosition(level, pos))));
         standCandidates = feet;
         Arrays.fill(standRejections, 0);
         standCursor = 0; supportCursor = 0; standSearchActive = true;
@@ -258,13 +385,14 @@ public final class RobotBuildGoal extends Goal {
                     || !level.getWorldBorder().isWithinBounds(support) || !authorized(level, support, target)) { standRejections[1]++; continue; }
             BlockState supportState = level.getBlockState(support);
             if (supportState.getCollisionShape(level, support).isEmpty()) { standRejections[2]++; continue; }
-            Vec3 eye = new Vec3(feet.getX() + .5, feet.getY() + worker(level).getEyeHeight(), feet.getZ() + .5);
+            Vec3 stand = standPosition(level, feet);
+            Vec3 eye = new Vec3(stand.x, stand.y + worker(level).getEyeHeight(), stand.z);
             BlockHitResult hypothetical = traceSupport(level, eye, support, face, part, robot);
             if (hypothetical == null || eye.distanceToSqr(hypothetical.getLocation()) > 4.5 * 4.5) { standRejections[3]++; continue; }
             if (part.state().getBlock() != Blocks.WATER
                     && !orientForPlacement(worker(level), part, hypothetical, target)) { standRejections[4]++; continue; }
             Path path = null;
-            if (robot.distanceToSqr(Vec3.atBottomCenterOf(feet)) > .36) {
+            if (robot.distanceToSqr(standPosition(level, feet)) > .36) {
                 if (paths >= PATH_BUDGET) { supportCursor--; break; }
                 paths++;
                 // Reaching a room from its roof via the outside access flight can
@@ -304,24 +432,72 @@ public final class RobotBuildGoal extends Goal {
         // Future wall/roof cells may still be empty and useful as access today. Only
         // exclude the block being placed; normal collision/path checks govern the rest.
         BlockState feetState = level.getBlockState(feet), headState = level.getBlockState(head), floorState = level.getBlockState(floor);
-        return feetState.getFluidState().isEmpty() && headState.getFluidState().isEmpty()
-                && feetState.getCollisionShape(level, feet).isEmpty() && headState.getCollisionShape(level, head).isEmpty()
-                && floorState.isFaceSturdy(level, floor, Direction.UP);
+        if (!feetState.getFluidState().isEmpty() || !headState.getFluidState().isEmpty()
+                || !floorState.getFluidState().isEmpty()
+                || !feetState.getCollisionShape(level, feet).isEmpty()
+                || !headState.getCollisionShape(level, head).isEmpty()) return false;
+        double surfaceY = standSurfaceY(level, floor);
+        if (!Double.isFinite(surfaceY)) return false;
+        AABB candidateBox = robot.getBoundingBox().move(
+                feet.getX() + .5 - robot.getX(), surfaceY - robot.getY(), feet.getZ() + .5 - robot.getZ());
+        return level.noCollision(robot, candidateBox);
     }
 
-    /** Traces from the candidate's eye through a 4.5-block reach to the exact legal support face. */
+    /** Returns the real walkable top under the robot's center, including half-block tops. */
+    private double standSurfaceY(ServerLevel level, BlockPos floor) {
+        VoxelShape shape = level.getBlockState(floor).getCollisionShape(level, floor, CollisionContext.of(robot));
+        if (shape.isEmpty()) return Double.NaN;
+        double halfWidth = Math.min(.5, Math.max(.20, robot.getBbWidth() * .5));
+        double best = Double.NEGATIVE_INFINITY;
+        for (AABB box : shape.toAabbs()) {
+            if (box.minX <= .5 - halfWidth && box.maxX >= .5 + halfWidth
+                    && box.minZ <= .5 - halfWidth && box.maxZ >= .5 + halfWidth)
+                best = Math.max(best, box.maxY);
+        }
+        return Double.isFinite(best) ? floor.getY() + best : Double.NaN;
+    }
+
+    private Vec3 standPosition(ServerLevel level, BlockPos feet) {
+        double y = standSurfaceY(level, feet.below());
+        return new Vec3(feet.getX() + .5, Double.isFinite(y) ? y : feet.getY(), feet.getZ() + .5);
+    }
+
+    /** Traces from the candidate's eye through an actual outline face, including partial-block faces. */
     private BlockHitResult traceSupport(ServerLevel level, Vec3 eye, BlockPos support, Direction face,
                                         RobotBuildPlan.Part part, Entity context) {
-        // The clicked face and the orientation used by BlockPlaceContext are separate.
-        // A furnace can face north while its bottom is placed on the floor below it.
-        Vec3 end = Vec3.atCenterOf(support).add(face.getStepX() * .499,
-                face.getStepY() * .499, face.getStepZ() * .499);
-        if (eye.distanceToSqr(end) > 4.5 * 4.5) return null;
-        BlockHitResult hit = level.clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE, context));
-        return hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
-                && hit.getBlockPos().equals(support) && hit.getDirection() == face
-                && eye.distanceToSqr(hit.getLocation()) <= 4.5 * 4.5 ? hit : null;
+        VoxelShape shape = level.getBlockState(support).getShape(level, support, CollisionContext.of(context));
+        if (shape.isEmpty()) return null;
+        BlockHitResult best = null;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        for (AABB box : shape.toAabbs()) {
+            Vec3 end = pointJustInsideFace(support, box, face);
+            BlockHitResult hit = level.clip(new ClipContext(eye, end, ClipContext.Block.OUTLINE,
+                    ClipContext.Fluid.NONE, context));
+            if (hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK
+                    || !hit.getBlockPos().equals(support) || hit.getDirection() != face) continue;
+            double distance = eye.distanceToSqr(hit.getLocation());
+            if (distance <= 4.5 * 4.5 && distance < bestDistance) {
+                best = hit;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
+    private Vec3 pointJustInsideFace(BlockPos pos, AABB box, Direction face) {
+        double x = (box.minX + box.maxX) * .5;
+        double y = (box.minY + box.maxY) * .5;
+        double z = (box.minZ + box.maxZ) * .5;
+        double epsilon = .01;
+        switch (face) {
+            case DOWN -> y = box.minY + epsilon;
+            case UP -> y = box.maxY - epsilon;
+            case NORTH -> z = box.minZ + epsilon;
+            case SOUTH -> z = box.maxZ - epsilon;
+            case WEST -> x = box.minX + epsilon;
+            case EAST -> x = box.maxX - epsilon;
+        }
+        return new Vec3(pos.getX() + x, pos.getY() + y, pos.getZ() + z);
     }
 
     private boolean authorized(ServerLevel level, BlockPos support, BlockPos target) {
@@ -379,6 +555,7 @@ public final class RobotBuildGoal extends Goal {
         }
         InteractionResult result = InteractionResult.PASS;
         RuntimeException failure = null;
+        int remainingHandCount = 0;
         ItemStack remainingCargo = source.copy(); remainingCargo.shrink(1);
         robot.inventory().setStackInSlot(slot, remainingCargo);
         try {
@@ -389,7 +566,9 @@ public final class RobotBuildGoal extends Goal {
             failure = ex;
             com.mojang.logging.LogUtils.getLogger().warn("Robot native construction failed at {} ({})", target, part.blockId(), ex);
         } finally {
-            reconcileCargo(fake.getMainHandItem().copy());
+            ItemStack returnedHand = fake.getMainHandItem().copy();
+            remainingHandCount = returnedHand.getCount();
+            reconcileCargo(returnedHand);
             fake.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         }
         BlockState placed = level.getBlockState(target);
@@ -397,12 +576,26 @@ public final class RobotBuildGoal extends Goal {
             RobotBuildTeams.markDone(robot, task, index); scanCursor = index + 1; nextPlacement = level.getGameTime() + 10; blockedReason = "";
             robot.workStatus("施工完成：" + task.finished() + "/" + task.plan().parts().size());
         } else if (failure != null) {
+            logNativePlacementFailure(level, target, part, expected, support, face, result, placed, remainingHandCount);
             block("原生放置接口异常；任务保留，已使用物品与桶回收结果已回写，请检查模组日志");
         } else if (placed.getBlock() == expected.getBlock()) {
+            logNativePlacementFailure(level, target, part, expected, support, face, result, placed, remainingHandCount);
             block("原生放置朝向/属性与计划不符，已暂停；请修改模板属性或手动调整该位置");
         } else {
+            logNativePlacementFailure(level, target, part, expected, support, face, result, placed, remainingHandCount);
             block("原生放置未成功，可能受到保护、交互事件或支撑面限制；物料已按原生结果回写");
         }
+    }
+
+    private void logNativePlacementFailure(ServerLevel level, BlockPos target, RobotBuildPlan.Part part,
+                                           BlockState expected, BlockPos support, Direction face,
+                                           InteractionResult result, BlockState placed, int remainingHandCount) {
+        long now = level.getGameTime();
+        if (now < nextNativeFailureDiagnostic) return;
+        nextNativeFailureDiagnostic = now + 100;
+        LOGGER.debug("Robot native placement failed: target={} block={} expected={} support={} face={} result={} placed={} robotPos=({},{},{}) remainingHandCount={}",
+                target, part.blockId(), expected, support, face, result, placed,
+                robot.getX(), robot.getY(), robot.getZ(), remainingHandCount);
     }
 
     private int findCargo(Item item) {
@@ -485,6 +678,15 @@ public final class RobotBuildGoal extends Goal {
     }
 
     private void block(String reason) {
+        String detailedReason = reason;
+        if (cachedTarget != null && scannedPart >= 0) {
+            RobotBuildTask current = task();
+            if (current != null && scannedPart < current.plan().parts().size()) {
+                String detail = " [" + cachedTarget.toShortString() + " "
+                        + current.plan().parts().get(scannedPart).blockId() + "]";
+                if (!detailedReason.contains(cachedTarget.toShortString())) detailedReason += detail;
+            }
+        }
         if (cachedTarget != null) {
             RobotBuildTeams.releaseClaim(robot, cachedTarget);
             if (scannedPart >= 0) {
@@ -493,7 +695,7 @@ public final class RobotBuildGoal extends Goal {
                 scanCursor = Math.max(scanCursor, scannedPart + 1);
             }
         }
-        robot.workBlocked(reason); blockedReason = reason;
+        robot.workBlocked(detailedReason); blockedReason = detailedReason;
         if (robot.level() instanceof ServerLevel level) {
             long retryDelay = cachedTarget != null && scannedPart >= 0 ? 1 : 20;
             retryAt = Math.max(retryAt, level.getGameTime() + retryDelay);

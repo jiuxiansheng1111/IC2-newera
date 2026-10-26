@@ -56,6 +56,7 @@ public final class RobotBuildScreen extends Screen {
     private EditBox description;
     private Button generate, aiCreate, start, pause, resume, cancel, refresh;
     private Button textTab, blueprintTab, openInbox, refreshInbox, importSelected, workerMinus, workerPlus;
+    private Button fileListToggle, infoView, blocksView, previousFilePage, nextFilePage;
     private final List<Button> fileButtons = new ArrayList<>();
     private final List<Path> inboxFiles = new ArrayList<>();
     private RobotBuildPlan previewPlan;
@@ -68,6 +69,7 @@ public final class RobotBuildScreen extends Screen {
     private int previewLeft, previewTop, previewRight, previewBottom;
     private float previewZoom = 3.5F, previewRotation = 28F;
     private boolean hasTask, running, cancelArmed, blueprintTabSelected, draggingPreview, planning, compact;
+    private boolean fileListCollapsed, blueprintViewBlocks;
     private long requestedAt;
 
     public RobotBuildScreen(Screen parent, UUID robot, String character, boolean remote) {
@@ -84,7 +86,7 @@ public final class RobotBuildScreen extends Screen {
         compact = compactLayout();
         panelWidth = Math.min(900, Math.max(100, width - 24));
         left = (width - panelWidth) / 2;
-        bottom = Math.max(compact ? 98 : 88, height - (compact ? 110 : 126));
+        bottom = contentBottom();
 
         int tabGap = 6, tabWidth = (panelWidth - tabGap) / 2;
         int tabY = compact ? 24 : 38;
@@ -124,8 +126,19 @@ public final class RobotBuildScreen extends Screen {
                 Component.literal("当前游戏目录下的 IC2-NewEra-blueprints/inbox")));
         refreshInbox = addRenderableWidget(new UiButton(left + 114, folderY, 58, 19, Component.literal("刷新"), b -> refreshInbox()));
         int listWidth = Math.min(245, Math.max(150, panelWidth / 3));
+        fileListToggle = addRenderableWidget(new UiButton(left + panelWidth - 82, workerY, 76, 18,
+                Component.literal("选择文件"), b -> toggleFileList()));
+        previousFilePage = addRenderableWidget(new UiButton(left + panelWidth - 60, workerY, 26, 18,
+                Component.literal("‹"), b -> changeFilePage(-1), Component.literal("上一页文件")));
+        nextFilePage = addRenderableWidget(new UiButton(left + panelWidth - 30, workerY, 26, 18,
+                Component.literal("›"), b -> changeFilePage(1), Component.literal("下一页文件")));
+        int paneLeft = left + listWidth + 18;
+        infoView = addRenderableWidget(new UiButton(paneLeft + 6, folderY, 76, 19,
+                Component.literal("方案信息"), b -> setBlueprintView(false)));
+        blocksView = addRenderableWidget(new UiButton(paneLeft + 86, folderY, 76, 19,
+                Component.literal("方块预览"), b -> setBlueprintView(true)));
         fileRowTop = compact ? 91 : 128;
-        fileRowsVisible = Math.max(1, Math.min(FILE_ROWS, Math.max(0, bottom - fileRowTop) / 20));
+        updateCompactGeometry();
         fileButtons.clear();
         for (int i = 0; i < FILE_ROWS; i++) {
             final int row = i;
@@ -158,6 +171,43 @@ public final class RobotBuildScreen extends Screen {
         updateButtons();
     }
 
+    private int contentBottom() {
+        boolean compactProposal = compact && blueprintTabSelected && previewPlan != null;
+        boolean compactImagePrompt = compact && blueprintTabSelected && previewPlan == null && selectedImage();
+        boolean compactFileList = compact && blueprintTabSelected && previewPlan == null && !compactImagePrompt;
+        return Math.max(compact ? 98 : 88, height - (compact ? (compactProposal || compactFileList ? 78 : 110) : 126));
+    }
+
+    private void updateCompactGeometry() {
+        bottom = contentBottom();
+        if (fileRowTop > 0) {
+            fileRowsVisible = Math.max(1, Math.min(FILE_ROWS, Math.max(0, bottom - fileRowTop) / 20));
+            fileScroll = Math.min(fileScroll, Math.max(0, inboxFiles.size() - fileRowsVisible));
+        }
+    }
+
+    private void toggleFileList() {
+        fileListCollapsed = !fileListCollapsed;
+        status = fileListCollapsed ? "已收起文件列表；点“选择文件”可重新展开。" : "文件列表已展开。";
+        updateButtons();
+    }
+
+    private void changeFilePage(int direction) {
+        int pageSize = Math.max(1, fileRowsVisible);
+        int maxStart = Math.max(0, inboxFiles.size() - pageSize);
+        fileScroll = Math.max(0, Math.min(maxStart, fileScroll + direction * pageSize));
+        refreshFileButtons();
+    }
+
+    private boolean selectedImage() {
+        return selectedFile != null && isImage(extension(selectedFile));
+    }
+
+    private void setBlueprintView(boolean blocks) {
+        blueprintViewBlocks = blocks;
+        scroll = 0;
+    }
+
     private void send(int action) {
         if (request != null) return;
         cancelArmed = false;
@@ -178,6 +228,10 @@ public final class RobotBuildScreen extends Screen {
         screen.proposal = response.proposal();
         screen.report = response.report();
         screen.previewPlan = response.plan();
+        if (screen.compact && screen.blueprintTabSelected && screen.previewPlan != null) {
+            screen.fileListCollapsed = true;
+            screen.blueprintViewBlocks = false;
+        }
         screen.hasTask = response.hasTask();
         screen.running = response.running();
         screen.status = response.accepted()
@@ -217,6 +271,8 @@ public final class RobotBuildScreen extends Screen {
         String ext = extension(selectedFile);
         proposal = RobotBuildService.NONE;
         previewPlan = null;
+        fileListCollapsed = false;
+        blueprintViewBlocks = false;
         planning = true;
         if (isImage(ext)) {
             report = "图片只会提交给本机已配置的视觉模型规划；图片本身不会上传游戏服务器。";
@@ -267,6 +323,10 @@ public final class RobotBuildScreen extends Screen {
                 previewPlan = result.plan();
                 report = result.report();
                 status = "服务器已返回施工预览；核对材料和构件后再开始。";
+                if (compact && blueprintTabSelected) {
+                    fileListCollapsed = true;
+                    blueprintViewBlocks = false;
+                }
                 scroll = 0;
             }
             updateButtons();
@@ -275,6 +335,7 @@ public final class RobotBuildScreen extends Screen {
 
     private void updateButtons() {
         if (generate == null) return;
+        updateCompactGeometry();
         boolean ready = request == null;
         textTab.active = blueprintTabSelected;
         blueprintTab.active = !blueprintTabSelected;
@@ -289,8 +350,16 @@ public final class RobotBuildScreen extends Screen {
         openInbox.visible = blueprintTabSelected;
         refreshInbox.visible = blueprintTabSelected;
         importSelected.visible = blueprintTabSelected;
+        fileListToggle.visible = compact && blueprintTabSelected && previewPlan != null;
+        previousFilePage.visible = nextFilePage.visible = compact && blueprintTabSelected && previewPlan == null;
+        previousFilePage.active = fileScroll > 0;
+        nextFilePage.active = fileScroll + fileRowsVisible < inboxFiles.size();
+        infoView.visible = blocksView.visible = compact && blueprintTabSelected && previewPlan != null;
+        if (fileListToggle != null) fileListToggle.setMessage(Component.literal(fileListCollapsed ? "选择文件" : "收起列表"));
+        if (infoView != null) infoView.setMessage(Component.literal(blueprintViewBlocks ? "方案信息" : "● 方案信息"));
+        if (blocksView != null) blocksView.setMessage(Component.literal(blueprintViewBlocks ? "● 方块预览" : "方块预览"));
         workerMinus.visible = workerPlus.visible = true;
-        for (Button fileButton : fileButtons) fileButton.visible = blueprintTabSelected;
+        description.visible = !(compact && blueprintTabSelected && (previewPlan != null || !selectedImage()));
         generate.active = ready && !planning && hasDraft;
         aiCreate.active = ready && !planning && hasDraft && BlueprintClientBridge.getProvider() != null;
         start.active = ready && !planning && !proposal.equals(RobotBuildService.NONE);
@@ -310,7 +379,7 @@ public final class RobotBuildScreen extends Screen {
         for (int row = 0; row < fileButtons.size(); row++) {
             int index = fileScroll + row;
             Button button = fileButtons.get(row);
-            button.visible = blueprintTabSelected && row < fileRowsVisible;
+            button.visible = blueprintTabSelected && row < fileRowsVisible && !(compact && fileListCollapsed && previewPlan != null);
             if (index >= inboxFiles.size()) {
                 button.active = false;
                 button.setMessage(Component.literal(""));
@@ -352,6 +421,7 @@ public final class RobotBuildScreen extends Screen {
 
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics);
+        updateCompactGeometry();
         poseTitle(graphics);
         if (compact) {
             graphics.drawString(font, UiText.fit(font, Component.literal("施工人数 " + workers + " / 8"), 100), left + 60, 50, 0xB9D5D9);
@@ -362,10 +432,14 @@ public final class RobotBuildScreen extends Screen {
         }
         if (blueprintTabSelected) renderBlueprintPage(graphics, mouseX, mouseY);
         else renderTextPage(graphics, mouseX, mouseY);
-        graphics.drawString(font, UiText.fit(font, Component.literal(status), panelWidth), left, height - 106, 0xBDE1DA);
-        graphics.drawString(font, Component.literal("描述："), left, height - 94, 0xCAD7DB);
+        boolean hideCompactFileMeta = compact && blueprintTabSelected
+                && (previewPlan != null || !selectedImage());
+        if (!hideCompactFileMeta) {
+            graphics.drawString(font, UiText.fit(font, Component.literal(status), panelWidth), left, height - 106, 0xBDE1DA);
+            graphics.drawString(font, Component.literal("描述："), left, height - 94, 0xCAD7DB);
+        }
         super.render(graphics, mouseX, mouseY, partialTick);
-        if (mouseX >= left && mouseX < left + panelWidth && mouseY >= height - 109 && mouseY < height - 96)
+        if (!hideCompactFileMeta && mouseX >= left && mouseX < left + panelWidth && mouseY >= height - 109 && mouseY < height - 96)
             graphics.renderTooltip(font, font.split(Component.literal(status), Math.min(300, panelWidth)), mouseX, mouseY);
     }
 
@@ -376,8 +450,8 @@ public final class RobotBuildScreen extends Screen {
 
     private void renderTextPage(GuiGraphics graphics, int mouseX, int mouseY) {
         int top = compact ? 68 : 85;
-        int reportRight = previewPlan == null ? left + panelWidth : left + panelWidth - 250;
         int previewX = left + panelWidth - 244;
+        int reportRight = left + panelWidth - 250;
         graphics.fill(left - 4, top - 3, reportRight - 3, bottom + 3, 0xBB152332);
         drawReport(graphics, left, top, reportRight - left - 8, bottom - top, report);
         if (previewPlan != null) {
@@ -389,7 +463,7 @@ public final class RobotBuildScreen extends Screen {
         } else {
             graphics.fill(previewX, top - 3, left + panelWidth + 4, bottom + 3, 0xBB152332);
             graphics.drawString(font, "方块布局预览", previewX + 8, top + 8, 0xDCE8E5);
-            graphics.drawWordWrap(font, Component.literal("方案返回实际RobotBuildPlan后在此显示。鼠标拖动旋转，滚轮缩放。"),
+            graphics.drawWordWrap(font, Component.literal("生成方案后会在此显示实际施工方块。鼠标拖动旋转，滚轮缩放。"),
                     previewX + 8, top + 28, 220, 0xAFCACF);
         }
     }
@@ -397,10 +471,45 @@ public final class RobotBuildScreen extends Screen {
     private void renderBlueprintPage(GuiGraphics graphics, int mouseX, int mouseY) {
         int listWidth = Math.min(245, Math.max(150, panelWidth / 3));
         int paneLeft = left + listWidth + 18;
+        previewRight = left + panelWidth - 6;
+        boolean compactProposal = compact && previewPlan != null;
+        boolean showFiles = !compactProposal || !fileListCollapsed;
+        if (compact && previewPlan == null) {
+            previewLeft = paneLeft + 6;
+            previewTop = fileRowTop;
+            previewBottom = bottom;
+            graphics.fill(left - 4, fileRowTop - 2, left + panelWidth + 4, bottom + 3, 0xBB152332);
+            if (selectedImage()) {
+                graphics.drawWordWrap(font, Component.literal("已选参考图片。填写下方描述，再点“解析并预览”；图片只发送给你配置的视觉AI。"),
+                        paneLeft + 6, fileRowTop + 4, previewRight - paneLeft - 12, 0xD5C99B);
+            } else {
+                graphics.drawWordWrap(font, Component.literal("选择图纸后点“解析并预览”。可见文件可点选；更多文件用右上角‹ ›翻页。"),
+                        paneLeft + 6, fileRowTop + 4, previewRight - paneLeft - 12, 0xB9C9CD);
+            }
+            return;
+        }
+        if (compactProposal) {
+            previewLeft = (fileListCollapsed ? left : paneLeft) + 6;
+            previewTop = fileRowTop;
+            previewBottom = bottom;
+            graphics.fill(left - 4, fileListCollapsed ? previewTop - 2 : fileRowTop - 2,
+                    fileListCollapsed ? left + panelWidth + 4 : left + listWidth + 12, bottom + 3, 0xBB152332);
+            if (showFiles) {
+                graphics.fill(left - 4, fileRowTop - 2, left + listWidth + 12, bottom + 3, 0xBB152332);
+                graphics.fill(paneLeft, previewTop - 2, previewRight + 5, bottom + 3, 0xBB152332);
+            }
+            if (blueprintViewBlocks) {
+                drawBlockPreview(graphics, previewPlan, previewLeft, previewTop, previewRight, previewBottom);
+            } else {
+                drawReport(graphics, previewLeft + 4, previewTop + 2, previewRight - previewLeft - 8,
+                        previewBottom - previewTop - 4, report);
+            }
+            return;
+        }
+
         previewLeft = paneLeft + 6;
         int paneTop = compact ? 66 : 105;
         previewTop = compact ? 89 : 110;
-        previewRight = left + panelWidth - 6;
         previewBottom = compact ? bottom : bottom - 82;
         graphics.fill(left - 4, compact ? fileRowTop - 2 : 83, left + listWidth + 12, bottom + 3, 0xBB152332);
         if (!compact) {
@@ -435,7 +544,7 @@ public final class RobotBuildScreen extends Screen {
             }
         } else {
             if (compact) graphics.drawString(font, "实际方块预览显示在此", previewLeft + 8, previewTop + 8, 0xB9C9CD);
-            else graphics.drawWordWrap(font, Component.literal("导入后将按服务器返回的实际RobotBuildPlan绘制方块示意。鼠标拖动可旋转，滚轮可缩放。不会用图片马赛克伪装立体施工方案。"),
+            else graphics.drawWordWrap(font, Component.literal("导入后会显示服务器返回的施工方块。鼠标拖动可旋转，滚轮可缩放。不会用图片马赛克代替建筑方案。"),
                     previewLeft + 10, previewTop + 44, previewRight - previewLeft - 20, 0xB9C9CD);
         }
     }
@@ -570,13 +679,15 @@ public final class RobotBuildScreen extends Screen {
     }
 
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (blueprintTabSelected && mouseX >= previewLeft && mouseX <= previewRight && mouseY >= previewTop && mouseY <= previewBottom
+        boolean compactInfo = compact && blueprintTabSelected && previewPlan != null && !blueprintViewBlocks;
+        if (blueprintTabSelected && !compactInfo && mouseX >= previewLeft && mouseX <= previewRight && mouseY >= previewTop && mouseY <= previewBottom
                 || !blueprintTabSelected && previewPlan != null && mouseX >= left + panelWidth - 250 && mouseX <= left + panelWidth
                 && mouseY >= (compact ? 68 : 85) && mouseY <= bottom) {
             previewZoom = Math.max(1.5F, Math.min(12F, previewZoom + (float) Math.signum(delta) * 0.35F));
             return true;
         }
-        if (blueprintTabSelected && mouseX >= left && mouseX < left + Math.min(245, Math.max(150, panelWidth / 3)) + 14
+        if (blueprintTabSelected && !(compact && fileListCollapsed && previewPlan != null)
+                && mouseX >= left && mouseX < left + Math.min(245, Math.max(150, panelWidth / 3)) + 14
                 && mouseY >= fileRowTop && mouseY < fileRowTop + fileRowsVisible * 20) {
             fileScroll = Math.max(0, Math.min(Math.max(0, inboxFiles.size() - fileRowsVisible), fileScroll - (int) Math.signum(delta)));
             refreshFileButtons();
@@ -611,7 +722,8 @@ public final class RobotBuildScreen extends Screen {
     }
 
     private boolean inPreview(double x, double y) {
-        if (blueprintTabSelected) return x >= previewLeft && x <= previewRight && y >= previewTop && y <= previewBottom;
+        if (blueprintTabSelected) return (!compact || previewPlan == null || blueprintViewBlocks)
+                && x >= previewLeft && x <= previewRight && y >= previewTop && y <= previewBottom;
         return previewPlan != null && x >= left + panelWidth - 250 && x <= left + panelWidth
                 && y >= (compact ? 68 : 85) && y <= bottom;
     }
@@ -622,6 +734,7 @@ public final class RobotBuildScreen extends Screen {
         for (Path path : paths) copyDroppedFile(path);
         refreshInbox();
         if (selectedFile != null) fileScroll = Math.max(0, inboxFiles.indexOf(selectedFile) - fileRowsVisible + 1);
+        if (selectedFile != null && compact) fileListCollapsed = false;
         int added = Math.max(0, inboxFiles.size() - before);
         status = "拖拽处理完成：新增 " + added + " 个文件。" + (added < paths.size() ? "超限、格式不支持、符号链接或同名文件已拒绝。" : "");
         updateButtons();
