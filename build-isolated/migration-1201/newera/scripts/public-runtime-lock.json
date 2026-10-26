@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "release": "r42",
+  "release": "r43",
   "minecraft": "1.20.1",
   "forge": "47.4.28",
   "status": "Local complete build and installation succeeded; game acceptance pending. Public source omits private assets.",

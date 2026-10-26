@@ -73,6 +73,6 @@ side="BOTH"
 [[dependencies.ic2newera]]
 modId="ad_astra"
 mandatory=false
-versionRange="[1.15.19]"
+versionRange="[1.15.21]"
 ordering="AFTER"
 side="BOTH"

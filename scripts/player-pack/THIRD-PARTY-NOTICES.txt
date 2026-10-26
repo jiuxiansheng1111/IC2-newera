@@ -1,0 +1,39 @@
+IC2：新纪元 r42 — 来源与第三方说明
+
+本项目自有代码：IC2: New Era contributors，MIT（LICENSE-first-party-MIT.txt）。用户提供的狗叫音频已按其要求作为本地交付的新纪元游戏音效使用；权利归属与公开再分发许可未核实。不得将音频标为原创/MIT，也不得同步到公开GitHub或作为公开素材再分发。
+
+普通r42 mrpack列出15个第三方运行时模组；连同新纪元本体共16个。第三方JAR不嵌入overrides，由启动器从清单锁定的作者地址下载并验证哈希；其资产及许可归各自作者。本机独立实例已安装，不代表游戏实机验收通过。
+
+目标1.20.1 / Forge 47.4.28依赖：
+- Ad Astra 1.15.21 — https://www.curseforge.com/minecraft/mc-mods/ad-astra/files/8833730
+- Botarium 2.3.4 — https://www.curseforge.com/minecraft/mc-mods/botarium/files/5486070
+- Carbon Config 2.0.2.1 — https://www.curseforge.com/minecraft/mc-mods/carbon-config/files/8119981
+- Create 6.0.8 — https://www.curseforge.com/minecraft/mc-mods/create/files/7178761
+- Curios 5.14.1+1.20.1 — https://github.com/TheIllusiveC4/Curios
+- Farmer's Delight 1.20.1-1.3.4 — https://www.curseforge.com/minecraft/mc-mods/farmers-delight/files/8765179
+- IC2 Refactored 2.10.33-ex120 — https://github.com/craftorio/IC2R/releases/tag/2.10.33-ex120
+- JEI 15.56.0.205 — https://www.curseforge.com/minecraft/mc-mods/jei/files/8778011
+- Kaleidoscope Cookery 1.6.0 — https://modrinth.com/mod/kaleidoscope-cookery/version/Ghp0qCKY
+- ProjectE 1.0.1 — https://www.curseforge.com/minecraft/mc-mods/projecte/files/4901949
+- Resourceful Config 2.1.3 — https://www.curseforge.com/minecraft/mc-mods/resourceful-config/files/6231176
+- Resourceful Lib 2.1.29 — https://www.curseforge.com/minecraft/mc-mods/resourceful-lib/files/5659871
+- The One Probe 10.0.3 — https://www.curseforge.com/minecraft/mc-mods/the-one-probe/files/6106996
+- Create: Meowchanics / 机械动力：老吴学 2.3.1 — CurseForge file 9163511: https://www.curseforge.com/minecraft/mc-mods/create-meowchanics/files/9163511
+- Create: Biotech 1.3.0 — CurseForge file 8675155: https://www.curseforge.com/minecraft/mc-mods/create-biotech/files/8675155 ; upstream project: https://github.com/Nobodiiiii/Create-Biotech
+
+Create 6.0.8自带Flywheel、Ponder、Registrate嵌套依赖；它们按Create发行构件提供，不作为额外运行时模组另行分发。r42使用Ad Astra 1.15.21，r41及之前旧包中的Ad Astra/Create版本属于历史版本，不适用于r42锁定清单。构件的具体文件哈希见项目本地 `build-isolated/migration-1201/dependencies/runtime-lock-1201.json`。
+
+代码与资产许可边界
+- Meowchanics的CurseForge项目和JAR附带MIT许可文件；本地依赖审计另将作者原创模型/贴图等资产标为All Rights Reserved。MIT代码许可不能据此复制、打包或再发布这些独立资产。
+- Biotech的发布页标注MIT；其上游 `LICENSE.md` / `THIRD_PARTY_NOTICES.md` 区分MIT代码和All Rights Reserved的原创资产。本包不把外部JAR或其受限资产复制进新纪元源码，也不声称拥有它们。
+- IC2 Refactored是craftorio面向1.20.1的非官方IC2适配，不是官方IC2 Classic升级。本项目不声称拥有IC2代码/资产或额外再分发授权。
+- 其余每个模组和资源均以被锁定版本附带/发布的许可为准。Kaleidoscope Cookery含BSD-3-Clause及CC BY-NC-SA 4.0内容：https://creativecommons.org/licenses/by-nc-sa/4.0/ 。MIT、Apache或LGPL代码许可不会自动覆盖模组内角色、贴图、音频等资产。
+- Minecraft/Forge项目与Mojang/Microsoft、角色及配音权利方无官方关联。
+
+语音与便携Java历史资源
+旧Voice-Bundle `IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip`按用户要求保留，不因r42更改或重打包。它包含的第三方语音模型/参考录音公开再分发权利未核实，只限用户原持有资源的本地迁移用途；不得上传公开GitHub。r42中的用户狗音频与该可选机器人AI语音附件相互独立，许可状态同样未核实且不得公开同步。
+
+Eclipse Temurin OpenJDK 17.0.20+8 Windows x64为未修改的上游二进制，GPLv2 with Classpath Exception；各组件声明在java17/legal/，匹配源码为 `OpenJDK17U-jdk-sources_17.0.20_8.tar.gz`，参考标签 jdk-17.0.20+8_adopt。Java 17按要求保留；最终r42归档内的文件/清单仍须在打包后核对。
+https://adoptium.net/temurin/releases/?version=17
+https://github.com/adoptium/jdk17u/tree/jdk-17.0.20+8_adopt
+
