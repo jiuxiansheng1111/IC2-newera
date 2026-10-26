@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#ic2newera:mars_frontier_ores",
+  "features": "ic2newera:resonance_cluster",
+  "step": "vegetal_decoration"
+}

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "ic2newera:robot_blueprint"
+    },
+    {
+      "item": "ic2newera:robot_control_core"
+    },
+    {
+      "item": "ic2newera:robot_actuator"
+    },
+    {
+      "tag": "minecraft:wool"
+    },
+    {
+      "item": "minecraft:string"
+    },
+    {
+      "item": "minecraft:black_dye"
+    }
+  ],
+  "result": {
+    "item": "ic2newera:taki_robot_doll",
+    "count": 1
+  }
+}

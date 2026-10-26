@@ -1,0 +1,25 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ingot",
+    "ic2newera:chromium_ingot",
+    "ic2newera:titanium_ingot",
+    "ic2newera:tungsten_ingot",
+    "ic2newera:stainless_steel_ingot",
+    "ic2newera:invar_ingot",
+    "ic2newera:nichrome_ingot",
+    "ic2newera:tool_steel_ingot",
+    "ic2newera:titanium_alloy_ingot",
+    "ic2newera:tungsten_carbide_ingot",
+    "ic2newera:aluminium_bronze_ingot",
+    "ic2newera:tempered_steel_ingot",
+    "ic2newera:tempered_high_carbon_steel_ingot",
+    "#forge:ingots/vanadium",
+    "#forge:ingots/niobium",
+    "#forge:ingots/vanadium_steel",
+    "#forge:ingots/niobium_titanium",
+    "#forge:ingots/cobalt",
+    "#forge:ingots/molybdenum",
+    "#forge:ingots/tantalum"
+  ]
+}

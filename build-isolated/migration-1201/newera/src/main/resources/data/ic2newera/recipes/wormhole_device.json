@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "ACA",
+    "TBT",
+    "CCC"
+  ],
+  "key": {
+    "A": {
+      "item": "ic2:advanced_circuit"
+    },
+    "B": {
+      "item": "ic2newera:wormhole_blueprint"
+    },
+    "C": {
+      "item": "ic2newera:lunar_resonance_crystal"
+    },
+    "T": {
+      "item": "ic2newera:tungsten_carbide_ingot"
+    }
+  },
+  "result": {
+    "item": "ic2newera:wormhole_device",
+    "count": 1
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "model": "cat.bbmodel",
+  "style": "minecraft voxel cuboids",
+  "texture": "cat_voxel_atlas.png",
+  "resolution": [
+    64,
+    64
+  ],
+  "cube_count": 36,
+  "groups": {
+    "body": null,
+    "head": "body",
+    "jaw": "head",
+    "ear_l": "head",
+    "ear_r": "head",
+    "tail": "body",
+    "tail_flame": "tail",
+    "wing_l": "body",
+    "wing_r": "body",
+    "leg_fl": "body",
+    "leg_fr": "body",
+    "leg_bl": "body",
+    "leg_br": "body"
+  },
+  "bounds": {
+    "x": [
+      -3,
+      3
+    ],
+    "y": [
+      0,
+      11
+    ],
+    "z": [
+      -7,
+      8
+    ]
+  },
+  "coordinates": "integer model units; all static rotations zero",
+  "front": "-Z",
+  "foot_y": 0,
+  "wing_side_projection": {
+    "torso_y": [
+      3,
+      6
+    ],
+    "torso_z": [
+      -3,
+      5
+    ],
+    "torso_cells": 24,
+    "left_wing_intersection_cells": 20,
+    "right_wing_intersection_cells": 20,
+    "coverage_percent_each": 83.33
+  },
+  "notes": "Only positive-volume cuboids. Pixel face atlas carries the face details; no spheres, cylinders, meshes, or floating planes."
+}

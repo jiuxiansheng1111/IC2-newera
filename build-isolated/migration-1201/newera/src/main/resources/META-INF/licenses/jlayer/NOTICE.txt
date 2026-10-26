@@ -1,0 +1,8 @@
+JLayer 1.0.1
+Original library, unmodified, embedded as META-INF/jarjar/jlayer-1.0.1.jar.
+GNU Library General Public License version 2 or later (upstream source headers).
+The included GNU Lesser General Public License version 2.1 is a permitted later version.
+Upstream: http://www.javazoom.net/javalayer/javalayer.html
+Exact source: https://repo.maven.apache.org/maven2/javazoom/jlayer/1.0.1/jlayer-1.0.1-sources.jar
+The mod and JLayer remain separate libraries; library source is not copied into mod source.
+License text source: https://raw.githubusercontent.com/gcc-mirror/gcc/master/COPYING.LIB

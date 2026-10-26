@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ic2newera:block/alloy_smelter"
+    },
+    "facing=east": {
+      "model": "ic2newera:block/alloy_smelter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "ic2newera:block/alloy_smelter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "ic2newera:block/alloy_smelter",
+      "y": 270
+    }
+  }
+}

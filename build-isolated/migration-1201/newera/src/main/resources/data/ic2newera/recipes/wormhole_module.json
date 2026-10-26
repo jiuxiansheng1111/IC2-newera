@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "CPC",
+    "AT "
+  ],
+  "key": {
+    "A": {
+      "item": "ic2:advanced_circuit"
+    },
+    "C": {
+      "item": "ic2newera:lunar_resonance_crystal"
+    },
+    "P": {
+      "item": "minecraft:ender_pearl"
+    },
+    "T": {
+      "item": "ic2newera:tungsten_carbide_ingot"
+    }
+  },
+  "result": {
+    "item": "ic2newera:wormhole_module",
+    "count": 1
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "entity.mechanical_dog.call": {
+    "sounds": [
+      {
+        "name": "ic2newera:pet/dog_call",
+        "stream": true
+      }
+    ]
+  }
+}

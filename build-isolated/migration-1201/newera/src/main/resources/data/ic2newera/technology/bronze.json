@@ -1,0 +1,22 @@
+{
+  "title": "铜锡青铜",
+  "description": "把铜与锡转化为实用的青铜合金。",
+  "branch": "资源与冶金",
+  "icon": "ic2:bronze_ingot",
+  "prerequisites": [
+    "ic2newera:copper_tin"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "count": 1,
+      "item": "ic2:bronze_ingot"
+    }
+  ],
+  "steps": [
+    "将铜粉与锡粉放入 新纪元合金兼容炉加工成青铜粉，再熔炼成锭；或直接用铜锭和锡锭在合金炉制作青铜锭。数量读取当前 ProcessGraph 与 JEI。",
+    "青铜可用于 IC2 原生青铜工具与装备。"
+  ],
+  "x": 2,
+  "y": 1
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/handheld",
+  "textures": {
+    "layer0": "ic2newera:item/niobium_titanium_sword"
+  }
+}

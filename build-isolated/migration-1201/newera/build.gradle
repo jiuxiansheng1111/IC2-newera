@@ -1,0 +1,186 @@
+plugins {
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+}
+
+version = mod_version
+apply from: 'gradle/process-recipes.gradle'
+group = mod_group
+base { archivesName = mod_id }
+
+// Keep the running development client's classpath intact during unattended builds.
+if (project.hasProperty('isolatedBuild')) {
+    buildDir = file('build-isolated')
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+// Explicit opt-in: native integration fixtures never enter normal release builds.
+if (project.hasProperty('robotGameTests')) {
+    sourceSets.main.java.srcDir('src/gametest/java')
+    sourceSets.main.resources.srcDir('src/gametest/resources')
+    if (project.hasProperty('robotWorkTestsOnly')) {
+        sourceSets.main.java.exclude('**/gametest/RobotIndustrialGameTests.java')
+    }
+}
+
+jarJar.enable()
+configurations {
+    library
+    implementation.extendsFrom library
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'info'
+            // Translate dependency Mixin refmaps from SRG names to the development mappings.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+            args '--mixin', 'ic2newera.mixins.json'
+            lazyToken('minecraft_classpath') {
+                configurations.library.copyRecursive().resolve().collect { it.absolutePath }.join(File.pathSeparator)
+            }
+            mods {
+                ic2newera {
+                    source sourceSets.main
+                }
+            }
+        }
+        client {}
+        server {}
+        if (project.hasProperty('robotGameTests')) {
+            gameTestServer {
+                // Never let entities from an interrupted integration run claim the next
+                // run's machines. Every invocation uses its own disposable world.
+                def runId = project.findProperty('robotGameTestRun') ?: new Date().format('yyyyMMdd-HHmmss-SSS')
+                if (!(runId ==~ /[A-Za-z0-9_-]{1,64}/)) throw new GradleException('Invalid robotGameTestRun')
+                def runtime = project.file("build-isolated/robot-advanced-lines-20261022/runs/${runId}")
+                if (new File(runtime, 'world').exists()) throw new GradleException('GameTest runtime already has a world; choose a new run ID')
+                workingDirectory runtime
+                property 'forge.enabledGameTestNamespaces', 'ic2newera'
+                property 'forge.gameTestServer', 'true'
+            }
+        }
+    }
+}
+
+repositories {
+    // Official downloaded artifact, checked against dependencies/lock-candidate.json.
+    maven {
+        url = uri('../verified-maven')
+        content {
+            includeModule 'maven.modrinth', 'v17FatAc'
+            includeModule 'maven.modrinth', '3ufwT9JF'
+            includeModule 'local.ic2refactored', 'ic2-forge'
+            includeGroup 'local.verified'
+        }
+    }
+    maven { url = 'https://maven.theillusivec4.top/'; content { includeGroup 'top.theillusivec4.curios' } }
+    maven { url = 'https://api.modrinth.com/maven'; content { includeGroup 'maven.modrinth' } }
+    mavenCentral { content { includeGroup 'javazoom'; includeGroup 'com.google.zxing' } }
+    maven {
+        url = 'https://www.cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
+}
+
+dependencies {
+    library 'javazoom:jlayer:1.0.1'
+    library 'com.google.zxing:core:3.5.4'
+    jarJar(group: 'javazoom', name: 'jlayer', version: '1.0.1') {
+        jarJar.ranged(it, '[1.0.1,1.0.2)')
+        transitive = false
+    }
+    jarJar(group: 'com.google.zxing', name: 'core', version: '3.5.4') {
+        jarJar.ranged(it, '[3.5.4,3.5.5)')
+        transitive = false
+    }
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    // The candidate implementation must be selected explicitly; no old Classic jar
+    // or substitute is silently placed on the 1.20.1 runtime classpath.
+    if (project.findProperty('ic2_dependency')) {
+        implementation fg.deobf(project.property('ic2_dependency').toString())
+    }
+    implementation fg.deobf("local.verified:create:6.0.8")
+    // Compile APIs packaged inside Create; Create itself supplies the runtime Jar-in-Jar copies.
+    compileOnly fg.deobf("local.verified:flywheel:1.0.5")
+    compileOnly fg.deobf("local.verified:ponder:1.0.91")
+    compileOnly fg.deobf("local.verified:registrate:1.3.3-mc1.20")
+    implementation fg.deobf("curse.maven:carbon-config-898104:${carbon_config_file_id}")
+    implementation fg.deobf("top.theillusivec4.curios:curios-forge:5.14.1+1.20.1")
+    implementation fg.deobf("curse.maven:the-one-probe-245211:${the_one_probe_file_id}")
+    compileOnly fg.deobf("curse.maven:jei-238222:${jei_file_id}")
+    implementation fg.deobf("curse.maven:farmers-delight-398521:8765179")
+    implementation fg.deobf("maven.modrinth:v17FatAc:Ghp0qCKY")
+    // Planet exploration only; NPC campaigns and extra overworld dungeons are retired.
+    runtimeOnly fg.deobf('local.verified:ad-astra:1.15.21')
+    runtimeOnly fg.deobf('local.verified:meowchanics:2.3.1')
+    runtimeOnly fg.deobf('local.verified:create-biotech:1.3.0')
+    runtimeOnly fg.deobf('curse.maven:botarium-704113:5486070')
+    runtimeOnly fg.deobf('curse.maven:resourceful-lib-570073:5659871')
+    runtimeOnly fg.deobf('curse.maven:resourceful-config-714059:6231176')
+    if (enable_jei.toBoolean()) {
+        runtimeOnly fg.deobf("curse.maven:jei-238222:${jei_file_id}")
+    }
+    if (enable_projecte.toBoolean()) {
+        runtimeOnly fg.deobf("curse.maven:projecte-226410:${projecte_file_id}")
+    }
+}
+
+processResources {
+    filteringCharset = 'UTF-8'
+    from('docs/ic2-create-integration.md') {
+        into 'data/ic2newera/ai'
+        rename { 'ic2_create_guide_zh.md' }
+    }
+    from('docs/new-industrial-stage-guide.md') {
+        into 'data/ic2newera/ai'
+        rename { 'industrial_stage_guide_zh.md' }
+    }
+    inputs.property 'version', project.version
+    inputs.property 'mod_id', mod_id
+    inputs.property 'mod_name', mod_name
+    inputs.property 'ic2_version_range', project.findProperty('ic2_version_range') ?: '[0,)' 
+    filesMatching('META-INF/mods.toml') {
+        expand 'version': project.version, 'mod_id': mod_id, 'mod_name': mod_name, 'ic2_version_range': project.findProperty('ic2_version_range') ?: '[0,)'
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '1000']
+}
+
+jar {
+    includeEmptyDirs = false
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : 'IC2: New Era',
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.version,
+                'Implementation-Vendor'   : 'IC2: New Era',
+                'MixinConfigs'            : 'ic2newera.mixins.json'
+        ])
+    }
+    finalizedBy 'reobfJar'
+}
+
+// Block compilation/packaging until the industrial dependency is chosen.
+// This does not certify API or runtime compatibility after a choice is made.
+tasks.register('requireIc2MigrationTarget') {
+    doLast {
+        if (!project.findProperty('ic2_dependency') || !project.findProperty('ic2_version_range')) {
+            throw new GradleException('IC2 1.20.1 migration target has not been chosen. Set both ic2_dependency and ic2_version_range only after the implementation decision; do not reuse the 1.19.2 Classic jar.')
+        }
+    }
+}
+tasks.named('compileJava').configure { dependsOn 'requireIc2MigrationTarget' }
+tasks.named('processResources').configure { dependsOn 'requireIc2MigrationTarget' }

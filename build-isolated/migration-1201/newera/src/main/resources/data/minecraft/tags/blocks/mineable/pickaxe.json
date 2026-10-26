@@ -1,0 +1,31 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ore",
+    "ic2newera:chromium_ore",
+    "ic2newera:titanium_ore",
+    "ic2newera:tungsten_ore",
+    "ic2newera:non_metal_processor",
+    "ic2newera:electronic_fabricator",
+    "ic2newera:machine_network_adapter",
+    "ic2newera:industrial_fiber",
+    "ic2newera:industrial_network_switch",
+    "ic2newera:industrial_control_server",
+    "ic2newera:terminal",
+    "ic2newera:eu_motor",
+    "ic2newera:vanadium_ore",
+    "ic2newera:niobium_ore",
+    "ic2newera:cobalt_ore",
+    "ic2newera:molybdenum_ore",
+    "ic2newera:tantalum_ore",
+    "ic2newera:resonance_cluster",
+    "ic2newera:silver_ore",
+    "ic2newera:deepslate_silver_ore",
+    "ic2newera:silver_ore_nether",
+    "ic2newera:aluminium_ore_nether",
+    "ic2newera:bronze_dust_block",
+    "ic2newera:alloy_smelter",
+    "ic2newera:advanced_electric_furnace",
+    "ic2newera:wormhole_device"
+  ]
+}

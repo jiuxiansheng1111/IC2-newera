@@ -1,0 +1,22 @@
+{
+  "title": "铝青铜靴",
+  "description": "完成铝青铜防具组的足部部件。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:aluminium_bronze_boots",
+  "prerequisites": [
+    "ic2newera:aluminium_bronze"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:aluminium_bronze_boots",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "用铝青铜锭按靴子配方加工。",
+    "穿戴并按需使用铝青铜锭修复。"
+  ],
+  "x": 6,
+  "y": 38
+}

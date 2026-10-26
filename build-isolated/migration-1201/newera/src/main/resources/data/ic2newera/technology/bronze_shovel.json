@@ -1,0 +1,22 @@
+{
+  "title": "IC2青铜铲",
+  "description": "制作IC2原有青铜铲。",
+  "branch": "工具与装备",
+  "icon": "ic2:bronze_shovel",
+  "prerequisites": [
+    "ic2newera:bronze"
+  ],
+  "objectives": [
+    {
+      "count": 1,
+      "item": "ic2:bronze_shovel",
+      "type": "item"
+    }
+  ],
+  "steps": [
+    "按JEI显示的IC2青铜铲配方，在对应工作台制作。",
+    "制作并使用青铜铲；本任务沿用IC2物品和配方。"
+  ],
+  "x": 6,
+  "y": 5
+}

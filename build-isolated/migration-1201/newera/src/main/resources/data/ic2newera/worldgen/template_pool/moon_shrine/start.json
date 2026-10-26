@@ -1,0 +1,15 @@
+{
+  "name": "ic2newera:moon_shrine/start",
+  "fallback": "minecraft:empty",
+  "elements": [
+    {
+      "weight": 1,
+      "element": {
+        "location": "ic2newera:moon_shrine/moon_shrine",
+        "processors": "minecraft:empty",
+        "projection": "rigid",
+        "element_type": "minecraft:single_pool_element"
+      }
+    }
+  ]
+}

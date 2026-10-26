@@ -1,0 +1,1459 @@
+{
+  "materials": [
+    {
+      "id": "cobalt",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:cobalt_ore",
+        "IMPURE_DUST": "ic2newera:impure_cobalt_dust",
+        "WASHED_DUST": "ic2newera:washed_cobalt_dust",
+        "CLEAN_DUST": "ic2newera:cobalt_dust",
+        "FINAL_METAL": "ic2newera:cobalt_ingot"
+      },
+      "raw_variants": [
+        "ic2newera:raw_cobalt"
+      ],
+      "impure_variants": []
+    },
+    {
+      "id": "molybdenum",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:molybdenum_ore",
+        "IMPURE_DUST": "ic2newera:impure_molybdenum_dust",
+        "WASHED_DUST": "ic2newera:washed_molybdenum_dust",
+        "CLEAN_DUST": "ic2newera:molybdenum_dust",
+        "FINAL_METAL": "ic2newera:molybdenum_ingot"
+      },
+      "raw_variants": [
+        "ic2newera:raw_molybdenum"
+      ],
+      "impure_variants": []
+    },
+    {
+      "id": "tantalum",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:tantalum_ore",
+        "IMPURE_DUST": "ic2newera:impure_tantalum_dust",
+        "WASHED_DUST": "ic2newera:washed_tantalum_dust",
+        "CLEAN_DUST": "ic2newera:tantalum_dust",
+        "FINAL_METAL": "ic2newera:tantalum_ingot"
+      },
+      "raw_variants": [
+        "ic2newera:raw_tantalum"
+      ],
+      "impure_variants": []
+    }
+  ],
+  "routes": [
+    {
+      "id": "ic2newera:cobalt_ore_macerator",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_cobalt_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:cobalt_ore_crushing",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_cobalt_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:cobalt_ore_legacy_smelting",
+      "material": "cobalt",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:cobalt_ore_legacy_blasting",
+      "material": "cobalt",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:cobalt_raw_macerator",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_cobalt",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_cobalt_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:cobalt_raw_crushing",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_cobalt",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_cobalt_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:cobalt_raw_legacy_smelting",
+      "material": "cobalt",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_cobalt",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:cobalt_raw_legacy_blasting",
+      "material": "cobalt",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_cobalt",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:cobalt_wash",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_cobalt_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:washed_cobalt_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:cobalt_industrial_smelt",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:cobalt_recycle",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 30,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:molybdenum_ore_macerator",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_molybdenum_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:molybdenum_ore_crushing",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_molybdenum_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:molybdenum_ore_legacy_smelting",
+      "material": "molybdenum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:molybdenum_ore_legacy_blasting",
+      "material": "molybdenum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:molybdenum_raw_macerator",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_molybdenum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_molybdenum_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:molybdenum_raw_crushing",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_molybdenum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_molybdenum_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:molybdenum_raw_legacy_smelting",
+      "material": "molybdenum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_molybdenum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:molybdenum_raw_legacy_blasting",
+      "material": "molybdenum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_molybdenum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:molybdenum_wash",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_molybdenum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:washed_molybdenum_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:molybdenum_industrial_smelt",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:molybdenum_recycle",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 30,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:tantalum_ore_macerator",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tantalum_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:tantalum_ore_crushing",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tantalum_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:tantalum_ore_legacy_smelting",
+      "material": "tantalum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:tantalum_ore_legacy_blasting",
+      "material": "tantalum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:tantalum_raw_macerator",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_tantalum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tantalum_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:tantalum_raw_crushing",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_tantalum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_tantalum_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:tantalum_raw_legacy_smelting",
+      "material": "tantalum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_tantalum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:tantalum_raw_legacy_blasting",
+      "material": "tantalum",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_tantalum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:tantalum_wash",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_tantalum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:washed_tantalum_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:tantalum_industrial_smelt",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:tantalum_recycle",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 30,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:magnetic_coil",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 2
+        },
+        {
+          "tag": "forge:ingots/copper",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:magnetic_coil",
+        "count": 2
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:heat_resistant_plate",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:mechanical_press"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:molybdenum_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:heat_resistant_plate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "pressing"
+    },
+    {
+      "id": "ic2newera:pulse_capacitor",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:high_purity_silicon",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:pulse_capacitor",
+        "count": 2
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:resonance_core",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:non_metal_processor"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:resonance_shard",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:resonance_core",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "non_metal"
+    },
+    {
+      "id": "ic2newera:blade_stabilizer",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:magnetic_coil",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:heat_resistant_plate",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pulse_capacitor",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:blade_stabilizer",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:servo_armor_joint",
+      "material": "arsenal_components",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:molybdenum_ingot",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:servo_armor_joint",
+        "count": 2
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "kind": "electronic"
+    },
+    {
+      "id": "ic2newera:magnetic_armor_helmet",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:magnetic_coil",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:magnetic_armor_helmet",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MMM",
+        "MCM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:magnetic_coil",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:magnetic_armor_chestplate",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:servo_armor_joint",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pulse_capacitor",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:blade_stabilizer",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:magnetic_armor_chestplate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MPM",
+        "SJS",
+        "MMM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        },
+        "J": {
+          "item": "ic2newera:servo_armor_joint",
+          "count": 1
+        },
+        "P": {
+          "item": "ic2newera:pulse_capacitor",
+          "count": 1
+        },
+        "S": {
+          "item": "ic2newera:blade_stabilizer",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:magnetic_armor_leggings",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 7
+        },
+        {
+          "item": "ic2newera:heat_resistant_plate",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:magnetic_armor_leggings",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MMM",
+        "MHM",
+        "M M"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        },
+        "H": {
+          "item": "ic2newera:heat_resistant_plate",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:magnetic_armor_boots",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:magnetic_coil",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:magnetic_armor_boots",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "M M",
+        "MCM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:cobalt_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:magnetic_coil",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:resonance_armor_helmet",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:resonance_core",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:resonance_armor_helmet",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MMM",
+        "MCM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:resonance_core",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:resonance_armor_chestplate",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:servo_armor_joint",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pulse_capacitor",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:blade_stabilizer",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:resonance_armor_chestplate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MPM",
+        "SJS",
+        "MMM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        },
+        "J": {
+          "item": "ic2newera:servo_armor_joint",
+          "count": 1
+        },
+        "P": {
+          "item": "ic2newera:pulse_capacitor",
+          "count": 1
+        },
+        "S": {
+          "item": "ic2newera:blade_stabilizer",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:resonance_armor_leggings",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 7
+        },
+        {
+          "item": "ic2newera:heat_resistant_plate",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:resonance_armor_leggings",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "MMM",
+        "MHM",
+        "M M"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        },
+        "H": {
+          "item": "ic2newera:heat_resistant_plate",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:resonance_armor_boots",
+      "material": "arsenal_armor",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:resonance_core",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:resonance_armor_boots",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "M M",
+        "MCM"
+      ],
+      "keys": {
+        "M": {
+          "item": "ic2newera:tantalum_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:resonance_core",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:cobalt_washed_centrifuge",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:washed_cobalt_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_dust",
+        "count": 3
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 5,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:cobalt_unwashed_centrifuge",
+      "material": "cobalt",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_cobalt_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:cobalt_dust",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 20,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:molybdenum_washed_centrifuge",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:washed_molybdenum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_dust",
+        "count": 3
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 5,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:molybdenum_unwashed_centrifuge",
+      "material": "molybdenum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_molybdenum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:molybdenum_dust",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 20,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:tantalum_washed_centrifuge",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:washed_tantalum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_dust",
+        "count": 3
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 5,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:tantalum_unwashed_centrifuge",
+      "material": "tantalum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_tantalum_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:tantalum_dust",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 20,
+      "format": "centrifuge",
+      "min_heat": 1500
+    }
+  ],
+  "mineral_policy_revision": "2026-10-23-optional-washing-1-to-3"
+}

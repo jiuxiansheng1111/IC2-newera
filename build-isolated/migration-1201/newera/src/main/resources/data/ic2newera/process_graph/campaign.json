@@ -1,0 +1,2143 @@
+{
+  "materials": [
+    {
+      "id": "vanadium",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:vanadium_ore",
+        "IMPURE_DUST": "ic2newera:impure_vanadium_dust",
+        "WASHED_DUST": "ic2newera:washed_vanadium_dust",
+        "CLEAN_DUST": "ic2newera:vanadium_dust",
+        "FINAL_METAL": "ic2newera:vanadium_ingot"
+      },
+      "raw_variants": [
+        "ic2newera:raw_vanadium"
+      ],
+      "impure_variants": []
+    },
+    {
+      "id": "niobium",
+      "advanced": true,
+      "stages": {
+        "RAW": "ic2newera:niobium_ore",
+        "IMPURE_DUST": "ic2newera:impure_niobium_dust",
+        "WASHED_DUST": "ic2newera:washed_niobium_dust",
+        "CLEAN_DUST": "ic2newera:niobium_dust",
+        "FINAL_METAL": "ic2newera:niobium_ingot"
+      },
+      "raw_variants": [
+        "ic2newera:raw_niobium"
+      ],
+      "impure_variants": []
+    }
+  ],
+  "routes": [
+    {
+      "id": "ic2newera:vanadium_ore_macerator",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_vanadium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:vanadium_ore_crushing",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_vanadium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:vanadium_ore_legacy_smelting",
+      "material": "vanadium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:vanadium_ore_legacy_blasting",
+      "material": "vanadium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:vanadium_raw_macerator",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_vanadium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_vanadium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:vanadium_raw_crushing",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_vanadium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_vanadium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:vanadium_raw_legacy_smelting",
+      "material": "vanadium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_vanadium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:vanadium_raw_legacy_blasting",
+      "material": "vanadium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_vanadium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:vanadium_wash",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_vanadium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:washed_vanadium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:vanadium_industrial_smelt",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:vanadium_recycle",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:niobium_ore_macerator",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_niobium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:niobium_ore_crushing",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_niobium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:niobium_ore_legacy_smelting",
+      "material": "niobium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:niobium_ore_legacy_blasting",
+      "material": "niobium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:niobium_raw_macerator",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_niobium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_niobium_dust",
+        "count": 2
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:niobium_raw_crushing",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:crushing_wheel"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_niobium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:impure_niobium_dust",
+        "count": 2
+      },
+      "duration_ticks": 250,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crushing"
+    },
+    {
+      "id": "ic2newera:niobium_raw_legacy_smelting",
+      "material": "niobium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_niobium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting"
+    },
+    {
+      "id": "ic2newera:niobium_raw_legacy_blasting",
+      "material": "niobium",
+      "classification": "LEGACY_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:raw_niobium",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting"
+    },
+    {
+      "id": "ic2newera:niobium_wash",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:encased_fan"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_niobium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:washed_niobium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "splashing"
+    },
+    {
+      "id": "ic2newera:niobium_industrial_smelt",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:niobium_recycle",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:vanadium_steel_alloy",
+      "material": "vanadium_steel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_dust",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:high_carbon_steel_dust",
+          "count": 3
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_dust",
+        "count": 4
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": 16,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:vanadium_steel_smelt",
+      "material": "vanadium_steel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:vanadium_steel_recycle",
+      "material": "vanadium_steel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:vanadium_steel_sword",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_sword",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        " I ",
+        " I ",
+        " C "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_pickaxe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 3
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_pickaxe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_axe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 3
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_axe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "II ",
+        "IC ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_shovel",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_shovel",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        " I ",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_hoe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 2
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_hoe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "II ",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_helmet",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_helmet",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        "ICI"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_chestplate",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 8
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_chestplate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "ICI",
+        "III",
+        "III"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_leggings",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 7
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_leggings",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        "ICI",
+        "I I"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:vanadium_steel_boots",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_steel_boots",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "I I",
+        "ICI"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:pcb",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_alloy",
+      "material": "niobium_titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:alloy_smelter"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_dust",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_dust",
+          "count": 3
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_dust",
+        "count": 4
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": 16,
+      "priority": 10,
+      "format": "mixing_furnace"
+    },
+    {
+      "id": "ic2newera:niobium_titanium_smelt",
+      "material": "niobium_titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:advanced_electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_ingot",
+        "count": 1
+      },
+      "duration_ticks": 400,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "blast_furnace"
+    },
+    {
+      "id": "ic2newera:niobium_titanium_recycle",
+      "material": "niobium_titanium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:macerator"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_dust",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "macerator"
+    },
+    {
+      "id": "ic2newera:niobium_titanium_sword",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_sword",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        " I ",
+        " I ",
+        " C "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_pickaxe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 3
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_pickaxe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_axe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 3
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_axe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "II ",
+        "IC ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_shovel",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_shovel",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        " I ",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_hoe",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 2
+        },
+        {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_hoe",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "II ",
+        " C ",
+        " S "
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "S": {
+          "item": "minecraft:stick",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_helmet",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 5
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_helmet",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        "ICI"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_chestplate",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 8
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_chestplate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "ICI",
+        "III",
+        "III"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_leggings",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 7
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_leggings",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "III",
+        "ICI",
+        "I I"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ic2newera:niobium_titanium_boots",
+      "material": "frontier_equipment",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_titanium_boots",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting_shaped",
+      "pattern": [
+        "I I",
+        "ICI"
+      ],
+      "keys": {
+        "I": {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 1
+        },
+        "C": {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        }
+      }
+    },
+    {
+      "id": "ad_astra:smelting/desh_ingot_from_smelting_raw_desh",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:raw_desh",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/desh_ingot_from_blasting_raw_desh",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:raw_desh",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:smelting/desh_ingot_from_smelting_moon_desh_ore",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:moon_desh_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/desh_ingot_from_blasting_moon_desh_ore",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:moon_desh_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:smelting/desh_ingot_from_smelting_deepslate_desh_ore",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:deepslate_desh_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/desh_ingot_from_blasting_deepslate_desh_ore",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:deepslate_desh_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "create:pressing/desh_ingot",
+      "material": "extraterrestrial_desh",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:mechanical_press"
+      ],
+      "inputs": [
+        {
+          "tag": "ad_astra_platform:desh_ingots",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_plate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "pressing",
+      "required_mods": [
+        "ad_astra",
+        "create"
+      ]
+    },
+    {
+      "id": "ad_astra:smelting/ostrum_ingot_from_smelting_raw_ostrum",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:raw_ostrum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/ostrum_ingot_from_blasting_raw_ostrum",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:raw_ostrum",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:smelting/ostrum_ingot_from_smelting_mars_ostrum_ore",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:mars_ostrum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/ostrum_ingot_from_blasting_mars_ostrum_ore",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:mars_ostrum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:smelting/ostrum_ingot_from_smelting_deepslate_ostrum_ore",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:furnace",
+        "ic2:electric_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:deepslate_ostrum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 200,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "smelting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:blasting/ostrum_ingot_from_blasting_deepslate_ostrum_ore",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:deepslate_ostrum_ore",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "blasting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "create:pressing/ostrum_ingot",
+      "material": "extraterrestrial_ostrum",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "create:mechanical_press"
+      ],
+      "inputs": [
+        {
+          "tag": "ad_astra_platform:ostrum_ingots",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_plate",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "pressing",
+      "required_mods": [
+        "ad_astra",
+        "create"
+      ]
+    },
+    {
+      "id": "ic2newera:campaign_steel_exchange",
+      "material": "campaign_steel",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:tempered_steel_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:steel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "crafting",
+      "required_mods": [
+        "ad_astra"
+      ]
+    },
+    {
+      "id": "ad_astra:steel_engine",
+      "material": "campaign_hardware",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:steel_plate",
+          "count": 3
+        },
+        {
+          "item": "ad_astra:engine_frame",
+          "count": 1
+        },
+        {
+          "item": "ad_astra:fan",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:steel_engine",
+        "count": 1
+      },
+      "duration_ticks": 600,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "required_mods": [
+        "ad_astra"
+      ],
+      "kind": "electronic"
+    },
+    {
+      "id": "ad_astra:desh_engine",
+      "material": "campaign_hardware",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:desh_plate",
+          "count": 3
+        },
+        {
+          "item": "ad_astra:engine_frame",
+          "count": 1
+        },
+        {
+          "item": "ad_astra:fan",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:vanadium_steel_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:desh_engine",
+        "count": 1
+      },
+      "duration_ticks": 600,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "required_mods": [
+        "ad_astra"
+      ],
+      "kind": "electronic"
+    },
+    {
+      "id": "ad_astra:ostrum_engine",
+      "material": "campaign_hardware",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:ostrum_plate",
+          "count": 3
+        },
+        {
+          "item": "ad_astra:engine_frame",
+          "count": 1
+        },
+        {
+          "item": "ad_astra:fan",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:niobium_titanium_ingot",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:gpu",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:ostrum_engine",
+        "count": 1
+      },
+      "duration_ticks": 600,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "required_mods": [
+        "ad_astra"
+      ],
+      "kind": "electronic"
+    },
+    {
+      "id": "ad_astra:oxygen_distributor",
+      "material": "campaign_hardware",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2newera:electronic_fabricator"
+      ],
+      "inputs": [
+        {
+          "item": "ad_astra:fan",
+          "count": 3
+        },
+        {
+          "item": "ad_astra:large_gas_tank",
+          "count": 1
+        },
+        {
+          "item": "ad_astra:desh_plate",
+          "count": 2
+        },
+        {
+          "item": "ad_astra:oxygen_gear",
+          "count": 1
+        },
+        {
+          "item": "ad_astra:oxygen_loader",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:oxygen_distributor",
+        "count": 1
+      },
+      "duration_ticks": 600,
+      "eu_per_tick": 32,
+      "priority": 10,
+      "format": "processor",
+      "required_mods": [
+        "ad_astra"
+      ],
+      "kind": "electronic"
+    },
+    {
+      "id": "ad_astra:alloying/steel_ingot_from_alloying_iron_ingot_and_coals",
+      "material": "campaign_steel",
+      "classification": "BLOCKED_BYPASS",
+      "machines": [
+        "ad_astra:etrionic_blast_furnace"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 1
+        },
+        {
+          "tag": "minecraft:coals",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ad_astra:steel_ingot",
+        "count": 1
+      },
+      "duration_ticks": 100,
+      "eu_per_tick": -1,
+      "priority": 10,
+      "format": "alloying",
+      "required_mods": [
+        "ad_astra"
+      ],
+      "disable_native": true,
+      "reason": "钢必须先经批准的新纪元合金兼容炉配碳；低碳钢锭可等量转换为原生航天钢锭。",
+      "native_energy_per_tick": 20,
+      "native_energy_unit": "FE"
+    },
+    {
+      "id": "ic2newera:vanadium_washed_centrifuge",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:washed_vanadium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_dust",
+        "count": 3
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 5,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:vanadium_unwashed_centrifuge",
+      "material": "vanadium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_vanadium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:vanadium_dust",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 20,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:niobium_washed_centrifuge",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:washed_niobium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_dust",
+        "count": 3
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 5,
+      "format": "centrifuge",
+      "min_heat": 1500
+    },
+    {
+      "id": "ic2newera:niobium_unwashed_centrifuge",
+      "material": "niobium",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "ic2:centrifuge"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:impure_niobium_dust",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:niobium_dust",
+        "count": 1
+      },
+      "duration_ticks": 500,
+      "eu_per_tick": 48,
+      "priority": 20,
+      "format": "centrifuge",
+      "min_heat": 1500
+    }
+  ],
+  "mineral_policy_revision": "2026-10-23-optional-washing-1-to-3"
+}

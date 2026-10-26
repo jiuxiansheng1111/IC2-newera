@@ -1,0 +1,22 @@
+{
+  "title": "青铜阶段的盾牌防御",
+  "description": "IC2R没有Classic青铜盾牌；本迁移任务使用原版盾牌练习防御，不代表恢复了青铜盾物品。",
+  "branch": "工具与装备",
+  "icon": "minecraft:shield",
+  "prerequisites": [
+    "ic2newera:bronze"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "minecraft:shield",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "当前IC2 Refactored不提供Classic青铜盾牌，沿用本节点ID保留任务位置。",
+    "按JEI显示的原版盾牌配方制作盾牌，装备在副手练习格挡；青铜工具和护甲仍使用真实IC2R物品。"
+  ],
+  "x": 6,
+  "y": 7
+}

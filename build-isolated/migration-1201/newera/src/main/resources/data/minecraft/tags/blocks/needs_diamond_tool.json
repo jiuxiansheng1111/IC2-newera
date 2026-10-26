@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:vanadium_ore",
+    "ic2newera:cobalt_ore",
+    "ic2newera:molybdenum_ore",
+    "ic2newera:resonance_cluster"
+  ]
+}

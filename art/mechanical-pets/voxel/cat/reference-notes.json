@@ -1,0 +1,22 @@
+{
+  "reference_version": "Minecraft 1.20.1 client assets / mapped official model bytecode",
+  "reference_files": {
+    "client_jar": "C:/Users/罗斌/.gradle/caches/forge_gradle/mcp_repo/de/oceanlabs/mcp/mcp_config/1.20.1-20230612.114412/joined/downloadClient/client.jar",
+    "client_jar_sha256": "56B71336D2B4FDFFD197F56595B0DA93E32A946F78F382A299B8F4B92758BB0F",
+    "tabby_texture_entry": "assets/minecraft/textures/entity/cat/tabby.png",
+    "tabby_texture_sha256": "c9576f41cee06cc0144d83d093bd9c8de21af8c71ea30fd7474e504e012d1d81",
+    "tabby_texture_dimensions_px": [
+      64,
+      32
+    ],
+    "mapped_joined_jar": "C:/Users/罗斌/.gradle/caches/forge_gradle/mcp_repo/net/minecraft/joined/1.20.1-20230612.114412/joined-1.20.1-20230612.114412-srg.jar",
+    "CatModel.class_sha256": "da67a907043fa0874c63a56bb981558acfbc713f305e3ae92b3e7c37358fe607",
+    "OcelotModel.class_sha256": "9c5c22ac59c9979315148cbb04d51ea01199a365d91dac829eddce8be148ee4e"
+  },
+  "calibration_readout": {
+    "references_publicly_redistributed": false,
+    "body": "Cat body 4x3x8; integer four-leg anchors with visible gaps. Compact editable voxel silhouette calibrated against the recorded 1.20.1 CatModel/OcelotModel.",
+    "appearance": "User provided orange-gold cat references. Current face returns to simple large pixel pupils; no source picture is bundled. Decorative block flame and white cuboid feather wings requested by the user.",
+    "geometry": "Latest user instruction overrides organic drafts: positive integer cuboids, zero base rotations, Y-up and front -Z; 16 units per block."
+  }
+}

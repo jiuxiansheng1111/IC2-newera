@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "I I",
+    "I I"
+  ],
+  "key": {
+    "I": {
+      "item": "ic2newera:aluminium_bronze_ingot"
+    }
+  },
+  "result": {
+    "item": "ic2newera:aluminium_bronze_boots"
+  }
+}

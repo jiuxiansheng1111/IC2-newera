@@ -1,0 +1,73 @@
+{
+  "materials": [],
+  "routes": [
+    {
+      "id": "ic2newera:mechanical_cat",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "create:brass_casing",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:robot_control_core",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:robot_actuator",
+          "count": 2
+        },
+        {
+          "item": "ic2newera:robot_battery",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:mechanical_cat",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:mechanical_dog",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "create:brass_casing",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:robot_control_core",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:robot_actuator",
+          "count": 4
+        },
+        {
+          "item": "ic2newera:robot_battery",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:mechanical_dog",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    }
+  ]
+}

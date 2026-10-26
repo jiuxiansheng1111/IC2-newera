@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "ic2newera:block/bronze_dust_block"
+  }
+}

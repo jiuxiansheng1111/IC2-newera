@@ -1,0 +1,105 @@
+{
+  "format": "ic2newera:voxel_pet_mesh_v1",
+  "coordinate_system": "Blockbench Y-up, 16 units per block; face toward -Z",
+  "rotation_order": "ZYX (Rz * Ry * Rx)",
+  "uv": "atlas pixels normalized to top-left PNG coordinates",
+  "rig": [
+    "body",
+    "head",
+    "jaw",
+    "ear_l",
+    "ear_r",
+    "tail",
+    "leg_fl",
+    "leg_fr",
+    "leg_bl",
+    "leg_br"
+  ],
+  "pets": [
+    {
+      "species": "cat",
+      "source": "art/mechanical-pets/voxel/cat/cat.bbmodel",
+      "source_sha256": "7b81e3ec6a2124b5ac2d67599787aed0bd8057bb42ead806e9f43bb9349289c9",
+      "mesh_resource": "build-isolated/migration-1201/newera/src/main/resources/assets/ic2newera/pet_meshes/cat.json",
+      "mesh_sha256": "d7b855d18c2b0b8e176b5b6c0e800428fc61369a2cc9046c96d71017ae28be7e",
+      "texture_resource": "build-isolated/migration-1201/newera/src/main/resources/assets/ic2newera/textures/entity/pet/cat.png",
+      "texture_sha256": "ee14424132455a2e8d7ffe39dbdb505b22f54c3a6fe55789fdf2a4181cba4b2a",
+      "atlas": [
+        64,
+        64
+      ],
+      "bounds": [
+        [
+          -3.0,
+          0.0,
+          -7.0
+        ],
+        [
+          3.0,
+          11.0,
+          8.0
+        ]
+      ],
+      "source_height": 11.0,
+      "source_vertices": 864,
+      "runtime_quads": 216,
+      "bone_vertex_counts": {
+        "body": 960,
+        "head": 384,
+        "tail": 576,
+        "leg_fl": 384,
+        "leg_fr": 384,
+        "leg_bl": 384,
+        "leg_br": 384,
+        "wing_l": 1152,
+        "wing_r": 1152,
+        "jaw": 192,
+        "ear_l": 192,
+        "ear_r": 192,
+        "tail_flame": 576
+      },
+      "visible_cube_elements": 36
+    },
+    {
+      "species": "dog",
+      "source": "art/mechanical-pets/voxel/dog/dog.bbmodel",
+      "source_sha256": "095adea0e4c1dcac6604dc279ba4eb56531062c8b69dd130cb816aa9cf5f1301",
+      "mesh_resource": "build-isolated/migration-1201/newera/src/main/resources/assets/ic2newera/pet_meshes/dog.json",
+      "mesh_sha256": "9f57b4163de513ee5293462d87fc67d35a039e0ce21ef129a89b1992b9ec7eb8",
+      "texture_resource": "build-isolated/migration-1201/newera/src/main/resources/assets/ic2newera/textures/entity/pet/dog.png",
+      "texture_sha256": "ca6d3e40b1040712537c298bad110f4e40c0a0ded58311e57463f5fbc45476f4",
+      "atlas": [
+        64,
+        64
+      ],
+      "bounds": [
+        [
+          -4.0,
+          0.0,
+          -9.0
+        ],
+        [
+          4.0,
+          13.0,
+          7.0
+        ]
+      ],
+      "source_height": 13.0,
+      "source_vertices": 480,
+      "runtime_quads": 120,
+      "bone_vertex_counts": {
+        "body": 384,
+        "head": 384,
+        "tail": 384,
+        "leg_fl": 384,
+        "leg_fr": 384,
+        "leg_bl": 576,
+        "leg_br": 576,
+        "jaw": 384,
+        "ear_l": 192,
+        "ear_r": 192
+      },
+      "visible_cube_elements": 20
+    }
+  ]
+}

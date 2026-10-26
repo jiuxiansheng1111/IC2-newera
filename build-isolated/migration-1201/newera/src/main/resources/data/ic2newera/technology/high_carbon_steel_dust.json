@@ -1,0 +1,14 @@
+{
+  "title": "高碳钢粉",
+  "description": "铁粉与碳粉按批准比例配成高碳钢粉，不再经过钢坯。",
+  "branch": "资源与冶金",
+  "icon": "ic2newera:high_carbon_steel_dust",
+  "prerequisites": ["ic2newera:raw_materials"],
+  "objectives": [{"type":"item", "item":"ic2newera:high_carbon_steel_dust", "count":1}],
+  "steps": [
+    "先用 IC2 粉碎机或已有打粉路线取得普通铁粉与煤粉。",
+    "将煤粉和普通铁粉放入 新纪元合金兼容炉的两个输入槽；高碳路线碳粉占比更高，输入数量取自当前 ProcessGraph。",
+    "高碳钢粉可直接熔炼成高碳钢锭；低碳钢粉、钢锭不能代替本路线的铁粉。"
+  ],
+  "x": 15, "y": 2
+}

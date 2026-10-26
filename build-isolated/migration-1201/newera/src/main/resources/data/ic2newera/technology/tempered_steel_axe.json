@@ -1,0 +1,22 @@
+{
+  "title": "低碳钢斧",
+  "description": "将低碳钢延伸到斧类工具，完成可维修的重型工具路线。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:tempered_steel_axe",
+  "prerequisites": [
+    "ic2newera:tempered_steel_ingot"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:tempered_steel_axe",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "使用低碳钢锭按斧类工具配方组装。",
+    "以低碳钢锭维修并在采伐与战斗中评估其耐久。"
+  ],
+  "x": 6,
+  "y": 35
+}

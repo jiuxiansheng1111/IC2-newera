@@ -1,0 +1,93 @@
+{
+  "model": "dog.bbmodel",
+  "atlas_generator": "create_voxel_dog_atlas.py",
+  "serialized_mcp_operations": "blockbench-operations.json",
+  "geometry_operations": "Blockbench MCP bbmodel_create + bbmodel_edit using add_group/add_cube/set_keyframe; the operation manifest was serialized from the saved hierarchy.",
+  "render_outputs": [
+    "dog-3q.png",
+    "dog-front.png",
+    "dog-side.png",
+    "dog-bark-side.png",
+    "item-mechanical_dog.png"
+  ],
+  "constraints": {
+    "format": "free",
+    "groups": 10,
+    "cubes": 20,
+    "meshes": 0,
+    "textures": 1,
+    "texture_size": [
+      64,
+      64
+    ],
+    "bounds_min": [
+      -4,
+      0,
+      -9
+    ],
+    "bounds_max": [
+      4,
+      13,
+      7
+    ],
+    "grid_unit": 1,
+    "static_rotation_degrees": [
+      0,
+      0,
+      0
+    ],
+    "positive_thickness_cuboids_only": true
+  },
+  "bones": [
+    "body",
+    "head",
+    "jaw",
+    "ear_l",
+    "ear_r",
+    "tail",
+    "leg_fl",
+    "leg_fr",
+    "leg_bl",
+    "leg_br"
+  ],
+  "animations": [
+    "bark"
+  ],
+  "leg_clearance": {
+    "front_pair_x_gap_units": 2,
+    "front_paw_z": [
+      -5,
+      -2
+    ],
+    "rear_paw_z": [
+      5,
+      7
+    ],
+    "front_to_rear_paw_gap_units": 7,
+    "independent_bones": [
+      "leg_fl",
+      "leg_fr",
+      "leg_bl",
+      "leg_br"
+    ]
+  },
+  "body_dimensions": {
+    "cuboid_units": [
+      6,
+      5,
+      10
+    ],
+    "from": [
+      -3,
+      5,
+      -4
+    ],
+    "to": [
+      3,
+      10,
+      6
+    ]
+  },
+  "revision_note": "Final audited r42 source: torso length 10; front leg pivots z=-3; front paw z=-5..-2. A late duplicate shift was discarded before public sync; runtime/export source is 095ADE...F1301.",
+  "source_sha256": "095adea0e4c1dcac6604dc279ba4eb56531062c8b69dd130cb816aa9cf5f1301"
+}

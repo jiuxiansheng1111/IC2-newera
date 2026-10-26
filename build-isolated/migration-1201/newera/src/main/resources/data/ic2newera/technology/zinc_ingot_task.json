@@ -1,0 +1,14 @@
+{
+  "title": "熔炼锌锭",
+  "description": "使用 IC2 原生熔炼设备将锌粉加工为 Create 锌锭。",
+  "branch": "矿物与合金",
+  "icon": "create:zinc_ingot",
+  "prerequisites": ["ic2newera:zinc_dust"],
+  "objectives": [{"type":"item","item":"create:zinc_ingot","count":1}],
+  "steps": [
+    "使用普通熔炼配方将新纪元锌粉加工为 Create 注册的锌锭。",
+    "当前配方输入与产物以 JEI 为准。"
+  ],
+  "x": 25,
+  "y": 46
+}

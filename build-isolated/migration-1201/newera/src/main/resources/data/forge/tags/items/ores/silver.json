@@ -1,0 +1,17 @@
+{
+  "replace": false,
+  "values": [
+    {
+      "required": false,
+      "id": "ic2newera:silver_ore"
+    },
+    {
+      "required": false,
+      "id": "ic2newera:deepslate_silver_ore"
+    },
+    {
+      "required": false,
+      "id": "ic2newera:silver_ore_nether"
+    }
+  ]
+}

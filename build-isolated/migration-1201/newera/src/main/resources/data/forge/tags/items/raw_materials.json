@@ -1,0 +1,14 @@
+{
+  "replace": false,
+  "values": [
+    "#forge:raw_materials/tin",
+    "#forge:raw_materials/silver",
+    "#forge:raw_materials/aluminium",
+    "#forge:raw_materials/zinc",
+    "#forge:raw_materials/vanadium",
+    "#forge:raw_materials/niobium",
+    "#forge:raw_materials/cobalt",
+    "#forge:raw_materials/molybdenum",
+    "#forge:raw_materials/tantalum"
+  ]
+}

@@ -1,0 +1,106 @@
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+
+// The graph declares quantities once; all concrete recipes below are derived from it.
+def generatedProcesses = layout.buildDirectory.dir('generated-process-resources')
+tasks.register('generateProcessRecipes') {
+    inputs.files(fileTree('src/main/resources/data/ic2newera/process_graph'))
+    outputs.dir(generatedProcesses)
+    doLast {
+        def base = generatedProcesses.get().asFile
+        delete(base)
+        fileTree('src/main/resources/data/ic2newera/process_graph').matching { include '**/*.json' }.each { source ->
+            def graph = new JsonSlurper().parse(source, 'UTF-8')
+            // Broken optional compatibility recipes can fail before RecipeGuard runs.
+            // Only exact exclusions authored in the shared graph are short-circuited.
+            (graph.native_recipe_exclusions ?: []).each { excluded ->
+                assert excluded.id && excluded.reason && excluded.required_mods
+                assert excluded.inputs && excluded.original_output?.item && excluded.original_output?.count > 0
+                assert !graph.routes.any { it.id == excluded.id }
+                def name = excluded.id.split(':', 2)
+                assert name.length == 2 && excluded.required_mods.contains(name[0])
+                def target = new File(base, "data/${name[0]}/recipes/${name[1]}.json")
+                target.parentFile.mkdirs()
+                target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([conditions:[[type:'forge:false']],
+                        type:'minecraft:crafting_shapeless', ingredients:[[item:'minecraft:barrier']],
+                        result:[item:'minecraft:barrier']]))+'\n','UTF-8')
+            }
+            graph.routes.findAll { it.classification!='BLOCKED_BYPASS' }.each { r ->
+                def input = { i -> i.item ? [item:i.item] : [tag:i.tag] }
+                def repeated = r.inputs.collectMany { i -> (1..i.count).collect { input(i) } }
+                def result = [item:r.output.item, count:r.output.count]
+                def body
+                def directory = 'recipes'
+                switch(r.format) {
+                    case 'smelting': case 'blasting':
+                        assert r.inputs.size()==1 && r.inputs[0].count==1 && r.output.count==1
+                        body = [type:"minecraft:${r.format}", ingredient:input(r.inputs[0]), result:r.output.item,
+                                experience:r.get('experience', 0.2), cookingtime:r.duration_ticks]
+                        break
+                    case 'crafting_shaped':
+                        assert r.pattern && r.keys
+                        body = [type:'minecraft:crafting_shaped', pattern:r.pattern,
+                                key:r.keys.collectEntries { k,v -> [(k):input(v)] }, result:result]
+                        break
+                    case 'crafting':
+                        assert repeated.size()<=9
+                        body = [type:'minecraft:crafting_shapeless', ingredients:repeated, result:result]
+                        break
+                    case 'crushing': case 'splashing': case 'mixing': case 'pressing':
+                        body = [type:"create:${r.format}", ingredients:repeated, results:[result]]
+                        if (!(r.format in ['splashing','pressing'])) body.processingTime = r.duration_ticks
+                        if (r.heat) body.heatRequirement = r.heat
+                        break
+                    case 'processor':
+                        assert r.inputs.size()<=6
+                        body = [type:'ic2newera:processor', kind:r.kind,
+                            ingredients:r.inputs.collect { i -> input(i)+[count:i.count] }, result:result,
+                            duration_ticks:r.duration_ticks, eu_per_tick:r.eu_per_tick]
+                        break
+                    case 'blast_furnace': case 'mixing_furnace':
+                        // Approved 1.20.1 compatibility devices execute the original graph operations.
+                        def advanced = r.format == 'blast_furnace'
+                        assert r.machines == [advanced ? 'ic2newera:advanced_electric_furnace' : 'ic2newera:alloy_smelter']
+                        assert r.inputs.size() <= (advanced ? 1 : 3)
+                        assert r.duration_ticks > 0 && r.eu_per_tick > 0 && r.eu_per_tick <= 512
+                        body = [type:'ic2newera:processor', kind:advanced ? 'advanced' : 'alloy',
+                            ingredients:r.inputs.collect { i -> input(i)+[count:i.count] }, result:result,
+                            duration_ticks:r.duration_ticks, eu_per_tick:r.eu_per_tick]
+                        break
+                    case 'macerator': case 'centrifuge':
+                        assert r.inputs.size()==1
+                        body = [type:"ic2:${r.format}", ingredient:input(r.inputs[0])+[count:r.inputs[0].count], result:[result]]
+                        if (r.format == 'centrifuge') {
+                            assert r.machines == ['ic2:centrifuge'] && r.min_heat >= 0 && r.min_heat <= 5000
+                            assert r.duration_ticks == 500 && r.eu_per_tick == 48
+                            body.minHeat = r.min_heat
+                        }
+                        break
+                    default: throw new GradleException("Unknown process format ${r.format}")
+                }
+                def name = r.id.split(':',2)
+                if (r.required_mods) {
+                    assert directory == 'recipes'
+                    body.conditions = r.required_mods.collect { mod -> [type:'forge:mod_loaded', modid:mod] }
+                }
+                assert name[0]=='ic2newera' || (r.required_mods && r.required_mods.contains(name[0]))
+                def target = new File(base, "data/${name[0]}/${directory}/${name[1]}.json")
+                target.parentFile.mkdirs()
+                target.setText(JsonOutput.prettyPrint(JsonOutput.toJson(body))+'\n','UTF-8')
+            }
+            // Exact native IDs only: a false condition replaces that single original recipe.
+            graph.routes.findAll { it.classification=='BLOCKED_BYPASS' && it.disable_native }.each { recipe ->
+                assert recipe.id && recipe.reason && recipe.required_mods
+                def name = recipe.id.split(':',2)
+                assert recipe.required_mods.contains(name[0])
+                def target = new File(base, "data/${name[0]}/recipes/${name[1]}.json")
+                target.parentFile.mkdirs()
+                target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([conditions:[[type:'forge:false']],
+                        type:'minecraft:crafting_shapeless', ingredients:[[item:'minecraft:barrier']],
+                        result:[item:'minecraft:barrier']]))+'\n','UTF-8')
+            }
+        }
+    }
+}
+sourceSets.main.resources.srcDir(generatedProcesses)
+tasks.named('processResources').configure { dependsOn 'generateProcessRecipes' }

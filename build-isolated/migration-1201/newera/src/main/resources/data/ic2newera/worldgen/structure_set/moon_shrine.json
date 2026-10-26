@@ -1,0 +1,14 @@
+{
+  "structures": [
+    {
+      "structure": "ic2newera:moon_shrine",
+      "weight": 1
+    }
+  ],
+  "placement": {
+    "salt": 91370421,
+    "spacing": 48,
+    "separation": 24,
+    "type": "minecraft:random_spread"
+  }
+}

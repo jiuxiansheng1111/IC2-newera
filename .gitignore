@@ -28,6 +28,8 @@ __pycache__/
 
 # Local optional voice installation; publish source and the editable example.
 /config/
+**/ic2newera-private/
+**/credentials/
 /tools/robot_voice/ic2newera-voice-runtime.json
 /tools/robot_voice/runtime/
 /tools/robot_voice/static-verification.json
@@ -43,3 +45,9 @@ __pycache__/
 /art/robot-dolls/
 /art/robot-cuboids/
 /art/robot-reference-head-prototype/
+
+# Private player delivery: voice weights, runtimes and reference audio are not public Git assets.
+/dist/IC2-NewEra-Voice-Win64-*.zip*
+/dist/IC2-NewEra-Player-*.zip*
+/dist/IC2-NewEra-Voice-*.zip*
+/dist/*.mrpack*

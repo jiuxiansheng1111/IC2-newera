@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "release": "r42",
+  "minecraft": "1.20.1",
+  "forge": "47.4.28",
+  "status": "Local complete build and installation succeeded; game acceptance pending. Public source omits private assets.",
+  "runtimeMods": [
+    {
+      "modId": "ad_astra",
+      "version": "1.15.21",
+      "file": "adastra-1201-1.15.21.jar",
+      "sizeBytes": 7508773,
+      "sha256": "D84DC1182B4C570D955DF67B80703DC058CE944C7D9B0702E3577934C96D864C",
+      "source": "https://edge.forgecdn.net/files/8833/730/ad_astra-forge-1.20.1-1.15.21.jar"
+    },
+    {
+      "modId": "botarium",
+      "version": "2.3.4",
+      "file": "botarium-1201-2.3.4.jar",
+      "sizeBytes": 157633,
+      "sha256": "470810A364FF4AD4D4FCD4E55798263938FC893970EACECC58E8B741A392B1CF",
+      "source": "https://edge.forgecdn.net/files/5486/070/botarium-forge-1.20.1-2.3.4.jar"
+    },
+    {
+      "modId": "carbonconfig",
+      "version": "2.0.2.1",
+      "file": "carbonconfig-1201-2.0.2.1-CANDIDATE.jar",
+      "sizeBytes": 1268400,
+      "sha256": "BC5E7F3E6ECE33FDCF6557EEE598291BE70A474BF8BB1906E8BC021395944C8C",
+      "source": "https://edge.forgecdn.net/files/8119/981/CarbonConfig-1.20-2.0.2.1.jar"
+    },
+    {
+      "modId": "create",
+      "version": "6.0.8",
+      "file": "create-1201-6.0.8.jar",
+      "sizeBytes": 19170905,
+      "sha256": "6FBB910C367DBCE8E4FC7E5BF64B6EDD4DE980906ED00AF8E47E4AF843C0D9B0",
+      "source": "https://edge.forgecdn.net/files/7178/761/create-1.20.1-6.0.8.jar"
+    },
+    {
+      "modId": "curios",
+      "version": "5.14.1+1.20.1",
+      "file": "curios-1201-5.14.1+1.20.1.jar",
+      "sizeBytes": 398066,
+      "sha256": "6D77AE8AD532FDF303390F404B0081B3B4AC4F61E7F1F4B4D4A9077E132DAE4F",
+      "source": "https://maven.theillusivec4.top/top/theillusivec4/curios/curios-forge/5.14.1+1.20.1/curios-forge-5.14.1+1.20.1.jar"
+    },
+    {
+      "modId": "farmersdelight",
+      "version": "1.20.1-1.3.4",
+      "file": "farmersdelight-1201-1.3.4.jar",
+      "sizeBytes": 3311051,
+      "sha256": "34F03EB671EA1CA579B00C98E4541404CB96D1A292014AED9CC5EB45AD8AFBCE",
+      "source": "https://edge.forgecdn.net/files/8765/179/FarmersDelight-1.20.1-1.3.4.jar"
+    },
+    {
+      "modId": "ic2",
+      "version": "2.10.33-ex120",
+      "file": "ic2-forge-2.10.33-ex120.jar",
+      "sizeBytes": 7693644,
+      "sha256": "9C2BAABD51F6E5EECC0E75F9B0DC8474DD6D2A3DD701B1000924253D3ACA110F",
+      "source": "https://github.com/craftorio/ic2/releases/download/2.10.33-ex120/ic2-forge-2.10.33-ex120.jar"
+    },
+    {
+      "modId": "jei",
+      "version": "15.56.0.205",
+      "file": "jei-1201-15.56.0.205.jar",
+      "sizeBytes": 1778129,
+      "sha256": "6B251E60A4719C874DA89D750AF97AA6498F6F4475E3AE79CB1288C7BF0CB65C",
+      "source": "https://edge.forgecdn.net/files/8778/011/jei-1.20.1-forge-15.56.0.205.jar"
+    },
+    {
+      "modId": "kaleidoscope_cookery",
+      "version": "1.6.0-forge+mc1.20.1",
+      "file": "kaleidoscope-cookery-1201-1.6.0.jar",
+      "sizeBytes": 3607215,
+      "sha256": "0EEE5579B36746825D6586C65051D9E68FC84178A19DEC4372FC9D64B8629D62",
+      "source": "https://cdn.modrinth.com/data/v17FatAc/versions/Ghp0qCKY/kaleidoscopecookery-1.6.0-forge%2Bmc1.20.1.jar"
+    },
+    {
+      "modId": "projecte",
+      "version": "1.0.1",
+      "file": "projecte-1201-PE1.0.1.jar",
+      "sizeBytes": 2257347,
+      "sha256": "F51F387E56307E7CDA26915CA0C789760D85E97A8B40B8BFA0988BE66371D018",
+      "source": "https://edge.forgecdn.net/files/4901/949/ProjectE-1.20.1-PE1.0.1.jar"
+    },
+    {
+      "modId": "resourcefulconfig",
+      "version": "2.1.3",
+      "file": "resourcefulconfig-1201-2.1.3.jar",
+      "sizeBytes": 136923,
+      "sha256": "C404B9E5CF8595427A72D4CA6EE5730289168762B463F169BE3AE5DFE3727DED",
+      "source": "https://edge.forgecdn.net/files/6231/176/resourcefulconfig-forge-1.20.1-2.1.3.jar"
+    },
+    {
+      "modId": "resourcefullib",
+      "version": "2.1.29",
+      "file": "resourcefullib-1201-2.1.29.jar",
+      "sizeBytes": 432753,
+      "sha256": "B13AFB95231D88E1CAEA5A045967E0FC291B29020B0D26AD39E6F9E9A551FEE8",
+      "source": "https://edge.forgecdn.net/files/5659/871/resourcefullib-forge-1.20.1-2.1.29.jar"
+    },
+    {
+      "modId": "theoneprobe",
+      "version": "10.0.3",
+      "file": "top-1201-10.0.3.jar",
+      "sizeBytes": 331601,
+      "sha256": "2A229CA4FD43C450873A09973680F97B2D24D01AB4295685921852EDA722ACD1",
+      "source": "https://edge.forgecdn.net/files/6106/996/theoneprobe-1.20.1-10.0.3.jar"
+    },
+    {
+      "modId": "laowu",
+      "version": "2.3.1",
+      "file": "create-meowchanics-2.3.1-forge-1.20.1.jar",
+      "sizeBytes": 8244328,
+      "sha256": "25FD300D2311AB953B7112B5A9B0E6EAD0E2DEBB49B8201CDE5285AD1B68F612",
+      "source": "https://edge.forgecdn.net/files/9163/511/create-meowchanics-2.3.1-forge-1.20.1.jar"
+    },
+    {
+      "modId": "create_biotech",
+      "version": "1.3.0",
+      "file": "create_biotech-1.20.1-1.3.0.jar",
+      "sizeBytes": 2879111,
+      "sha256": "A4A167AEED13841C0B6BE43C282F69DADC63C0C7EB4E763D627D2B5C35C18826",
+      "source": "https://edge.forgecdn.net/files/8675/155/create_biotech-1.20.1-1.3.0.jar"
+    }
+  ]
+}

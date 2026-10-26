@@ -1,0 +1,27 @@
+{
+  "title": "低碳钢装备",
+  "description": "用低碳钢锭制作钢制工具和护具。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:tempered_steel_sword",
+  "prerequisites": [
+    "ic2newera:tempered_steel_ingot"
+  ],
+  "objectives": [
+    {
+      "count": 1,
+      "item": "ic2newera:tempered_steel_sword",
+      "type": "item"
+    },
+    {
+      "count": 1,
+      "item": "ic2newera:tempered_steel_helmet",
+      "type": "item"
+    }
+  ],
+  "steps": [
+    "在常规 3×3 工作台制作低碳钢剑与头盔。",
+    "低碳钢装备可使用低碳钢锭修复。"
+  ],
+  "x": 15,
+  "y": 2
+}

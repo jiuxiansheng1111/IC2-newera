@@ -1,0 +1,22 @@
+{
+  "title": "低碳钢胸甲",
+  "description": "把低碳钢锭加工成耐用胸甲。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:tempered_steel_chestplate",
+  "prerequisites": [
+    "ic2newera:tempered_steel_ingot"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:tempered_steel_chestplate",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "使用现行 IC2 电炉或熔炼配方取得低碳钢锭，具体方式以 JEI 为准。",
+    "在工作台按胸甲配方裁制并组装低碳钢胸甲；本模组不提供专用热处理设备。"
+  ],
+  "x": 6,
+  "y": 32
+}

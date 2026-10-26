@@ -1,0 +1,22 @@
+{
+  "title": "低碳钢护腿",
+  "description": "制作可由低碳钢锭维修的护腿。",
+  "branch": "工具与装备",
+  "icon": "ic2newera:tempered_steel_leggings",
+  "prerequisites": [
+    "ic2newera:tempered_steel_ingot"
+  ],
+  "objectives": [
+    {
+      "type": "item",
+      "item": "ic2newera:tempered_steel_leggings",
+      "count": 1
+    }
+  ],
+  "steps": [
+    "将低碳钢锭用于护腿配方。",
+    "制成后检查耐久与护甲值，并用低碳钢锭维修。"
+  ],
+  "x": 6,
+  "y": 33
+}

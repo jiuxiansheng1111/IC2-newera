@@ -1,0 +1,19 @@
+{
+  "title": "单向 EU 电动机",
+  "description": "使用 IC2 EU 驱动 Create 轴系，提供真实转速与应力容量。",
+  "branch": "IC2 与 Create 联动",
+  "icon": "ic2newera:eu_motor",
+  "prerequisites": ["ic2newera:mechanical_to_electric"],
+  "objectives": [
+    {"type": "item", "item": "ic2newera:eu_motor", "count": 1}
+  ],
+  "steps": [
+    "在工作台使用 Create 安山合金、安山机壳、Create 轴，以及 IC2 绝缘铜线和电子电路合成；材料数量与配方以 ProcessGraph 为准。",
+    "前端连接 Create 轴；背面的 EU 接口连接 IC2 低压电缆。默认 64 RPM，可选择 32、64 或 128 RPM，并支持反转与启停。",
+    "三档容量依次为 1024、2048、4096 SU，固定能耗 10、20、40 EU/t；效率 80%，EU 缓冲 10000。每包最多接受 32 EU，128 RPM 需要总供电达到 40 EU/t。",
+    "启动需存足 20 刻额定电量；缺电停机后等待 20 刻且电量充足才重启。红石信号停机，外部动力驱动时本机待机且不耗电。Create 轴系过载仍按原规则处理。",
+    "电动机只将 EU 供给转换为 Create 机械输出，不会把转速或应力回发为 EU；光纤只传数据。"
+  ],
+  "x": 5,
+  "y": 10
+}

@@ -1,0 +1,12 @@
+{
+  "advancement.ic2.kill_wither_with_nuke": "核爆特攻",
+  "advancement.ic2.kill_wither_with_nuke.desc": "用核弹杀死凋灵",
+  "advancement.ic2.terraform_end_cultivation": "末地天堂",
+  "advancement.ic2.terraform_end_cultivation.desc": "将末地改造成类似主世界的样子",
+  "advancement.ic2.scaffolded": "讽刺的摩天楼",
+  "advancement.ic2.scaffolded.desc": "这可不是通往天堂的阶梯",
+  "advancement.ic2.kill_dragon_mining_laser": "大佬风范",
+  "advancement.ic2.kill_dragon_mining_laser.desc": "用采矿激光枪杀死末影龙",
+  "1 Item per Slot": "每个格子仅允许放入 1 个物品",
+  "1 Stack per Item": "每种物品最多只能放 1 组"
+}

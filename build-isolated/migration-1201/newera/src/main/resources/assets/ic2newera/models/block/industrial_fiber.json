@@ -1,0 +1,104 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "ic2newera:block/industrial_fiber"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        6,
+        6
+      ],
+      "to": [
+        16,
+        10,
+        10
+      ],
+      "faces": {
+        "north": {
+          "texture": "#particle"
+        },
+        "south": {
+          "texture": "#particle"
+        },
+        "east": {
+          "texture": "#particle"
+        },
+        "west": {
+          "texture": "#particle"
+        },
+        "up": {
+          "texture": "#particle"
+        },
+        "down": {
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        5,
+        5
+      ],
+      "to": [
+        2,
+        11,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#particle"
+        },
+        "south": {
+          "texture": "#particle"
+        },
+        "east": {
+          "texture": "#particle"
+        },
+        "west": {
+          "texture": "#particle"
+        },
+        "up": {
+          "texture": "#particle"
+        },
+        "down": {
+          "texture": "#particle"
+        }
+      }
+    },
+    {
+      "from": [
+        14,
+        5,
+        5
+      ],
+      "to": [
+        16,
+        11,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#particle"
+        },
+        "south": {
+          "texture": "#particle"
+        },
+        "east": {
+          "texture": "#particle"
+        },
+        "west": {
+          "texture": "#particle"
+        },
+        "up": {
+          "texture": "#particle"
+        },
+        "down": {
+          "texture": "#particle"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "replace": false,
+  "values": [
+    "ic2newera:nickel_ore",
+    "ic2newera:chromium_ore",
+    "ic2newera:titanium_ore",
+    "ic2newera:tungsten_ore",
+    "ic2newera:vanadium_ore",
+    "ic2newera:niobium_ore",
+    "#forge:ores/cobalt",
+    "#forge:ores/molybdenum",
+    "#forge:ores/tantalum",
+    "ic2newera:resonance_cluster"
+  ]
+}

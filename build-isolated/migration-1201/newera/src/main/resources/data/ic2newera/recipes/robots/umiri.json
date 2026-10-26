@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "ic2newera:robot_blueprint"
+    },
+    {
+      "item": "ic2newera:robot_control_core"
+    },
+    {
+      "item": "ic2newera:robot_actuator"
+    },
+    {
+      "tag": "minecraft:wool"
+    },
+    {
+      "item": "minecraft:string"
+    },
+    {
+      "item": "minecraft:cyan_dye"
+    }
+  ],
+  "result": {
+    "item": "ic2newera:umiri_robot_doll",
+    "count": 1
+  }
+}
