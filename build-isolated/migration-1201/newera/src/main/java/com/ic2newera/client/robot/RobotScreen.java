@@ -41,7 +41,9 @@ public final class RobotScreen extends Screen {
                 || !(client.level.getEntity(next.entityId()) instanceof RobotEntity robot)
                 || !robot.getUUID().equals(next.robot()) || !robot.isOwnedBy(client.player)
                 || robot.distanceToSqr(client.player) > 64 || !robot.character().id.equals(next.character())
-                || !Float.isFinite(next.health()) || next.health() < 0 || next.health() > 100
+                || !Float.isFinite(next.maxHealth()) || next.maxHealth() <= 0 || next.maxHealth() > 1_000_000
+                || !Float.isFinite(next.health()) || next.health() < 0 || next.health() > next.maxHealth()
+                || next.hunger() < 0 || next.hunger() > RobotEntity.MAX_HUNGER
                 || !client.level.dimension().location().toString().equals(next.dimension())) return;
         if (client.screen instanceof RobotCookingScreen cooking && cooking.receiveLocalView(next)) return;
         if (client.screen instanceof RobotCollectionScreen collection && collection.receiveLocalView(next)) return;
@@ -207,7 +209,7 @@ public final class RobotScreen extends Screen {
         pose.drawString(font, UiText.fit(font, title, panelWidth - 58), left, 12, 0xFFFFFF);
         pose.drawString(font, UiText.fit(font, Component.literal("角色：" + RobotCharacter.byId(view.character()).chineseName
                 + "  " + view.status()), panelWidth), left, 27, 0xBBE5FF);
-        pose.drawString(font, UiText.fit(font, Component.literal("生命 " + Math.round(view.health()) + "/20  寿命 " + (5 - view.deaths()) + "/5  电量 " + view.energy() + " EU"),
+        pose.drawString(font, UiText.fit(font, Component.literal("生命 " + Math.round(view.health()) + "/" + Math.round(view.maxHealth()) + "  饱食 " + view.hunger() + "/200  寿命 " + (5 - view.deaths()) + "/5  电量 " + view.energy() + " EU"),
                 panelWidth), left, 38, 0xBBCCDD);
         if (page == RobotControlTabs.Page.CHAT) {
             pose.fill( left - 2, transcriptTop - 2, left + panelWidth + 2, transcriptBottom, 0x99202838);

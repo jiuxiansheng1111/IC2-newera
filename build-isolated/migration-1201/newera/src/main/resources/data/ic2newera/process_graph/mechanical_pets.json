@@ -22,7 +22,7 @@
           "count": 2
         },
         {
-          "item": "ic2newera:robot_battery",
+          "item": "ic2:re_battery",
           "count": 1
         }
       ],
@@ -33,7 +33,8 @@
       "duration_ticks": 0,
       "eu_per_tick": 0,
       "priority": 10,
-      "format": "crafting"
+      "format": "crafting",
+      "recipe_serializer": "ic2newera:pet_assembly"
     },
     {
       "id": "ic2newera:mechanical_dog",
@@ -56,7 +57,7 @@
           "count": 4
         },
         {
-          "item": "ic2newera:robot_battery",
+          "item": "ic2:re_battery",
           "count": 1
         }
       ],
@@ -67,7 +68,8 @@
       "duration_ticks": 0,
       "eu_per_tick": 0,
       "priority": 10,
-      "format": "crafting"
+      "format": "crafting",
+      "recipe_serializer": "ic2newera:pet_assembly"
     }
   ]
 }

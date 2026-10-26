@@ -8,6 +8,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -21,6 +22,7 @@ public final class PetRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, IC2NewEra.MOD_ID);
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, IC2NewEra.MOD_ID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, IC2NewEra.MOD_ID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, IC2NewEra.MOD_ID);
     public static final RegistryObject<EntityType<MechanicalPetEntity>> CAT = ENTITIES.register("mechanical_cat", () ->
             EntityType.Builder.<MechanicalPetEntity>of((type, level) -> new MechanicalPetEntity(type, level, true), MobCategory.CREATURE)
                     .sized(0.6F, 0.7F).clientTrackingRange(8).updateInterval(3).build("ic2newera:mechanical_cat"));
@@ -32,11 +34,17 @@ public final class PetRegistry {
     public static final RegistryObject<Item> PANCAKE_ITEM = ITEMS.register("mechanical_cat_pancake", () -> new MechanicalCatPancakeItem(new Item.Properties().stacksTo(1)));
     public static final RegistryObject<MenuType<PetMenu>> MENU = MENUS.register("mechanical_pet", () ->
             net.minecraftforge.common.extensions.IForgeMenuType.create(PetMenu::new));
+    public static final RegistryObject<RecipeSerializer<PetAssemblyRecipe>> ASSEMBLY_SERIALIZER =
+            RECIPE_SERIALIZERS.register("pet_assembly", PetAssemblyRecipe.Serializer::new);
     private PetRegistry() { }
-    public static void register(IEventBus bus) { ENTITIES.register(bus); ITEMS.register(bus); MENUS.register(bus); }
+    public static void register(IEventBus bus) {
+        ENTITIES.register(bus); ITEMS.register(bus); MENUS.register(bus);
+        RECIPE_SERIALIZERS.register(bus);
+    }
     @SubscribeEvent public static void attributes(EntityAttributeCreationEvent event) {
-        AttributeSupplier attributes = Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 12)
-                .add(Attributes.MOVEMENT_SPEED, 0.25).add(Attributes.FOLLOW_RANGE, 16).build();
+        AttributeSupplier attributes = Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 40)
+                .add(Attributes.MOVEMENT_SPEED, 0.25).add(Attributes.FOLLOW_RANGE, 16)
+                .add(Attributes.ATTACK_DAMAGE, 3.0).build();
         event.put(CAT.get(), attributes);
         event.put(DOG.get(), attributes);
     }

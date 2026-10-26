@@ -6,6 +6,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.util.Mth;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
@@ -132,6 +133,11 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
                 rotate(angles, "body", -0.28F * pulse, 0, 0);
                 rotate(angles, "leg_fl", 0.7F * pulse, 0, 0); rotate(angles, "leg_fr", 0.7F * pulse, 0, 0);
                 rotate(angles, "leg_bl", -0.7F * pulse, 0, 0); rotate(angles, "leg_br", -0.7F * pulse, 0, 0);
+                if (!pet.isCat()) {
+                    // Dogs dip the muzzle onto the target and open the lower jaw for the bite.
+                    rotate(angles, "head", -0.12F * pulse, 0, 0);
+                    rotate(angles, "jaw", -0.78F * pulse, 0, 0);
+                }
             }
             case SWIPE -> {
                 rotate(angles, "leg_fl", 1.05F * pulse, 0, 0);
@@ -206,6 +212,21 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
                 rotate(angles, "lid_l", 0.4F * pulse, 0, 0); rotate(angles, "lid_r", 0.4F * pulse, 0, 0);
                 rotate(angles, "leg_fl", 0.25F * pulse, 0, 0); rotate(angles, "leg_fr", 0.25F * pulse, 0, 0);
                 rotate(angles, "tail", (pet.isCat() ? -0.45F : -0.25F) * pulse, 0, 0);
+            }
+            case HISS -> {
+                float hiss = 0.45F + 0.55F * pulse;
+                float quiver = Mth.sin(ageInTicks * 1.1F);
+                // The body remains a cuboid: a restrained lift and pitch suggest an arched back.
+                rotate(angles, "body", -0.16F * hiss, 0, 0);
+                scale(scales, "body", 1F, 1F + 0.035F * hiss, 1F);
+                rotate(angles, "head", 0.12F * hiss, 0, 0);
+                rotate(angles, "jaw", -(pet.isCat() ? 0.46F : 0.5F) * hiss, 0, 0);
+                rotate(angles, "ear_l", -0.3F * hiss, 0, -0.28F * hiss);
+                rotate(angles, "ear_r", -0.3F * hiss, 0, 0.28F * hiss);
+                rotate(angles, "tail", -0.42F * hiss, 0.12F * quiver * hiss, 0);
+                // Cancel locomotion swing while hissing, keeping all four cuboid legs apart.
+                rotate(angles, "leg_fl", -walk, 0, 0); rotate(angles, "leg_br", -walk, 0, 0);
+                rotate(angles, "leg_fr", walk, 0, 0); rotate(angles, "leg_bl", walk, 0, 0);
             }
             default -> { }
         }
@@ -392,6 +413,54 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
         if (Math.abs(determinant) < 1.0E-8F) { out[0] = out[4] = out[8] = 1; out[1] = out[2] = out[3] = out[5] = out[6] = out[7] = 0; return; }
         float inverse = 1F / determinant;
         for (int index = 0; index < 9; index++) out[index] *= inverse;
+    }
+
+    /** Renders cuboid equipment through the same animated bone matrix as its attachment. */
+    void renderEquipmentCuboid(MechanicalPetEntity pet, PoseStack pose, VertexConsumer consumer, int light,
+                               String bone, float x0, float y0, float z0, float x1, float y1, float z1,
+                               int color) {
+        if (mesh == null || !mesh.byName.containsKey(bone)) return;
+        float[] matrix = finalMatrices.get(bone), normalMatrix = normalMatrices.get(bone);
+        if (matrix == null || normalMatrix == null) return;
+        pose.pushPose();
+        // Match renderToBuffer's correction from vanilla's Y-down model coordinates to our Y-up rig.
+        pose.translate(0, 1.501F, 0);
+        pose.scale(-1F, -1F, 1F);
+        pose.translate(0, groundOffset / 16F, 0);
+        pose.scale(1F / 16F, 1F / 16F, 1F / 16F);
+        PoseStack.Pose transform = pose.last();
+
+        float[][] points = {
+                {x0,y0,z0},{x1,y0,z0},{x1,y1,z0},{x0,y1,z0},
+                {x0,y0,z1},{x1,y0,z1},{x1,y1,z1},{x0,y1,z1}
+        };
+        // Each face is a four-corner cuboid side plus its outward unit normal.
+        int[][] faces = {{0,3,2,1},{4,5,6,7},{0,4,7,3},{1,2,6,5},{0,1,5,4},{3,7,6,2}};
+        float[][] normals = {{0,0,-1},{0,0,1},{-1,0,0},{1,0,0},{0,-1,0},{0,1,0}};
+        float red = ((color >> 16) & 0xFF) / 255F;
+        float green = ((color >> 8) & 0xFF) / 255F;
+        float blue = (color & 0xFF) / 255F;
+        for (int face = 0; face < faces.length; face++) {
+            float shade = face == 2 || face == 4 ? 0.78F : face == 3 || face == 5 ? 0.92F : 1F;
+            float r = red * shade, g = green * shade, b = blue * shade;
+            for (int corner = 0; corner < 4; corner++) {
+                float[] p = points[faces[face][corner]];
+                float px = matrix[0] * p[0] + matrix[1] * p[1] + matrix[2] * p[2] + matrix[3];
+                float py = matrix[4] * p[0] + matrix[5] * p[1] + matrix[6] * p[2] + matrix[7];
+                float pz = matrix[8] * p[0] + matrix[9] * p[1] + matrix[10] * p[2] + matrix[11];
+                float[] n = normals[face];
+                Vector3f normal = new Vector3f(
+                        normalMatrix[0] * n[0] + normalMatrix[1] * n[1] + normalMatrix[2] * n[2],
+                        normalMatrix[3] * n[0] + normalMatrix[4] * n[1] + normalMatrix[5] * n[2],
+                        normalMatrix[6] * n[0] + normalMatrix[7] * n[1] + normalMatrix[8] * n[2]);
+                transform.normal().transform(normal).normalize();
+                consumer.vertex(transform.pose(), px, py, pz).color(r, g, b, 1F)
+                        .uv(corner == 1 || corner == 2 ? 1F : 0F, corner >= 2 ? 1F : 0F)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY).uv2(light)
+                        .normal(normal.x, normal.y, normal.z).endVertex();
+            }
+        }
+        pose.popPose();
     }
 
     @Override

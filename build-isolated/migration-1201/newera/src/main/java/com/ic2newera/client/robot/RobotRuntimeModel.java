@@ -61,7 +61,9 @@ final class RobotRuntimeModel extends HumanoidModel<RobotEntity> {
                 !(mainLeft ? entity.getMainHandItem() : entity.getOffhandItem()).isEmpty(),
                 !(mainLeft ? entity.getOffhandItem() : entity.getMainHandItem()).isEmpty(),
                 entity.isSprinting(), entity.getPose() == Pose.SWIMMING,
-                entity.isOrderedToSit(), entity.hurtTime);
+                entity.isOrderedToSit(), entity.hurtTime, entity.canAnimateEating(),
+                entity.eatingProgress(age - entity.tickCount),
+                entity.eatingArm() == HumanoidArm.LEFT);
         if (entity.petting()) {
             // A small nod accepts the head pat; the authored face/hair stay rigid.
             animation.rotation[RobotMesh.HEAD_PART][0] += 0.10F + (float) Math.sin(age * 0.35F) * 0.045F;

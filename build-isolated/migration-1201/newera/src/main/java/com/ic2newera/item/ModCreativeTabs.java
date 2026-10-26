@@ -27,6 +27,7 @@ public final class ModCreativeTabs {
                                 com.ic2newera.wormhole.WormholeContent.ITEMS,
                                 com.ic2newera.arsenal.ArsenalMaterials.ITEMS,
                                 com.ic2newera.pet.PetRegistry.ITEMS,
+                                com.ic2newera.furniture.MirrorContent.ITEMS,
                                 com.ic2newera.robot.RobotRegistry.ITEMS)
                                 .flatMap(register -> register.getEntries().stream())
                                 .filter(entry -> !entry.getId().getPath().equals("terminal") && !entry.getId().getPath().equals("mechanical_cat_pancake"))

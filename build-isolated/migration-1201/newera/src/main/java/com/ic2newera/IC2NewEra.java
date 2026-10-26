@@ -58,6 +58,7 @@ public final class IC2NewEra {
         ModMenus.MENUS.register(modBus);
         com.ic2newera.pet.PetRegistry.register(modBus);
         com.ic2newera.pet.PetSounds.register(modBus);
+        com.ic2newera.furniture.MirrorContent.register(modBus);
         com.ic2newera.robot.RobotRegistry.ITEMS.register(modBus);
         com.ic2newera.robot.RobotRegistry.ENTITIES.register(modBus);
         com.ic2newera.robot.RobotRegistry.MENUS.register(modBus);

@@ -16,7 +16,8 @@ public final class RobotAnimationPose {
                        float headYawDegrees, float headPitchDegrees, float attack,
                        int mode, boolean working, boolean mainLeft, boolean offhandSwing,
                        boolean heldLeft, boolean heldRight,
-                       boolean sprinting, boolean swimming, boolean sitting, float hurtTime) {
+                       boolean sprinting, boolean swimming, boolean sitting, float hurtTime,
+                       boolean eating, float eatingProgress, boolean eatingLeft) {
         for (float[] angles : rotation) java.util.Arrays.fill(angles, 0);
         boolean longHair = switch (character) {
             case "anon", "soyo", "taki", "sakiko" -> true;
@@ -93,6 +94,21 @@ public final class RobotAnimationPose {
         float pitchLimit = longHair ? 6 : 12;
         rotation[1][1] = radians(clamp(headYawDegrees, -yawLimit, yawLimit));
         rotation[1][0] = radians(clamp(headPitchDegrees, -pitchLimit, pitchLimit));
+
+        // Eating owns one arm only while the robot is otherwise free to act. The
+        // continuous age/progress values keep the hand rise smooth between ticks.
+        if (eating && !supportedWork && attack <= 0.0F && !swimming && !sitting && hurtTime <= 0.0F) {
+            float progress = clamp(eatingProgress, 0.0F, 1.0F);
+            float rise = smoothstep(progress / 0.22F) * (1.0F - smoothstep((progress - 0.76F) / 0.24F));
+            float chew = (float) Math.sin(age * 0.72F);
+            int eatingArm = eatingLeft ? 2 : 3;
+            float eatingSide = eatingArm == 2 ? -1.0F : 1.0F;
+            rotation[eatingArm][0] = mix(rotation[eatingArm][0], radians(-72.0F + chew * 1.5F), rise);
+            rotation[eatingArm][1] = mix(rotation[eatingArm][1], radians(eatingSide * 4.0F), rise);
+            rotation[eatingArm][2] = mix(rotation[eatingArm][2], radians(-eatingSide * 5.0F), rise);
+            rotation[1][0] += rise * radians(1.5F + (float) Math.sin(age * 0.72F + 0.8F) * 1.4F);
+            rotation[0][0] += rise * radians(0.5F + (float) Math.sin(age * 0.72F + 1.1F) * 0.35F);
+        }
     }
 
     private void applyWorkPose(int mode, float age, int arm, float side, float blend) {
@@ -144,6 +160,10 @@ public final class RobotAnimationPose {
     }
     private static float mix(float start, float end, float amount) {
         return start + (end - start) * amount;
+    }
+    private static float smoothstep(float value) {
+        float t = clamp(value, 0.0F, 1.0F);
+        return t * t * (3.0F - 2.0F * t);
     }
     private static float clamp(float value, float min, float max) { return Math.max(min, Math.min(max, value)); }
     private static float radians(float value) { return value * ((float) Math.PI / 180); }

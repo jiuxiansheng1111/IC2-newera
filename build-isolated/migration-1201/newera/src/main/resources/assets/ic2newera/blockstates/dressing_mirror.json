@@ -1,0 +1,24 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ic2newera:block/dressing_mirror",
+      "y": 0,
+      "uvlock": true
+    },
+    "facing=east": {
+      "model": "ic2newera:block/dressing_mirror",
+      "y": 90,
+      "uvlock": true
+    },
+    "facing=south": {
+      "model": "ic2newera:block/dressing_mirror",
+      "y": 180,
+      "uvlock": true
+    },
+    "facing=west": {
+      "model": "ic2newera:block/dressing_mirror",
+      "y": 270,
+      "uvlock": true
+    }
+  }
+}

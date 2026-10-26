@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "release": "r43",
+  "release": "r44",
   "minecraft": "1.20.1",
   "forge": "47.4.28",
-  "status": "Local complete build and installation succeeded; game acceptance pending. Public source omits private assets.",
+  "status": "Local complete build and installation succeeded; new mirror/pet/eating gameplay acceptance pending. Public source omits private assets.",
   "runtimeMods": [
     {
       "modId": "ad_astra",

@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
@@ -17,12 +18,20 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.HorseArmorItem;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.core.particles.ParticleTypes;
@@ -48,10 +57,22 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private static final EntityDataAccessor<Integer> ACTION = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ACTION_TICKS = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> HUNGER = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.INT);
-    public static final int MAX_HUNGER = 20;
-    private static final int HUNGER_DRAIN_INTERVAL = 2400;
+    private static final EntityDataAccessor<ItemStack> PET_CHEST = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<ItemStack> PET_BATTERY = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<ItemStack> PET_ARMOR = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.ITEM_STACK);
+    public static final int MAX_HUNGER = 100;
+    private static final int HUNGER_DRAIN_THRESHOLD = 32400;
     private static final int STARVATION_DAMAGE_INTERVAL = 200;
     private static final int PLAYER_GRACE_TICKS = 60;
+    private static final int POWER_UNIT = 5400;
+    private static final int ACTIVE_EU_PER_TICK_NUMERATOR = 250;
+    private static final int IDLE_EU_PER_TICK_NUMERATOR = 25;
+    private static final int MIRROR_HISS_COOLDOWN = 1200;
+    private static final UUID PET_ARMOR_MODIFIER = UUID.fromString("C6718CA0-96D5-4F84-9A11-2DA3B976BB6F");
+    private static final ResourceLocation IC2_RE_BATTERY = new ResourceLocation("ic2", "re_battery");
+    private static final ResourceLocation LAOWU_PANCAKE_SOUND = new ResourceLocation("laowu", "logistics_arrive");
+    private static final ResourceLocation LAOWU_CATNIP = new ResourceLocation("laowu", "cat_catnip_pouch");
+    private static final ResourceLocation MIRROR_BLOCK = new ResourceLocation("ic2newera", "floor_mirror");
     private static final TagKey<Item> SHOVELS = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "tools/shovels"));
     private UUID panelViewer;
     private long interactionGraceUntil;
@@ -62,6 +83,12 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private int jumpCooldown;
     private int hungerElapsedTicks;
     private int starvationTicks;
+    private final PetInventory petInventory = new PetInventory(this);
+    private int energyRemainder;
+    private int mirrorHissCooldown;
+    private int mirrorSearchCooldown;
+    private BlockPos mirrorTarget;
+    private int enemyAttackCooldown;
 
     public MechanicalPetEntity(EntityType<? extends MechanicalPetEntity> type, Level level, boolean cat) {
         super(type, level);
@@ -69,13 +96,63 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         setPersistenceRequired();
     }
     public static AttributeSupplier.Builder attributes() {
-        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 12).add(Attributes.MOVEMENT_SPEED, 0.25).add(Attributes.FOLLOW_RANGE, 16);
+        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 40).add(Attributes.MOVEMENT_SPEED, 0.25)
+                .add(Attributes.FOLLOW_RANGE, 16).add(Attributes.ATTACK_DAMAGE, 3.0);
     }
     public boolean isCat() { return entityData.get(CAT); }
     public boolean isFollowing() { return !isOrderedToSit(); }
     public boolean isPeaceful() { return entityData.get(PEACEFUL); }
     public boolean isPancake() { return entityData.get(PANCAKE); }
     public int getHunger() { return entityData.get(HUNGER); }
+    public PetInventory getPetInventory() { return petInventory; }
+    public ItemStack getPetChestStack() { return entityData.get(PET_CHEST); }
+    public ItemStack getPetBatteryStack() { return entityData.get(PET_BATTERY); }
+    public boolean hasPetChest() { return getPetChestStack().is(net.minecraft.world.item.Items.CHEST); }
+    public boolean hasCargo() {
+        for (int slot = PetInventory.CARGO_START; slot < PetInventory.SIZE; slot++)
+            if (!petInventory.getStackInSlot(slot).isEmpty()) return true;
+        return false;
+    }
+    public ItemStack getPetArmorStack() { return entityData.get(PET_ARMOR); }
+    public int getPetArmorProtection() { return getPetArmorStack().getItem() instanceof HorseArmorItem armor ? armor.getProtection() : 0; }
+    public int getBatteryCharge() {
+        ItemStack battery = level().isClientSide ? getPetBatteryStack() : petInventory.getStackInSlot(PetInventory.BATTERY_SLOT);
+        return PetInventory.isRechargeableBattery(battery) && ic2.api.item.ElectricItem.manager != null
+                ? (int) Math.floor(Math.max(0, ic2.api.item.ElectricItem.manager.getCharge(battery))) : 0;
+    }
+    public boolean isPowered() { return getBatteryCharge() > 0; }
+    public void setPetBattery(ItemStack stack) {
+        if (stack.isEmpty() || !PetInventory.isRechargeableBattery(stack)) {
+            petInventory.setStackInSlot(PetInventory.BATTERY_SLOT, ItemStack.EMPTY);
+            return;
+        }
+        petInventory.setStackInSlot(PetInventory.BATTERY_SLOT, stack.copyWithCount(1));
+    }
+    public void onPetInventoryChanged(int slot) {
+        if (slot == PetInventory.BATTERY_SLOT && !petInventory.getStackInSlot(slot).isEmpty()
+                && !PetInventory.isRechargeableBattery(petInventory.getStackInSlot(slot))) {
+            petInventory.setStackInSlot(slot, ItemStack.EMPTY);
+            return;
+        }
+        if (slot == PetInventory.ARMOR_SLOT) {
+            ItemStack armor = petInventory.getStackInSlot(slot);
+            if (!armor.isEmpty() && !PetInventory.isVanillaHorseArmor(armor)) {
+                petInventory.setStackInSlot(slot, ItemStack.EMPTY);
+                return;
+            }
+            entityData.set(PET_ARMOR, armor.copy());
+            var attribute = getAttribute(Attributes.ARMOR);
+            if (attribute != null) {
+                attribute.removeModifier(PET_ARMOR_MODIFIER);
+                int protection = armor.getItem() instanceof HorseArmorItem horseArmor ? horseArmor.getProtection() : 0;
+                if (protection > 0) attribute.addTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                        PET_ARMOR_MODIFIER, "Mechanical pet horse armor", protection,
+                        net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADDITION));
+            }
+        }
+        if (slot == PetInventory.CHEST_SLOT) entityData.set(PET_CHEST, petInventory.getStackInSlot(slot).copy());
+        if (slot == PetInventory.BATTERY_SLOT) entityData.set(PET_BATTERY, petInventory.getStackInSlot(slot).copy());
+    }
     public PetAction getPetAction() { int id = entityData.get(ACTION); return id >= 0 && id < PetAction.values().length ? PetAction.values()[id] : PetAction.IDLE; }
     public int getActionTicks() { return entityData.get(ACTION_TICKS); }
     public Component getPetActionName() { return Component.translatable(getPetAction().translationKey()); }
@@ -96,7 +173,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         return switch (action) {
             case PET -> 50; case JUMP -> 16; case NOD, SHAKE -> 24; case STANDOFF -> 30;
             case POUNCE -> 18; case SWIPE -> 12; case RETREAT -> 20; case FLATTEN -> 20; case RESTORE -> 40;
-            case BARK -> PetSounds.DURATION_TICKS; case DANCE -> 100; case TILT -> 40; case PAW -> 50; case STRETCH -> 70; case ROLL -> 60; case BOW -> 50; case YAWN -> 70; case EAT -> 30; default -> 0;
+            case BARK -> PetSounds.DURATION_TICKS; case DANCE -> 100; case TILT -> 40; case PAW -> 50; case STRETCH -> 70; case ROLL -> 60; case BOW -> 50; case YAWN -> 70; case EAT -> 30; case HISS -> 40; default -> 0;
         };
     }
     @Override protected void defineSynchedData() {
@@ -104,6 +181,9 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         entityData.define(CAT, true); entityData.define(PEACEFUL, false); entityData.define(PANCAKE, false);
         entityData.define(ACTION, PetAction.IDLE.ordinal()); entityData.define(ACTION_TICKS, 0);
         entityData.define(HUNGER, MAX_HUNGER);
+        entityData.define(PET_CHEST, ItemStack.EMPTY);
+        entityData.define(PET_BATTERY, ItemStack.EMPTY);
+        entityData.define(PET_ARMOR, ItemStack.EMPTY);
     }
     @Override public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
@@ -115,7 +195,12 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             @Override public boolean canUse() { return getPetAction() != PetAction.JUMP && super.canUse(); }
             @Override public boolean canContinueToUse() { return getPetAction() != PetAction.JUMP && super.canContinueToUse(); }
         });
-        goalSelector.addGoal(2, new SafeFollowOwnerGoal());
+        goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.15, true) {
+            @Override public boolean canUse() { return canFight() && super.canUse(); }
+            @Override public boolean canContinueToUse() { return canFight() && super.canContinueToUse(); }
+        });
+        goalSelector.addGoal(3, new SafeFollowOwnerGoal());
+        goalSelector.addGoal(4, new MirrorHissGoal());
         goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6F) {
             @Override public boolean canUse() { return !busy() && super.canUse(); }
             @Override public boolean canContinueToUse() { return !busy() && super.canContinueToUse(); }
@@ -124,22 +209,46 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             @Override public boolean canUse() { return !busy() && super.canUse(); }
             @Override public boolean canContinueToUse() { return !busy() && super.canContinueToUse(); }
         });
+        targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false,
+                target -> validMonsterTarget(target)) {
+            @Override public boolean canUse() { return canFight() && super.canUse(); }
+            @Override public boolean canContinueToUse() { return canFight() && super.canContinueToUse(); }
+        });
     }
     private boolean busy() {
         PetAction action = getPetAction();
         return panelViewer != null || isPancake() || action.isInteraction() || action.isPlayAction()
                 || action == PetAction.FLATTEN || action == PetAction.RESTORE;
     }
+    private boolean canFight() {
+        if (!isAlive() || !isPowered() || !isFollowing() || isPancake() || panelViewer != null
+                || level().getGameTime() < interactionGraceUntil || getPetAction().isInteraction()
+                || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) return false;
+        Player owner = level() instanceof ServerLevel server && getOwnerUUID() != null
+                ? server.getServer().getPlayerList().getPlayer(getOwnerUUID()) : null;
+        return owner != null && owner.isAlive() && owner.level() == level() && distanceToSqr(owner) <= 18 * 18;
+    }
+    private boolean validMonsterTarget(LivingEntity target) {
+        if (!(target instanceof net.minecraft.world.entity.monster.Enemy) || target == this || !target.isAlive()
+                || target instanceof MechanicalPetEntity || distanceToSqr(target) > 16 * 16
+                || !hasLineOfSight(target) || getOwnerUUID() != null && getOwnerUUID().equals(target.getUUID())) return false;
+        if (target instanceof net.minecraft.world.entity.NeutralMob neutral && !neutral.isAngryAt(this)) {
+            Player owner = getOwnerUUID() == null ? null : level() instanceof ServerLevel server
+                    ? server.getServer().getPlayerList().getPlayer(getOwnerUUID()) : null;
+            return owner != null && neutral.isAngryAt(owner);
+        }
+        return true;
+    }
     private final class SafeFollowOwnerGoal extends Goal {
         private Player owner;
         SafeFollowOwnerGoal() { setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK)); }
         @Override public boolean canUse() {
-            if (!isFollowing() || busy() || getOwnerUUID() == null) return false;
+            if (!isFollowing() || !isPowered() || busy() || getOwnerUUID() == null) return false;
             owner = level() instanceof ServerLevel server ? server.getServer().getPlayerList().getPlayer(getOwnerUUID()) : null;
-            return owner != null && owner.level() == level() && distanceToSqr(owner) >= 9 && distanceToSqr(owner) <= 18 * 18;
+            return owner != null && owner.level() == level() && distanceToSqr(owner) >= 9 && distanceToSqr(owner) <= 32 * 32;
         }
         @Override public boolean canContinueToUse() {
-            return owner != null && owner.isAlive() && isFollowing() && !busy() && distanceToSqr(owner) > 4 && distanceToSqr(owner) <= 18 * 18;
+            return owner != null && owner.isAlive() && isFollowing() && isPowered() && !busy() && distanceToSqr(owner) > 4 && distanceToSqr(owner) <= 32 * 32;
         }
         @Override public void tick() {
             if (owner == null) return;
@@ -147,6 +256,112 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             if (tickCount % 10 == 0) getNavigation().moveTo(owner, 1.05);
         }
         @Override public void stop() { owner = null; getNavigation().stop(); }
+    }
+    private final class MirrorHissGoal extends Goal {
+        private BlockPos mirror;
+        MirrorHissGoal() { setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK)); }
+        @Override public boolean canUse() {
+            if (!isCat() || !isPowered() || !isFollowing() || panelViewer != null || isPancake()
+                    || !isAlive() || getTarget() != null || getPetAction().isInteraction()
+                    || level().getGameTime() < interactionGraceUntil || mirrorHissCooldown > 0) return false;
+            if (mirrorSearchCooldown-- > 0) return false;
+            mirrorSearchCooldown = 20;
+            mirror = findMirror();
+            return mirror != null;
+        }
+        @Override public boolean canContinueToUse() {
+            return mirror != null && isCat() && isPowered() && isFollowing() && panelViewer == null
+                    && !isPancake() && getTarget() == null && !getPetAction().isInteraction()
+                    && level().getGameTime() >= interactionGraceUntil && mirrorHissCooldown <= 0
+                    && isMirror(mirror) && isMirrorFront(mirror) && hasMirrorSight(mirror)
+                    && distanceToSqr(mirror.getX() + 0.5, mirror.getY(), mirror.getZ() + 0.5) <= 64;
+        }
+        @Override public void tick() {
+            if (mirror == null) return;
+            Direction facing = mirrorFacing(mirror);
+            Vec3 center = Vec3.atCenterOf(mirror);
+            Vec3 stand = center.add(facing.getStepX() * 1.25, 0, facing.getStepZ() * 1.25);
+            getLookControl().setLookAt(center.x, center.y, center.z, 20F, 20F);
+            if (distanceToSqr(stand.x, stand.y, stand.z) > 1.6) {
+                getNavigation().moveTo(stand.x, stand.y, stand.z, 0.8);
+                return;
+            }
+            getNavigation().stop();
+            if (isMirrorFront(mirror) && hasMirrorSight(mirror)
+                    && getViewVector(1F).dot(center.subtract(getEyePosition()).normalize()) > 0.68) {
+                setAction(PetAction.HISS, 40);
+                mirrorHissCooldown = MIRROR_HISS_COOLDOWN;
+                playLaowuSound(new ResourceLocation("laowu", "hissing_intro"), net.minecraft.sounds.SoundEvents.CAT_HISS, 0.9F);
+                mirror = null;
+            }
+        }
+        @Override public void stop() { mirror = null; getNavigation().stop(); }
+    }
+    private BlockPos findMirror() {
+        BlockPos origin = blockPosition();
+        BlockPos nearest = null;
+        double nearestDistance = Double.MAX_VALUE;
+        for (int x = -5; x <= 5; x++) for (int y = -1; y <= 2; y++) for (int z = -5; z <= 5; z++) {
+            BlockPos candidate = origin.offset(x, y, z);
+            if (!level().hasChunkAt(candidate) || !isMirror(candidate)) continue;
+            if (level().getBlockState(candidate).hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                    && level().getBlockState(candidate).getValue(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                    == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER) candidate = candidate.below();
+            double distance = distanceToSqr(candidate.getX() + 0.5, candidate.getY() + 0.5, candidate.getZ() + 0.5);
+            if (distance <= 36 && distance < nearestDistance && isMirrorFront(candidate) && hasMirrorSight(candidate)) {
+                nearest = candidate; nearestDistance = distance;
+            }
+        }
+        return nearest;
+    }
+    private boolean isMirror(BlockPos pos) {
+        BlockState state = level().getBlockState(pos);
+        if (!MIRROR_BLOCK.equals(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock()))) return false;
+        if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER)
+            return MIRROR_BLOCK.equals(net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level().getBlockState(pos.below()).getBlock()));
+        return true;
+    }
+    private Direction mirrorFacing(BlockPos pos) {
+        BlockState state = level().getBlockState(pos);
+        if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)
+                && state.getValue(BlockStateProperties.DOUBLE_BLOCK_HALF) == net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER)
+            state = level().getBlockState(pos.below());
+        return state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
+                ? state.getValue(BlockStateProperties.HORIZONTAL_FACING) : Direction.NORTH;
+    }
+    private boolean isMirrorFront(BlockPos pos) {
+        Vec3 mirrorCenter = Vec3.atCenterOf(pos);
+        Vec3 eyeFromMirror = getEyePosition().subtract(mirrorCenter);
+        Direction facing = mirrorFacing(pos);
+        return eyeFromMirror.x * facing.getStepX() + eyeFromMirror.z * facing.getStepZ() > 0.1;
+    }
+    private boolean hasMirrorSight(BlockPos pos) {
+        Vec3 from = getEyePosition();
+        Vec3 to = Vec3.atCenterOf(pos);
+        net.minecraft.world.phys.BlockHitResult hit = level().clip(new net.minecraft.world.level.ClipContext(
+                from, to, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, this));
+        BlockPos upper = pos.above();
+        return hit.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
+                && (hit.getBlockPos().equals(pos) || hit.getBlockPos().equals(upper) && isMirror(upper));
+    }
+    private void playLaowuSound(ResourceLocation id, net.minecraft.sounds.SoundEvent fallback, float volume) {
+        if (!(level() instanceof ServerLevel server)) return;
+        net.minecraft.sounds.SoundEvent sound = net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.getOptional(id).orElse(fallback);
+        server.playSound(null, getX(), getY(), getZ(), sound, net.minecraft.sounds.SoundSource.NEUTRAL, volume, 0.9F + random.nextFloat() * 0.2F);
+    }
+    @Override public boolean doHurtTarget(net.minecraft.world.entity.Entity target) {
+        if (!(target instanceof LivingEntity living) || !validMonsterTarget(living)
+                || !hasLineOfSight(living) || !canFight() || enemyAttackCooldown > 0) return false;
+        boolean hit = super.doHurtTarget(target);
+        if (hit) {
+            enemyAttackCooldown = 18;
+            setAction(isCat() ? PetAction.SWIPE : PetAction.POUNCE, isCat() ? 12 : 18);
+            if (isCat()) playLaowuSound(LAOWU_PANCAKE_SOUND, net.minecraft.sounds.SoundEvents.CAT_HISS, 0.8F);
+            else playLaowuSound(new ResourceLocation("minecraft", "entity.wolf.growl"),
+                    net.minecraft.sounds.SoundEvents.WOLF_GROWL, 0.8F);
+        }
+        return hit;
     }
     @Override public EntityDimensions getDimensions(Pose pose) {
         EntityDimensions base = super.getDimensions(pose);
@@ -158,9 +373,13 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         super.tick();
         if (level().isClientSide) return;
         tickHunger();
+        tickPower();
         if (jumpCooldown > 0) jumpCooldown--;
+        if (enemyAttackCooldown > 0) enemyAttackCooldown--;
+        if (mirrorHissCooldown > 0) mirrorHissCooldown--;
         if (panelViewer != null && (level() instanceof ServerLevel server ? server.getServer().getPlayerList().getPlayer(panelViewer) : null) == null)
             setPanelViewer(panelViewer, false);
+        if (getTarget() != null && (!canFight() || !validMonsterTarget(getTarget()))) setTarget(null);
         if (getActionTicks() > 0) {
             entityData.set(ACTION_TICKS, getActionTicks() - 1);
             if (getActionTicks() <= 1) {
@@ -170,15 +389,47 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             }
             if (getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) refreshDimensions();
         }
-        if (panelViewer != null || isPancake() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) getNavigation().stop();
+        if (panelViewer != null || isPancake() || !isPowered() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) {
+            getNavigation().stop();
+            if (!isPowered()) {
+                setTarget(null);
+                if (getPetAction().isInteraction() && getPetAction() != PetAction.EAT) setAction(PetAction.IDLE, 0);
+            }
+        }
         tickPlay();
+    }
+    private void tickPower() {
+        ItemStack battery = petInventory.getStackInSlot(PetInventory.BATTERY_SLOT);
+        if (!PetInventory.isRechargeableBattery(battery) || ic2.api.item.ElectricItem.manager == null
+                || ic2.api.item.ElectricItem.manager.getCharge(battery) < 1.0) {
+            energyRemainder = 0;
+            return;
+        }
+        boolean active = getTarget() != null || getNavigation().isInProgress() || getPetAction().isInteraction()
+                || getPetAction().isPlayAction() || getDeltaMovement().horizontalDistanceSqr() > 0.0004;
+        energyRemainder += active ? ACTIVE_EU_PER_TICK_NUMERATOR : IDLE_EU_PER_TICK_NUMERATOR;
+        if (energyRemainder < POWER_UNIT) return;
+        int spend = energyRemainder / POWER_UNIT;
+        energyRemainder %= POWER_UNIT;
+        double used = ic2.api.item.ElectricItem.manager.discharge(battery, spend, 1, true, false, false);
+        petInventory.setStackInSlot(PetInventory.BATTERY_SLOT, battery.copy());
+        if (used < spend) energyRemainder = 0;
+        if (ic2.api.item.ElectricItem.manager.getCharge(battery) < 1.0) {
+            energyRemainder = 0;
+            getNavigation().stop();
+            setTarget(null);
+        }
     }
     private void tickHunger() {
         if (isPancake()) return;
         if (getHunger() > 0) {
             starvationTicks = 0;
-            if (++hungerElapsedTicks >= HUNGER_DRAIN_INTERVAL) {
-                hungerElapsedTicks = 0;
+            boolean active = isPowered() && (getTarget() != null || getNavigation().isInProgress()
+                    || getPetAction().isInteraction() || getPetAction().isPlayAction()
+                    || getDeltaMovement().horizontalDistanceSqr() > 0.0004);
+            hungerElapsedTicks += active ? 10 : 1;
+            if (hungerElapsedTicks >= HUNGER_DRAIN_THRESHOLD) {
+                hungerElapsedTicks -= HUNGER_DRAIN_THRESHOLD;
                 entityData.set(HUNGER, getHunger() - 1);
                 if (getHunger() == 0) starvationTicks = 0;
             }
@@ -198,7 +449,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         return level() instanceof ServerLevel server && server.getEntity(id) instanceof MechanicalPetEntity other ? other : null;
     }
     private void tickPlay() {
-        if (panelViewer != null || isOrderedToSit() || isPeaceful() || isPancake() || level().getGameTime() < interactionGraceUntil
+        if (panelViewer != null || isOrderedToSit() || isPeaceful() || isPancake() || !isPowered() || getTarget() != null || level().getGameTime() < interactionGraceUntil
                 || getPetAction().isInteraction() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) {
             if (playPartner != null) interruptPlay(0);
             return;
@@ -224,6 +475,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         MechanicalPetEntity candidate = level().getEntitiesOfClass(MechanicalPetEntity.class, bounds,
                 other -> other != this && other.isAlive() && other.isCat() != isCat() && !other.isPeaceful() && !other.isPancake()
                         && other.panelViewer == null && other.playPartner == null && !other.isOrderedToSit()
+                        && other.isPowered() && other.getTarget() == null
                         && !other.getPetAction().isInteraction() && other.getPetAction() != PetAction.FLATTEN && other.getPetAction() != PetAction.RESTORE
                         && level().getGameTime() >= other.interactionGraceUntil && hasLineOfSight(other) && other.hasLineOfSight(this)
                        )
@@ -335,6 +587,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     public void command(Player player, int id) {
         if (level().isClientSide || !isOwnedBy(player) || distanceToSqr(player) > 64) return;
         if (id < 0 || id > 13 || (isPancake() && id != 0 && id != 5)) return;
+        if (!isPowered() && id != 0 && id != 5) return;
         PetAction current = getPetAction();
         if (current == PetAction.FLATTEN || current == PetAction.RESTORE) return;
         if (id == 0) { interruptPlay(PLAYER_GRACE_TICKS); setOrderedToSit(isFollowing()); return; }
@@ -408,6 +661,13 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         if (isPancake() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) return InteractionResult.PASS;
         ItemStack stack = player.getItemInHand(hand);
         if (stack.is(PetRegistry.PANCAKE_ITEM.get())) return InteractionResult.PASS;
+        ResourceLocation heldId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
+        if (isCat() && LAOWU_CATNIP.equals(heldId)) {
+            if (level().isClientSide) return InteractionResult.SUCCESS;
+            interruptPlay(PLAYER_GRACE_TICKS);
+            setAction(PetAction.DANCE, 70);
+            return InteractionResult.CONSUME;
+        }
         int food = foodValue(stack);
         if (food <= 0) return InteractionResult.PASS;
         if (getPetAction() == PetAction.BARK) {
@@ -430,10 +690,10 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private int foodValue(ItemStack stack) {
         if (stack.is(PetRegistry.PANCAKE_ITEM.get())) return 0;
         ResourceLocation key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-        if (!isCat() && key.equals(PetFeeding.ORDINARY_CAT_PANCAKE)) return 8;
-        if (isCat()) return stack.is(ItemTags.FISHES) ? 4 : 0;
+        if (!isCat() && key.equals(PetFeeding.ORDINARY_CAT_PANCAKE)) return 40;
+        if (isCat()) return stack.is(ItemTags.FISHES) ? 20 : 0;
         net.minecraft.world.food.FoodProperties food = stack.getItem().getFoodProperties();
-        return food != null && food.isMeat() ? 4 : 0;
+        return food != null && food.isMeat() ? 20 : 0;
     }
     /** Called by placement-item code after spawning; owner UUID is saved by TamableAnimal's normal NBT. */
     public void bindTo(Player owner) { if (!level().isClientSide) tame(owner); }
@@ -441,6 +701,21 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         boolean damaged = super.hurt(source, amount);
         if (damaged && !level().isClientSide && getPetAction() == PetAction.BARK) setAction(PetAction.IDLE, 0);
         return damaged;
+    }
+    @Override protected void dropCustomDeathLoot(net.minecraft.world.damagesource.DamageSource source,
+                                                  int looting, boolean recentlyHit) {
+        super.dropCustomDeathLoot(source, looting, recentlyHit);
+        if (level().isClientSide) return;
+        // Cargo first releases the chest removal lock. Clear each real slot before
+        // spawning its drop so death/re-entry cannot duplicate the same inventory.
+        for (int slot = PetInventory.CARGO_START; slot < PetInventory.SIZE; slot++) dropPetSlot(slot);
+        for (int slot = 0; slot < PetInventory.CARGO_START; slot++) dropPetSlot(slot);
+    }
+    private void dropPetSlot(int slot) {
+        ItemStack stack = petInventory.getStackInSlot(slot).copy();
+        petInventory.setStackInSlot(slot, ItemStack.EMPTY);
+        if (!stack.isEmpty() && !net.minecraft.world.item.enchantment.EnchantmentHelper.hasVanishingCurse(stack))
+            spawnAtLocation(stack);
     }
     @Override public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
         if (!level().isClientSide) PetSounds.stop(this);
@@ -451,22 +726,81 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     @Override public AgeableMob getBreedOffspring(ServerLevel level, AgeableMob otherParent) { return null; }
     @Override public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
+        tag.putInt("MechanicalPetSchema", 3);
         tag.putBoolean("MechanicalCat", isCat()); tag.putBoolean("MechanicalPetPeaceful", isPeaceful());
         tag.putBoolean("MechanicalPetFollowing", isFollowing()); tag.putBoolean("MechanicalPetPancake", isPancake());
         tag.putInt("MechanicalPetAction", getPetAction().ordinal()); tag.putInt("MechanicalPetActionTicks", getActionTicks());
         tag.putInt("MechanicalPetHunger", getHunger()); tag.putInt("MechanicalPetHungerElapsed", hungerElapsedTicks);
         tag.putInt("MechanicalPetStarvationTicks", starvationTicks);
+        tag.putInt("MechanicalPetEnergyRemainder", energyRemainder);
+        tag.putInt("MechanicalPetMirrorHissCooldown", mirrorHissCooldown);
+        tag.put("MechanicalPetInventory", petInventory.serializeNBT());
     }
     @Override public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         entityData.set(CAT, tag.getBoolean("MechanicalCat")); entityData.set(PEACEFUL, tag.getBoolean("MechanicalPetPeaceful"));
         setOrderedToSit(!tag.getBoolean("MechanicalPetFollowing")); entityData.set(PANCAKE, tag.getBoolean("MechanicalPetPancake"));
-        setHunger(tag.contains("MechanicalPetHunger") ? tag.getInt("MechanicalPetHunger") : MAX_HUNGER);
-        hungerElapsedTicks = Math.max(0, Math.min(HUNGER_DRAIN_INTERVAL - 1, tag.getInt("MechanicalPetHungerElapsed")));
+        int schema = tag.getInt("MechanicalPetSchema");
+        var maxHealth = getAttribute(Attributes.MAX_HEALTH);
+        float savedMaxHealth = Math.max(1F, getMaxHealth());
+        float savedHealth = getHealth();
+        if (maxHealth != null) maxHealth.setBaseValue(40.0);
+        var attackDamage = getAttribute(Attributes.ATTACK_DAMAGE);
+        if (attackDamage != null) attackDamage.setBaseValue(3.0);
+        if (schema < 2) {
+            float oldMaximum = savedMaxHealth;
+            float newMaximum = Math.max(1F, getMaxHealth());
+            setHealth(Math.max(0F, Math.min(newMaximum, savedHealth * newMaximum / oldMaximum)));
+        }
+        int savedHunger = tag.contains("MechanicalPetHunger") ? tag.getInt("MechanicalPetHunger") : 20;
+        int savedElapsed = Math.max(0, tag.getInt("MechanicalPetHungerElapsed"));
+        if (schema < 2) {
+            int oldHunger = Math.max(0, Math.min(20, savedHunger));
+            int oldElapsed = Math.max(0, Math.min(2399, savedElapsed));
+            long rawHungerNumerator = (long) oldHunger * 12000L - (long) oldElapsed * 5L;
+            long rawHungerDenominator = 2400L;
+            int migratedHunger = (int) Math.max(0L, Math.min(MAX_HUNGER,
+                    (rawHungerNumerator + rawHungerDenominator - 1L) / rawHungerDenominator));
+            long progressNumerator = (long) migratedHunger * rawHungerDenominator - rawHungerNumerator;
+            savedHunger = migratedHunger;
+            savedElapsed = (int) Math.max(0L, Math.min(HUNGER_DRAIN_THRESHOLD - 1L,
+                    progressNumerator * HUNGER_DRAIN_THRESHOLD / rawHungerDenominator));
+        }
+        setHunger(savedHunger);
+        hungerElapsedTicks = Math.max(0, Math.min(HUNGER_DRAIN_THRESHOLD - 1, savedElapsed));
         starvationTicks = getHunger() == 0 ? Math.max(0, Math.min(STARVATION_DAMAGE_INTERVAL - 1, tag.getInt("MechanicalPetStarvationTicks"))) : 0;
+        energyRemainder = Math.max(0, Math.min(POWER_UNIT - 1, tag.getInt("MechanicalPetEnergyRemainder")));
+        mirrorHissCooldown = Math.max(0, Math.min(MIRROR_HISS_COOLDOWN, tag.getInt("MechanicalPetMirrorHissCooldown")));
+        if (tag.contains("MechanicalPetInventory", 10)) {
+            CompoundTag savedInventory = tag.getCompound("MechanicalPetInventory").copy();
+            if (schema < 3) {
+                net.minecraft.nbt.ListTag items = savedInventory.getList("Items", 10);
+                for (int i = 0; i < items.size(); i++) {
+                    CompoundTag item = items.getCompound(i);
+                    int slot = item.getInt("Slot") & 255;
+                    if (slot >= 2 && slot < 29) item.putByte("Slot", (byte) (slot + 1));
+                }
+            }
+            petInventory.deserializeNBT(savedInventory);
+            if (!PetInventory.isRechargeableBattery(petInventory.getStackInSlot(PetInventory.BATTERY_SLOT)))
+                petInventory.setStackInSlot(PetInventory.BATTERY_SLOT, ItemStack.EMPTY);
+            if (!petInventory.getStackInSlot(PetInventory.CHEST_SLOT).is(net.minecraft.world.item.Items.CHEST))
+                petInventory.setStackInSlot(PetInventory.CHEST_SLOT, ItemStack.EMPTY);
+            ItemStack armor = petInventory.getStackInSlot(PetInventory.ARMOR_SLOT);
+            if (!armor.isEmpty() && !PetInventory.isVanillaHorseArmor(armor))
+                petInventory.setStackInSlot(PetInventory.ARMOR_SLOT, ItemStack.EMPTY);
+        } else {
+            Item batteryItem = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(IC2_RE_BATTERY);
+            ItemStack battery = batteryItem == net.minecraft.world.item.Items.AIR ? ItemStack.EMPTY : new ItemStack(batteryItem);
+            // One-time compatibility for already-existing pets; all newly assembled pets keep the inserted charge.
+            if (schema < 2 && !battery.isEmpty() && ic2.api.item.ElectricItem.manager != null)
+                ic2.api.item.ElectricItem.manager.charge(battery, 10000, 1, true, false);
+            petInventory.setStackInSlot(PetInventory.BATTERY_SLOT, battery);
+        }
         int ordinal = tag.getInt("MechanicalPetAction");
         PetAction action = ordinal >= 0 && ordinal < PetAction.values().length ? PetAction.values()[ordinal] : PetAction.IDLE;
-        if (action == PetAction.POUNCE || action == PetAction.SWIPE || action == PetAction.STANDOFF || action == PetAction.RETREAT || action == PetAction.BARK || action == PetAction.DANCE) action = PetAction.IDLE;
+        if (action == PetAction.POUNCE || action == PetAction.SWIPE || action == PetAction.STANDOFF || action == PetAction.RETREAT
+                || action == PetAction.BARK || action == PetAction.DANCE || action == PetAction.HISS) action = PetAction.IDLE;
         int ticks = Math.max(0, Math.min(duration(action), tag.getInt("MechanicalPetActionTicks")));
         setAction(action, ticks); refreshDimensions(); playPartner = null; playPhaseTicks = 0; playPhase = 0;
     }

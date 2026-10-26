@@ -45,6 +45,12 @@ tasks.register('generateProcessRecipes') {
                     case 'crafting':
                         assert repeated.size()<=9
                         body = [type:'minecraft:crafting_shapeless', ingredients:repeated, result:result]
+                        if (r.recipe_serializer == 'ic2newera:pet_assembly') {
+                            assert r.output.item in ['ic2newera:mechanical_cat','ic2newera:mechanical_dog']
+                            assert repeated.count { it.item == 'ic2:re_battery' } == 1
+                            body.type = r.recipe_serializer
+                            body.ingredients = repeated.collect { it.item == 'ic2:re_battery' ? it + [battery:true] : it }
+                        }
                         break
                     case 'crushing': case 'splashing': case 'mixing': case 'pressing':
                         body = [type:"create:${r.format}", ingredients:repeated, results:[result]]

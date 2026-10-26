@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /** Every action, including each chat grant, rechecks owner, loaded entity and distance on the server. */
 public final class RobotPackets {
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "13", "13"::equals, "13"::equals);
+            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "14", "14"::equals, "14"::equals);
     private static final java.util.Map<ServerPlayer, Long> PHONE_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> PHONE_READ_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> LOCAL_REQUESTS = new java.util.WeakHashMap<>();
@@ -52,8 +52,9 @@ public final class RobotPackets {
     }
     public static void open(ServerPlayer player, RobotEntity robot, int request) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new View(robot.getId(), robot.getUUID(), robot.character().id,
-                robot.following(), robot.getHealth(), robot.level().dimension().location().toString(), request,
+                robot.following(), robot.getHealth(), robot.getMaxHealth(), robot.level().dimension().location().toString(), request,
                 robot.energy(), robot.deaths(), robot.mode(), robot.combatEnabled(), robot.status(),
+                robot.hunger(),
                 com.ic2newera.industrial.IndustrialMobileAccess.robotNetwork(player, robot)));
     }
     private static String localizeRobotReply(ServerPlayer player, UUID robotId, String message) {
@@ -104,17 +105,17 @@ public final class RobotPackets {
             context.setPacketHandled(true);
         }
     }
-    public record View(int entityId, UUID robot, String character, boolean following, float health, String dimension, int request,
-                       int energy, int deaths, int mode, boolean combat, String status, String network) {
+    public record View(int entityId, UUID robot, String character, boolean following, float health, float maxHealth, String dimension, int request,
+                       int energy, int deaths, int mode, boolean combat, String status, int hunger, String network) {
         static void encode(View value, FriendlyByteBuf buf) {
             buf.writeVarInt(value.entityId); buf.writeUUID(value.robot); buf.writeUtf(value.character, 16);
-            buf.writeBoolean(value.following); buf.writeFloat(value.health); buf.writeUtf(value.dimension, 128); buf.writeVarInt(value.request);
+            buf.writeBoolean(value.following); buf.writeFloat(value.health); buf.writeFloat(value.maxHealth); buf.writeUtf(value.dimension, 128); buf.writeVarInt(value.request);
             buf.writeVarInt(value.energy); buf.writeVarInt(value.deaths); buf.writeVarInt(value.mode); buf.writeBoolean(value.combat);
-            buf.writeUtf(value.status, 128); buf.writeUtf(value.network, 96);
+            buf.writeUtf(value.status, 128); buf.writeVarInt(value.hunger); buf.writeUtf(value.network, 96);
         }
         static View decode(FriendlyByteBuf buf) {
-            return new View(buf.readVarInt(), buf.readUUID(), buf.readUtf(16), buf.readBoolean(), buf.readFloat(), buf.readUtf(128), buf.readVarInt(),
-                    buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readUtf(128), buf.readUtf(96));
+            return new View(buf.readVarInt(), buf.readUUID(), buf.readUtf(16), buf.readBoolean(), buf.readFloat(), buf.readFloat(), buf.readUtf(128), buf.readVarInt(),
+                    buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readUtf(128), buf.readVarInt(), buf.readUtf(96));
         }
         static void handle(View value, Supplier<NetworkEvent.Context> supplier) {
             var context = supplier.get();

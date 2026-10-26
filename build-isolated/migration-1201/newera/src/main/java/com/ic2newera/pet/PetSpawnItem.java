@@ -6,6 +6,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -26,6 +27,17 @@ public final class PetSpawnItem extends Item {
         EntityType<MechanicalPetEntity> type = cat ? PetRegistry.CAT.get() : PetRegistry.DOG.get();
         MechanicalPetEntity pet = type.create(level);
         if (pet == null) return InteractionResult.FAIL;
+        ItemStack battery = ItemStack.EMPTY;
+        if (context.getItemInHand().hasTag() && context.getItemInHand().getTag().contains(PetAssemblyRecipe.BATTERY_DATA, 10)) {
+            battery = ItemStack.of(context.getItemInHand().getTag().getCompound(PetAssemblyRecipe.BATTERY_DATA));
+            if (!PetInventory.isRechargeableBattery(battery)) return InteractionResult.FAIL;
+        }
+        if (battery.isEmpty()) {
+            Item ordinaryBattery = net.minecraftforge.registries.ForgeRegistries.ITEMS.getValue(new net.minecraft.resources.ResourceLocation("ic2", "re_battery"));
+            if (ordinaryBattery == null || ordinaryBattery == net.minecraft.world.item.Items.AIR) return InteractionResult.FAIL;
+            battery = new ItemStack(ordinaryBattery);
+        }
+        pet.setPetBattery(battery);
         pet.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, player.getYRot(), 0F);
         pet.bindTo(player);
         if (context.getItemInHand().hasCustomHoverName()) pet.setCustomName(context.getItemInHand().getHoverName());
@@ -33,6 +45,7 @@ public final class PetSpawnItem extends Item {
         if (!(level instanceof ServerLevel server) || !level.getWorldBorder().isWithinBounds(spawnBox)
                 || !level.noCollision(pet, spawnBox) || !server.addFreshEntity(pet)) return InteractionResult.FAIL;
         if (!player.getAbilities().instabuild) context.getItemInHand().shrink(1);
+        if (context.getItemInHand().hasTag()) context.getItemInHand().getTag().remove(PetAssemblyRecipe.BATTERY_DATA);
         return InteractionResult.CONSUME;
     }
 }

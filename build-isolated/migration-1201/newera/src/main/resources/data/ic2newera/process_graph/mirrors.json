@@ -1,0 +1,65 @@
+{
+  "materials": [],
+  "routes": [
+    {
+      "id": "ic2newera:floor_mirror",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:glass",
+          "count": 3
+        },
+        {
+          "tag": "minecraft:planks",
+          "count": 4
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:floor_mirror",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:dressing_mirror",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "minecraft:glass",
+          "count": 1
+        },
+        {
+          "tag": "minecraft:planks",
+          "count": 6
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 1
+        }
+      ],
+      "output": {
+        "item": "ic2newera:dressing_mirror",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    }
+  ]
+}

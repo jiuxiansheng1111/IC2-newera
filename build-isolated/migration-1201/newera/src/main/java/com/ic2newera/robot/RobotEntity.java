@@ -6,6 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.network.syncher.*;
 import net.minecraft.server.level.*;
 import net.minecraft.world.*;
@@ -27,6 +28,10 @@ import com.ic2newera.robot.companionship.RobotCompanionship;
 public final class RobotEntity extends TamableAnimal {
     public static final int STAY = 0, FOLLOW = 1, LOGGING = 2, MINING = 3, COOKING = 4,
             SMELTING = 5, FARMING = 6, BUILDING = 7, PRODUCTION = 8, REFITTING = 9, MAX_DEATHS = 5;
+    public static final int MAX_HUNGER = 200;
+    public static final int EATING_DURATION_TICKS = 40;
+    private static final int HEALTH_SCHEMA = 2;
+    private static final int ACTIVE_TICKS_PER_HUNGER = 12_960;
     private static final int STANDBY_TICKS = 24 * 60 * 60 * 20;
     private static final int ACTIVE_DRAIN_MULTIPLIER = 4;
     private static final EntityDataAccessor<String> CHARACTER = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.STRING);
@@ -43,6 +48,11 @@ public final class RobotEntity extends TamableAnimal {
     private static final EntityDataAccessor<Boolean> POWERED = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> PETTING = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HOLDING_HANDS = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> HUNGER = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> EATING = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Long> EATING_START_TIME = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<ItemStack> EATING_STACK = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<Integer> EATING_ARM = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.INT);
     private final RobotInventory inventory = new RobotInventory(this);
     private final RobotHomeGreeting homeGreeting = new RobotHomeGreeting();
     private final RobotCompanionship companionship = new RobotCompanionship(this);
@@ -51,6 +61,9 @@ public final class RobotEntity extends TamableAnimal {
     private boolean workTaskActive;
     private boolean activeThisTick;
     private long energyRemainder;
+    private int hunger = MAX_HUNGER;
+    private int hungerActiveTicks;
+    private int hungerStarvationTicks;
     private BlockPos workOrigin = BlockPos.ZERO;
     private BlockPos homePos = BlockPos.ZERO;
     private String homeDimension = "";
@@ -80,7 +93,7 @@ public final class RobotEntity extends TamableAnimal {
         return size.height * (1.465F / 1.8F);
     }
     public static AttributeSupplier.Builder attributes() {
-        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 20).add(Attributes.MOVEMENT_SPEED, 0.27)
+        return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 100).add(Attributes.MOVEMENT_SPEED, 0.27)
                 .add(Attributes.FOLLOW_RANGE, 24).add(Attributes.ATTACK_DAMAGE, 1).add(Attributes.ATTACK_KNOCKBACK, 0);
     }
     @Override protected void defineSynchedData() {
@@ -90,6 +103,8 @@ public final class RobotEntity extends TamableAnimal {
         entityData.define(COMBAT_ACTIVE, false); entityData.define(HURT_ACTIVE, false);
         entityData.define(WORK_ACTIVITY, false); entityData.define(POWERED, false);
         entityData.define(PETTING, false); entityData.define(HOLDING_HANDS, false);
+        entityData.define(HUNGER, MAX_HUNGER); entityData.define(EATING, false);
+        entityData.define(EATING_START_TIME, 0L); entityData.define(EATING_STACK, ItemStack.EMPTY); entityData.define(EATING_ARM, 1);
     }
     @Override protected void registerGoals() {
         goalSelector.addGoal(0, new FloatGoal(this));
@@ -131,6 +146,19 @@ public final class RobotEntity extends TamableAnimal {
     public boolean combatEnabled() { return entityData.get(COMBAT); }
     public void setCombatEnabled(boolean value) { entityData.set(COMBAT, value); if (!value) { setTarget(null); getNavigation().stop(); } }
     public int deaths() { return entityData.get(DEATHS); }
+    public int hunger() { return level().isClientSide ? entityData.get(HUNGER) : hunger; }
+    public boolean isEating() { return entityData.get(EATING); }
+    public float eatingProgress(float partialTick) {
+        double elapsed = level().getGameTime() + partialTick - eatingStartTime();
+        return Mth.clamp((float) (elapsed / EATING_DURATION_TICKS), 0.0F, 1.0F);
+    }
+    public boolean canAnimateEating() {
+        return isEating() && !entityData.get(HURT_ACTIVE) && !entityData.get(COMBAT_ACTIVE)
+                && !entityData.get(WORK_ACTIVITY) && getPose() != Pose.SWIMMING && !isOrderedToSit();
+    }
+    public long eatingStartTime() { return entityData.get(EATING_START_TIME); }
+    public ItemStack eatingStack() { return entityData.get(EATING_STACK); }
+    public HumanoidArm eatingArm() { return entityData.get(EATING_ARM) == 0 ? HumanoidArm.LEFT : HumanoidArm.RIGHT; }
     public RobotInventory inventory() { return inventory; }
     public RobotCompanionship companionship() { return companionship; }
     public boolean petting() { return companionship.petting(); }
@@ -587,8 +615,14 @@ public final class RobotEntity extends TamableAnimal {
         super.tick();
         if (level().isClientSide || !isAlive()) return;
         if (getTarget() != null && !mayAttack(getTarget())) { setTarget(null); getNavigation().stop(); }
+        tickHunger();
+        if (entityData.get(EATING) && level().getGameTime() - entityData.get(EATING_START_TIME) >= EATING_DURATION_TICKS) {
+            entityData.set(EATING, false);
+            entityData.set(EATING_STACK, ItemStack.EMPTY);
+        }
         if (powered()) {
-            boolean active = activeThisTick || workTaskActive || isWorking() || getTarget() != null;
+            boolean active = activeThisTick || workTaskActive || isWorking() || getTarget() != null
+                    || getDeltaMovement().horizontalDistanceSqr() > 0.0001;
             // Integer EU with a persisted fractional carry: one full battery lasts 24 h / 6 h at 20 TPS.
             long amount = energyRemainder + (long) RobotBatteryItem.CAPACITY * (active ? ACTIVE_DRAIN_MULTIPLIER : 1);
             int cost = (int) (amount / STANDBY_TICKS);
@@ -611,11 +645,34 @@ public final class RobotEntity extends TamableAnimal {
         if (tickCount % 10 == 0) { inventory.syncEquipment(); entityData.set(ENERGY, energy()); }
         if (tickCount % 20 == 0) homeGreeting.tick(this);
     }
+
+    private void tickHunger() {
+        boolean active = activeThisTick || workTaskActive || isWorking() || getTarget() != null
+                || getDeltaMovement().horizontalDistanceSqr() > 0.0001;
+        hungerActiveTicks += active ? 4 : 1;
+        if (hunger > 0) {
+            hungerStarvationTicks = 0;
+            if (hungerActiveTicks >= ACTIVE_TICKS_PER_HUNGER) {
+                hunger--;
+                hungerActiveTicks -= ACTIVE_TICKS_PER_HUNGER;
+                entityData.set(HUNGER, hunger);
+            }
+        } else {
+            hungerActiveTicks = 0;
+            if (++hungerStarvationTicks >= 80) {
+                hungerStarvationTicks = 0;
+                hurt(damageSources().starve(), 1.0F);
+            }
+        }
+    }
     public ItemStack asDoll() {
         inventory.syncEquipment();
         ItemStack stack = new ItemStack(RobotRegistry.DOLLS.get(character()).get());
         stack.getOrCreateTag().putFloat("RobotHealth", Math.max(1, getHealth()));
+        stack.getOrCreateTag().putInt("RobotHealthVersion", HEALTH_SCHEMA);
         CompoundTag state = new CompoundTag(); state.putInt("Deaths", deaths()); state.put("Inventory", inventory.serializeNBT());
+        state.putInt("Hunger", hunger()); state.putInt("HungerActiveTicks", hungerActiveTicks);
+        state.putInt("HungerStarvationTicks", hungerStarvationTicks);
         state.putLong("EnergyRemainder", energyRemainder);
         state.putBoolean("Slaughter", combatEnabled());
         state.putLong("WorkOrigin", workOrigin.asLong());
@@ -648,6 +705,11 @@ public final class RobotEntity extends TamableAnimal {
         companionship.loadFromDoll(state.getCompound("Companionship"));
         movementIntent = RobotMovementIntent.NONE; movementTarget = null; movementDimension = "";
         energyRemainder = Math.max(0, state.getLong("EnergyRemainder")) % STANDBY_TICKS;
+        hunger = state.contains("Hunger") ? Mth.clamp(state.getInt("Hunger"), 0, MAX_HUNGER) : MAX_HUNGER;
+        hungerActiveTicks = Mth.clamp(state.getInt("HungerActiveTicks"), 0, ACTIVE_TICKS_PER_HUNGER - 1);
+        hungerStarvationTicks = Mth.clamp(state.getInt("HungerStarvationTicks"), 0, 79);
+        if (hunger > 0) hungerStarvationTicks = 0;
+        entityData.set(HUNGER, hunger);
         if (state.contains("Inventory")) { inventory.deserializeNBT(state.getCompound("Inventory")); inventory.applyEquipment(); }
         setMode(STAY);
         if (state.getBoolean("HomeInitialized") && state.contains("HomePos")) {
@@ -699,7 +761,12 @@ public final class RobotEntity extends TamableAnimal {
         else if (invalidSavedTask) workStatus = "娃娃已部署待命；任务记录无效，角色货物已保留";
         if (!(inventory.getStackInSlot(0).getItem() instanceof RobotBatteryItem)) inventory.setStackInSlot(0, ItemStack.EMPTY);
         float health = tag.contains("RobotHealth") ? tag.getFloat("RobotHealth") : getMaxHealth();
-        if (Float.isFinite(health)) setHealth(Math.max(1, Math.min(getMaxHealth(), health)));
+        if (Float.isFinite(health)) {
+            if (!tag.contains("RobotHealthVersion") && tag.contains("RobotHealth"))
+                health *= getMaxHealth() / 20.0F;
+            setHealth(Mth.clamp(health, 0, getMaxHealth()));
+        }
+        tag.putInt("RobotHealthVersion", HEALTH_SCHEMA);
         entityData.set(ENERGY, energy());
     }
 
@@ -719,6 +786,40 @@ public final class RobotEntity extends TamableAnimal {
     @Override public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (!level().isClientSide && player instanceof ServerPlayer serverPlayer) {
             if (canManage(serverPlayer)) {
+                ItemStack offered = player.getItemInHand(hand);
+                net.minecraft.world.food.FoodProperties food = offered.getFoodProperties(this);
+                if (food != null && food.getNutrition() > 0 && hunger < MAX_HUNGER) {
+                    ItemStack serving = offered.copyWithCount(1);
+                    if (!player.getAbilities().instabuild) {
+                        ItemStack remainder = offered.getCraftingRemainingItem();
+                        // Vanilla soup/honey return their container in finishUsingItem,
+                        // rather than declaring a crafting remainder. Feeding is instant
+                        // here, so preserve those containers explicitly as well.
+                        if (remainder.isEmpty() && offered.getItem() instanceof net.minecraft.world.item.BowlFoodItem)
+                            remainder = new ItemStack(net.minecraft.world.item.Items.BOWL);
+                        if (remainder.isEmpty() && offered.getItem() instanceof net.minecraft.world.item.HoneyBottleItem)
+                            remainder = new ItemStack(net.minecraft.world.item.Items.GLASS_BOTTLE);
+                        offered.shrink(1);
+                        player.getInventory().setChanged();
+                        if (!remainder.isEmpty() && !player.getInventory().add(remainder))
+                            player.drop(remainder, false);
+                    }
+                    hunger = Mth.clamp(hunger + food.getNutrition() * 10, 0, MAX_HUNGER);
+                    hungerActiveTicks = 0;
+                    hungerStarvationTicks = 0;
+                    entityData.set(HUNGER, hunger);
+                    entityData.set(EATING_STACK, serving);
+                    HumanoidArm mainArm = getMainArm();
+                    ItemStack mainHand = getMainHandItem();
+                    ItemStack offHand = getOffhandItem();
+                    HumanoidArm servingArm = mainHand.isEmpty() ? mainArm
+                            : offHand.isEmpty() ? (mainArm == HumanoidArm.LEFT ? HumanoidArm.RIGHT : HumanoidArm.LEFT)
+                            : mainArm;
+                    entityData.set(EATING_ARM, servingArm == HumanoidArm.LEFT ? 0 : 1);
+                    entityData.set(EATING_START_TIME, level().getGameTime());
+                    entityData.set(EATING, true);
+                    return InteractionResult.CONSUME;
+                }
                 smileAtOwner();
                 RobotPackets.open(serverPlayer, this, 0);
             }
@@ -763,6 +864,9 @@ public final class RobotEntity extends TamableAnimal {
     }
     @Override public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag); inventory.syncEquipment();
+        tag.putInt("RobotHealthSchema", HEALTH_SCHEMA);
+        tag.putInt("RobotHunger", hunger); tag.putInt("RobotHungerActiveTicks", hungerActiveTicks);
+        tag.putInt("RobotHungerStarvationTicks", hungerStarvationTicks);
         tag.putString("RobotCharacter", character().id); tag.putInt("RobotMode", mode());
         tag.putBoolean("RobotFollowing", following()); tag.putInt("RobotDeaths", deaths()); tag.putBoolean("RobotSlaughter", combatEnabled());
         tag.put("RobotInventory", inventory.serializeNBT()); tag.putLong("RobotWorkOrigin", workOrigin.asLong());
@@ -788,6 +892,22 @@ public final class RobotEntity extends TamableAnimal {
     }
     @Override public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag); setCharacter(RobotCharacter.byId(tag.getString("RobotCharacter")));
+        if (tag.getInt("RobotHealthSchema") < HEALTH_SCHEMA) {
+            // Legacy entity NBT includes an Attributes list whose max-health base
+            // can still be 20 after changing the entity's default attributes.
+            float legacyMaximum = getMaxHealth();
+            float legacyHealth = getHealth();
+            if (!tag.contains("Attributes") && Math.abs(legacyMaximum - 100.0F) < 0.001F) legacyMaximum = 20.0F;
+            var maxHealthAttribute = getAttribute(Attributes.MAX_HEALTH);
+            if (maxHealthAttribute != null) maxHealthAttribute.setBaseValue(100.0D);
+            if (tag.contains("Health") && Float.isFinite(legacyHealth) && legacyMaximum > 0.0F)
+                setHealth(Mth.clamp(legacyHealth / legacyMaximum * getMaxHealth(), 0.0F, getMaxHealth()));
+        }
+        hunger = tag.contains("RobotHunger") ? Mth.clamp(tag.getInt("RobotHunger"), 0, MAX_HUNGER) : MAX_HUNGER;
+        hungerActiveTicks = Mth.clamp(tag.getInt("RobotHungerActiveTicks"), 0, ACTIVE_TICKS_PER_HUNGER - 1);
+        hungerStarvationTicks = Mth.clamp(tag.getInt("RobotHungerStarvationTicks"), 0, 79);
+        if (hunger > 0) hungerStarvationTicks = 0;
+        entityData.set(HUNGER, hunger);
         companionship.loadWorld(tag.getCompound("RobotCompanionship"));
         setMode(tag.contains("RobotMode") ? tag.getInt("RobotMode") : tag.getBoolean("RobotFollowing") ? FOLLOW : STAY);
         homeInitialized = tag.getBoolean("RobotHomeInitialized") && tag.contains("RobotHomePos") && !tag.getString("RobotHomeDimension").isBlank();
