@@ -38,30 +38,30 @@ public final class PetSounds {
     }
 
     /** Starts the tracked-entity stream once; current clip tick is sent to newly tracking players. */
-    public static boolean play(MechanicalPetEntity pet) {
-        if (pet == null || pet.level().isClientSide || !pet.isAlive() || pet.isRemoved() || pet.isCat()) return false;
-        long startedAt = serverClock(pet);
-        if (ACTIVE.putIfAbsent(pet.getUUID(), startedAt) != null) return false;
+    public static boolean play(MechanicalPet pet) {
+        if (pet == null || pet.asEntity().level().isClientSide || !pet.asEntity().isAlive() || pet.asEntity().isRemoved() || pet.isCat()) return false;
+        long startedAt = serverClock(pet.asEntity());
+        if (ACTIVE.putIfAbsent(pet.asEntity().getUUID(), startedAt) != null) return false;
         PetSoundPackets.start(pet, 0);
         return true;
     }
 
     /** Idempotently stops the sound on every client currently tracking this pet. */
-    public static boolean stop(MechanicalPetEntity pet) {
-        if (pet == null || pet.level().isClientSide || ACTIVE.remove(pet.getUUID()) == null) return false;
+    public static boolean stop(MechanicalPet pet) {
+        if (pet == null || pet.asEntity().level().isClientSide || ACTIVE.remove(pet.asEntity().getUUID()) == null) return false;
         PetSoundPackets.stop(pet);
         return true;
     }
 
-    public static int elapsedTicks(MechanicalPetEntity pet) {
+    public static int elapsedTicks(MechanicalPet pet) {
         if (pet == null) return 0;
-        Long startedAt = ACTIVE.get(pet.getUUID());
+        Long startedAt = ACTIVE.get(pet.asEntity().getUUID());
         if (startedAt == null) return 0;
-        long elapsed = Math.max(0L, serverClock(pet) - startedAt);
+        long elapsed = Math.max(0L, serverClock(pet.asEntity()) - startedAt);
         return (int) Math.min(DURATION_TICKS, elapsed);
     }
 
-    private static long serverClock(MechanicalPetEntity pet) {
+    private static long serverClock(net.minecraft.world.entity.Entity pet) {
         return pet.level() instanceof ServerLevel server ? server.getServer().overworld().getGameTime()
                 : pet.level().getGameTime();
     }
@@ -70,9 +70,9 @@ public final class PetSounds {
     @SubscribeEvent
     public static void onStartTracking(PlayerEvent.StartTracking event) {
         if (!(event.getEntity() instanceof ServerPlayer player)
-                || !(event.getTarget() instanceof MechanicalPetEntity pet)
-                || pet.level().isClientSide || pet.isCat() || pet.getPetAction() != PetAction.BARK
-                || !ACTIVE.containsKey(pet.getUUID())) return;
+                || !(event.getTarget() instanceof MechanicalPet pet)
+                || pet.asEntity().level().isClientSide || pet.isCat() || pet.getPetAction() != PetAction.BARK
+                || !ACTIVE.containsKey(pet.asEntity().getUUID())) return;
         int elapsed = elapsedTicks(pet);
         if (elapsed < DURATION_TICKS) PetSoundPackets.start(player, pet, elapsed);
     }

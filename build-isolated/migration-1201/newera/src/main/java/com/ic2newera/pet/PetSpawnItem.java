@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -24,9 +25,8 @@ public final class PetSpawnItem extends Item {
                 || !player.mayUseItemAt(pos, context.getClickedFace(), context.getItemInHand())) return InteractionResult.FAIL;
         if (!level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()) return InteractionResult.FAIL;
         if (level.isClientSide) return InteractionResult.SUCCESS;
-        EntityType<MechanicalPetEntity> type = cat ? PetRegistry.CAT.get() : PetRegistry.DOG.get();
-        MechanicalPetEntity pet = type.create(level);
-        if (pet == null) return InteractionResult.FAIL;
+        TamableAnimal entity = cat ? PetRegistry.CAT.get().create(level) : PetRegistry.DOG.get().create(level);
+        if (!(entity instanceof MechanicalPet pet)) return InteractionResult.FAIL;
         ItemStack battery = ItemStack.EMPTY;
         if (context.getItemInHand().hasTag() && context.getItemInHand().getTag().contains(PetAssemblyRecipe.BATTERY_DATA, 10)) {
             battery = ItemStack.of(context.getItemInHand().getTag().getCompound(PetAssemblyRecipe.BATTERY_DATA));
@@ -38,12 +38,12 @@ public final class PetSpawnItem extends Item {
             battery = new ItemStack(ordinaryBattery);
         }
         pet.setPetBattery(battery);
-        pet.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, player.getYRot(), 0F);
+        entity.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, player.getYRot(), 0F);
         pet.bindTo(player);
-        if (context.getItemInHand().hasCustomHoverName()) pet.setCustomName(context.getItemInHand().getHoverName());
-        AABB spawnBox = pet.getBoundingBox();
+        if (context.getItemInHand().hasCustomHoverName()) pet.asEntity().setCustomName(context.getItemInHand().getHoverName());
+        AABB spawnBox = entity.getBoundingBox();
         if (!(level instanceof ServerLevel server) || !level.getWorldBorder().isWithinBounds(spawnBox)
-                || !level.noCollision(pet, spawnBox) || !server.addFreshEntity(pet)) return InteractionResult.FAIL;
+                || !level.noCollision(entity, spawnBox) || !server.addFreshEntity(entity)) return InteractionResult.FAIL;
         if (!player.getAbilities().instabuild) context.getItemInHand().shrink(1);
         if (context.getItemInHand().hasTag()) context.getItemInHand().getTag().remove(PetAssemblyRecipe.BATTERY_DATA);
         return InteractionResult.CONSUME;

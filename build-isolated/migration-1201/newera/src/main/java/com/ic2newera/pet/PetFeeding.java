@@ -24,7 +24,8 @@ public final class PetFeeding {
         if (!(event.getTarget() instanceof Wolf wolf)) return;
         ItemStack held = event.getItemStack();
         ResourceLocation itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(held.getItem());
-        if (MECHANICAL_CAT_PANCAKE.equals(itemId) || !ORDINARY_CAT_PANCAKE.equals(itemId)) return;
+        if (MECHANICAL_CAT_PANCAKE.equals(itemId) || MeowchanicsPancakeBridge.isMechanical(held)
+                || !ORDINARY_CAT_PANCAKE.equals(itemId)) return;
         if (wolf.level().isClientSide) return;
         Player player = event.getEntity();
         if (wolf.isTame() && !wolf.isOwnedBy(player)) return;
@@ -57,5 +58,13 @@ public final class PetFeeding {
     private static void hearts(Wolf wolf) {
         if (wolf.level() instanceof ServerLevel server)
             server.sendParticles(ParticleTypes.HEART, wolf.getX(), wolf.getY() + wolf.getBbHeight(), wolf.getZ(), 3, 0.25, 0.2, 0.25, 0);
+    }
+
+    @SubscribeEvent(priority = net.minecraftforge.eventbus.api.EventPriority.HIGHEST)
+    public static void preventEatingMechanicalIdentity(net.minecraftforge.event.entity.living.LivingEntityUseItemEvent.Start event) {
+        if ((event.getItem().getUseAnimation() == net.minecraft.world.item.UseAnim.EAT
+                || event.getItem().getUseAnimation() == net.minecraft.world.item.UseAnim.DRINK)
+                && (MeowchanicsPancakeBridge.isMechanical(event.getItem()) || event.getItem().is(PetRegistry.PANCAKE_ITEM.get())))
+            event.setCanceled(true);
     }
 }

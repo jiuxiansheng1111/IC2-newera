@@ -18,20 +18,20 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "build-isolated/player-packaging/20261026-mirrors-pet-equipment-r44"
+OUT = ROOT / "build-isolated/player-packaging/20261027-meowchanics-complete-r45"
 LOCK = ROOT / "build-isolated/migration-1201/dependencies/runtime-lock-1201.json"
 DEPS = LOCK.parent
-CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build44-mirrors-pet-equipment"
+CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build45-meowchanics-complete"
 OWN_JAR = "ic2newera-0.2.0-migration1201-all.jar"
-OWN_SHA256 = "70E986C8F605167EDE972349CAAA5F87CD55D6B6B2C134CC96EB05225D6D7831"
+OWN_SHA256 = "4D7FFE12984085E52B5FFE428A75FB9A3C51124251ABBC06BAF2C0B6D684673A"
 JAVA_DIR = ROOT / "build-isolated/player-packaging/20261024-r41-java17/java-source"
 JAVA_ZIP = "OpenJDK17U-jdk_x64_windows_hotspot_17.0.20_8.zip"
 JAVA_SOURCE = "OpenJDK17U-jdk-sources_17.0.20_8.tar.gz"
 JAVA_ZIP_SHA256 = "418497BE5CF585BDD2203D6486A565D66D3F5E992D5630D45104CB873FAB8122"
 JAVA_SOURCE_SHA256 = "A9FADD969738666D59A241BC6FB01D0963154489D934EE387630DD4DCA5E8F54"
 JAVA_ROOT = "jdk-17.0.20+8"
-PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r44.mrpack"
-PACK_VERSION = "0.2.0-playtest.20261026-r44-pet-equipment"
+PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r45.mrpack"
+PACK_VERSION = "0.2.0-playtest.20261027-r45-meowchanics"
 
 
 def json_bytes(value: object) -> bytes:
@@ -315,7 +315,7 @@ def build_pack() -> dict:
         if b"lang:zh_cn" not in packed.read("overrides/options.txt"):
             raise ValueError("Chinese language option is missing")
         if "overrides/mods/" + OWN_JAR not in names:
-            raise ValueError("First-party r44 mod was not included")
+            raise ValueError("First-party r45 mod was not included")
         if any(name.startswith("overrides/mods/") and name.lower().endswith(".jar") and OWN_JAR not in name
                for name in names):
             raise ValueError("A third-party mod JAR was copied into overrides")

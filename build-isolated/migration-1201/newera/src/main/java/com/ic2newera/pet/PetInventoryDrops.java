@@ -14,15 +14,16 @@ public final class PetInventoryDrops {
 
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        if (!(event.getEntity() instanceof MechanicalPetEntity pet) || pet.level().isClientSide) return;
+        if (!(event.getEntity() instanceof MechanicalPet pet) || pet.asEntity().level().isClientSide) return;
         for (int slot = PetInventory.CARGO_START; slot < PetInventory.SIZE; slot++) dropSlot(event, pet, slot);
         for (int slot = 0; slot < PetInventory.CARGO_START; slot++) dropSlot(event, pet, slot);
     }
 
-    private static void dropSlot(LivingDropsEvent event, MechanicalPetEntity pet, int slot) {
+    private static void dropSlot(LivingDropsEvent event, MechanicalPet pet, int slot) {
         ItemStack stack = pet.getPetInventory().getStackInSlot(slot);
         if (stack.isEmpty()) return;
-        ItemEntity drop = new ItemEntity(pet.level(), pet.getX(), pet.getY() + 0.25, pet.getZ(), stack.copy());
+        var entity = pet.asEntity();
+        ItemEntity drop = new ItemEntity(entity.level(), entity.getX(), entity.getY() + 0.25, entity.getZ(), stack.copy());
         drop.setDefaultPickUpDelay();
         event.getDrops().add(drop);
         pet.getPetInventory().setStackInSlot(slot, ItemStack.EMPTY);

@@ -36,18 +36,18 @@ public final class PetSoundPackets {
         registered = true;
     }
 
-    public static void start(MechanicalPetEntity pet, int elapsedTicks) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> pet),
-                new StartSound(pet.getId(), pet.getUUID(), Math.max(0, Math.min(PetSounds.DURATION_TICKS, elapsedTicks))));
+    public static void start(MechanicalPet pet, int elapsedTicks) {
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(pet::asEntity),
+                new StartSound(pet.asEntity().getId(), pet.asEntity().getUUID(), Math.max(0, Math.min(PetSounds.DURATION_TICKS, elapsedTicks))));
     }
 
-    public static void start(ServerPlayer player, MechanicalPetEntity pet, int elapsedTicks) {
+    public static void start(ServerPlayer player, MechanicalPet pet, int elapsedTicks) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
-                new StartSound(pet.getId(), pet.getUUID(), Math.max(0, Math.min(PetSounds.DURATION_TICKS, elapsedTicks))));
+                new StartSound(pet.asEntity().getId(), pet.asEntity().getUUID(), Math.max(0, Math.min(PetSounds.DURATION_TICKS, elapsedTicks))));
     }
 
-    public static void stop(MechanicalPetEntity pet) {
-        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> pet), new StopSound(pet.getId(), pet.getUUID()));
+    public static void stop(MechanicalPet pet) {
+        CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(pet::asEntity), new StopSound(pet.asEntity().getId(), pet.asEntity().getUUID()));
     }
 
     public record StartSound(int entityId, UUID entityUuid, int elapsedTicks) {

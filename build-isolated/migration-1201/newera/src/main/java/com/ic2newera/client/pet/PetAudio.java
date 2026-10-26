@@ -1,6 +1,6 @@
 package com.ic2newera.client.pet;
 
-import com.ic2newera.pet.MechanicalPetEntity;
+import com.ic2newera.pet.MechanicalPet;
 import com.ic2newera.pet.PetSounds;
 import com.mojang.blaze3d.audio.OggAudioStream;
 import net.minecraft.Util;
@@ -38,7 +38,8 @@ public final class PetAudio {
         ClientLevel level = minecraft.level;
         if (level == null || entityUuid == null) return;
         Entity candidate = level.getEntity(entityId);
-        if (!(candidate instanceof MechanicalPetEntity pet) || !entityUuid.equals(pet.getUUID()) || pet.isCat()) return;
+        if (!(candidate instanceof MechanicalPet pet) || pet.asEntity() != candidate
+                || !entityUuid.equals(pet.asEntity().getUUID()) || pet.isCat()) return;
         DogCallSound previous = ACTIVE.get(entityUuid);
         if (previous != null && previous.matches(level, pet) && !previous.isStopped()) return;
         stop(entityUuid);
@@ -67,15 +68,15 @@ public final class PetAudio {
 
     private static final class DogCallSound extends AbstractTickableSoundInstance {
         private final ClientLevel level;
-        private final MechanicalPetEntity pet;
+        private final MechanicalPet pet;
         private final int entityId;
         private final UUID entityUuid;
 
-        private DogCallSound(ClientLevel level, MechanicalPetEntity pet, UUID entityUuid, int elapsedTicks) {
+        private DogCallSound(ClientLevel level, MechanicalPet pet, UUID entityUuid, int elapsedTicks) {
             super(PetSounds.DOG_CALL.get(), SoundSource.NEUTRAL, RandomSource.create());
             this.level = level;
             this.pet = pet;
-            this.entityId = pet.getId();
+            this.entityId = pet.asEntity().getId();
             this.entityUuid = entityUuid;
             this.elapsedTicks = elapsedTicks;
             this.looping = false;
@@ -86,14 +87,14 @@ public final class PetAudio {
             this.updatePosition();
         }
 
-        private boolean matches(ClientLevel expectedLevel, MechanicalPetEntity expectedPet) {
-            return level == expectedLevel && pet == expectedPet;
+        private boolean matches(ClientLevel expectedLevel, MechanicalPet expectedPet) {
+            return level == expectedLevel && pet.asEntity() == expectedPet.asEntity();
         }
 
         private void updatePosition() {
-            this.x = pet.getX();
-            this.y = pet.getY();
-            this.z = pet.getZ();
+            this.x = pet.asEntity().getX();
+            this.y = pet.asEntity().getY();
+            this.z = pet.asEntity().getZ();
         }
 
         private void requestStop() { cancelled.set(true); stop(); }
@@ -102,8 +103,9 @@ public final class PetAudio {
 
         @Override public void tick() {
             Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.level != level || level.getEntity(entityId) != pet || pet.isRemoved() || !pet.isAlive()
-                    || !entityUuid.equals(pet.getUUID()) || minecraft.player == null
+            if (minecraft.level != level || level.getEntity(entityId) != pet.asEntity()
+                    || pet.asEntity().isRemoved() || !pet.asEntity().isAlive()
+                    || !entityUuid.equals(pet.asEntity().getUUID()) || minecraft.player == null
                     || minecraft.player.level() != level) {
                 PetAudio.stopFromTick(entityUuid, this);
                 return;

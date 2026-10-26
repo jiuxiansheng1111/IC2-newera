@@ -4,7 +4,7 @@ import com.ic2newera.IC2NewEra;
 import com.ic2newera.furniture.MirrorBlock;
 import com.ic2newera.furniture.MirrorBlockEntity;
 import com.ic2newera.furniture.MirrorContent;
-import com.ic2newera.pet.MechanicalPetEntity;
+import com.ic2newera.pet.MechanicalPet;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -103,7 +103,7 @@ public final class MirrorRenderer implements BlockEntityRenderer<MirrorBlockEnti
     }
 
     private static boolean reflectedKind(LivingEntity entity) {
-        return entity instanceof Player || entity instanceof MechanicalPetEntity || entity instanceof Cat || entity instanceof Wolf;
+        return entity instanceof Player || entity instanceof MechanicalPet || entity instanceof Cat || entity instanceof Wolf;
     }
     private static boolean visibleFromGlass(LivingEntity entity, Vec3 origin, Vec3 normal) {
         Vec3 start = origin.add(0, .7, 0).add(normal.scale(.12));

@@ -63,6 +63,15 @@
     "ic2newera:washed_zinc_dust",
     "ic2newera:wormhole_blueprint",
     "ic2newera:wormhole_device",
-    "ic2newera:wormhole_module"
+    "ic2newera:wormhole_module",
+    "laowu:cat_pancake",
+    "laowu:cat_pouch",
+    "ic2newera:mechanical_cat",
+    "ic2newera:mechanical_dog",
+    "ic2newera:mechanical_cat_pancake",
+    "laowu:cat_storage_box",
+    "laowu:cat_carrier",
+    "laowu:cat_deployment_platform",
+    "laowu:cat_ejecting_deployment_platform"
   ]
 }

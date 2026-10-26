@@ -1,12 +1,17 @@
 package com.ic2newera.client.pet;
 
-import com.ic2newera.pet.MechanicalPetEntity;
+import com.ic2newera.pet.MechanicalPet;
 import com.ic2newera.pet.PetAction;
+import cn.laowu.mod.CatGiantMount;
+import cn.laowu.mod.genetics.CatTrait;
+import cn.laowu.mod.genetics.CatTraitData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.util.Mth;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.Cat;
 import org.joml.Vector3f;
 
 import java.util.HashMap;
@@ -14,7 +19,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 /** Authored voxel pet rig with absolute-pivot hierarchical pose transforms. */
-final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
+final class AuthoredPetModel<T extends TamableAnimal & MechanicalPet> extends EntityModel<T> {
     private AuthoredPetMesh mesh;
     private AuthoredPetMesh cachedMesh;
     private final Map<String, float[]> posedVertices = new HashMap<>();
@@ -23,9 +28,11 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
     private final Map<String, float[]> normalMatrices = new HashMap<>();
     private final Map<String, float[][]> restOrientations = new HashMap<>();
     private final Map<String, float[][]> parentRestOrientations = new HashMap<>();
-    private final Map<MechanicalPetEntity, BlendState> blendStates = java.util.Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<T, BlendState> blendStates = java.util.Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<T, FlattenBlend> flattenBlends = java.util.Collections.synchronizedMap(new WeakHashMap<>());
     private float groundOffset;
     private float animationTime;
+    private float visualScale = 1F;
 
     /** Small per-entity pose history; weak keys avoid retaining unloaded pets. */
     private static final class BlendState {
@@ -46,10 +53,17 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
         }
     }
 
+    private static final class FlattenBlend {
+        float value;
+        float lastAge;
+        boolean initialized;
+    }
+
     @Override
-    public void setupAnim(MechanicalPetEntity pet, float limbSwing, float limbAmount,
+    public void setupAnim(T pet, float limbSwing, float limbAmount,
                           float ageInTicks, float netHeadYaw, float headPitch) {
         animationTime = ageInTicks;
+        visualScale = resolveVisualScale(pet);
         mesh = AuthoredPetResources.INSTANCE.get(pet.isCat());
         if (mesh == null) { cachedMesh = null; posedVertices.clear(); groundOffset = 0; return; }
         if (mesh != cachedMesh) {
@@ -93,7 +107,11 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
         rotate(angles, "head", Mth.clamp(headPitch, -24F, 24F) * Mth.DEG_TO_RAD,
                 Mth.clamp(netHeadYaw, -38F, 38F) * Mth.DEG_TO_RAD, 0);
 
+        Cat nativeCat = pet.isCat() && pet.asEntity() instanceof Cat value ? value : null;
         PetAction action = pet.getPetAction();
+        if (nativeCat != null && cn.laowu.mod.CatPoseData.isHissing(nativeCat) && action == PetAction.IDLE) {
+            action = PetAction.HISS;
+        }
         float partial = Mth.clamp(ageInTicks - pet.tickCount, 0F, 1F);
         float progress = pet.getActionProgress(partial);
         float pulse = Mth.sin(progress * Mth.PI);
@@ -103,6 +121,24 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
             rotate(angles, "leg_fl", 0.25F, 0, 0); rotate(angles, "leg_fr", 0.25F, 0, 0);
             rotate(angles, "leg_bl", -0.82F, 0, 0); rotate(angles, "leg_br", -0.82F, 0, 0);
             rotate(angles, "tail", -0.3F, 0, 0);
+        }
+        if (nativeCat != null && action == PetAction.IDLE) {
+            if (nativeCat.isFallFlying() || !nativeCat.onGround() && nativeCat.getDeltaMovement().y > 0.03D) {
+                // Keep the wing panels clear; body and legs carry the lightweight flight silhouette.
+                rotate(angles, "body", 0.18F, 0, 0);
+                rotate(angles, "leg_fl", 0.25F, 0, 0); rotate(angles, "leg_fr", 0.25F, 0, 0);
+                rotate(angles, "leg_bl", -0.35F, 0, 0); rotate(angles, "leg_br", -0.35F, 0, 0);
+            } else if (nativeCat.isInWater()) {
+                float swim = Mth.sin(ageInTicks * 0.28F) * 0.28F;
+                rotate(angles, "body", 0.08F, 0, 0);
+                rotate(angles, "leg_fl", swim, 0, 0); rotate(angles, "leg_br", swim, 0, 0);
+                rotate(angles, "leg_fr", -swim, 0, 0); rotate(angles, "leg_bl", -swim, 0, 0);
+                rotate(angles, "tail", 0, 0.18F * Mth.sin(ageInTicks * 0.22F), 0);
+            }
+            if (!nativeCat.getPassengers().isEmpty()) {
+                rotate(angles, "body", 0.04F, 0, 0);
+                rotate(angles, "leg_fl", 0.12F, 0, 0); rotate(angles, "leg_fr", 0.12F, 0, 0);
+            }
         }
         switch (action) {
             case PET -> {
@@ -233,7 +269,9 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
 
         smoothPose(pet, action, pet.tickCount + partial, angles, scales);
 
-        float flattenLinear = Mth.clamp(pet.getFlattenProgress(partial), 0F, 1F);
+        float flattenTarget = Mth.clamp(pet.getFlattenProgress(partial), 0F, 1F);
+        if (nativeCat != null && cn.laowu.mod.CatPoseData.isPancake(nativeCat)) flattenTarget = 1F;
+        float flattenLinear = smoothNativeFlatten(pet, flattenTarget, ageInTicks);
         float flatten = smootherstep(flattenLinear);
         float verticalScale = 1F - 0.78F * flatten;
         float horizontalScale = 1F + 0.06F * flatten;
@@ -292,7 +330,18 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
 
     private static final String[] LEGS = {"leg_fl", "leg_fr", "leg_bl", "leg_br"};
 
-    private void smoothPose(MechanicalPetEntity pet, PetAction action, float ageInTicks,
+    /** Mirrors Meowchanics' appearance and giant-mount scales around the cat's feet. */
+    private float resolveVisualScale(T pet) {
+        if (!pet.isCat() || !(pet.asEntity() instanceof Cat cat)) return 1F;
+        int chonkyLevel = CatTraitData.read(cat)
+                .map(profile -> profile.level(CatTrait.BIG_CHONKY_CAT)).orElse(0);
+        float scale = chonkyLevel > 0
+                ? CatTrait.BIG_CHONKY_CAT.bigCatScalePercent(chonkyLevel) / 100F : 1F;
+        if (CatGiantMount.active(cat)) scale *= CatGiantMount.SCALE * CatGiantMount.sizeFactor(cat);
+        return Mth.clamp(scale, 0.5F, 8F);
+    }
+
+    private void smoothPose(T pet, PetAction action, float ageInTicks,
                             Map<String, float[]> angles, Map<String, float[]> scales) {
         int size = cachedMesh.bones.size() * 3;
         BlendState state = blendStates.computeIfAbsent(pet, ignored -> new BlendState());
@@ -346,6 +395,20 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
     private static float smootherstep(float value) {
         float t = Mth.clamp(value, 0F, 1F);
         return t * t * t * (t * (t * 6F - 15F) + 10F);
+    }
+
+    private float smoothNativeFlatten(T pet, float target, float ageInTicks) {
+        FlattenBlend state = flattenBlends.computeIfAbsent(pet, ignored -> new FlattenBlend());
+        if (!state.initialized) {
+            state.value = target;
+            state.lastAge = ageInTicks;
+            state.initialized = true;
+        } else if (ageInTicks >= state.lastAge) {
+            float amount = Mth.clamp((ageInTicks - state.lastAge) / 6F, 0F, 1F);
+            state.value = Mth.lerp(amount, state.value, target);
+            state.lastAge = ageInTicks;
+        }
+        return Mth.clamp(state.value, 0F, 1F);
     }
 
     private static void rotate(Map<String, float[]> angles, String bone, float x, float y, float z) {
@@ -416,7 +479,7 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
     }
 
     /** Renders cuboid equipment through the same animated bone matrix as its attachment. */
-    void renderEquipmentCuboid(MechanicalPetEntity pet, PoseStack pose, VertexConsumer consumer, int light,
+    void renderEquipmentCuboid(T pet, PoseStack pose, VertexConsumer consumer, int light,
                                String bone, float x0, float y0, float z0, float x1, float y1, float z1,
                                int color) {
         if (mesh == null || !mesh.byName.containsKey(bone)) return;
@@ -427,6 +490,7 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
         pose.translate(0, 1.501F, 0);
         pose.scale(-1F, -1F, 1F);
         pose.translate(0, groundOffset / 16F, 0);
+        pose.scale(visualScale, visualScale, visualScale);
         pose.scale(1F / 16F, 1F / 16F, 1F / 16F);
         PoseStack.Pose transform = pose.last();
 
@@ -474,6 +538,7 @@ final class AuthoredPetModel extends EntityModel<MechanicalPetEntity> {
         pose.translate(0, 1.501F, 0);
         pose.scale(-1F, -1F, 1F);
         pose.translate(0, groundOffset / 16F, 0);
+        pose.scale(visualScale, visualScale, visualScale);
         pose.scale(1F / 16F, 1F / 16F, 1F / 16F);
         PoseStack.Pose transform = pose.last();
         Vector3f normal = new Vector3f();

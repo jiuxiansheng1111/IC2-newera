@@ -12,6 +12,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -28,8 +29,8 @@ public final class PetCreateCompat {
 
     @SubscribeEvent
     public static void anvilImpact(LivingAttackEvent event) {
-        if (!(event.getEntity() instanceof MechanicalPetEntity pet) || !pet.isCat()
-                || pet.level().isClientSide) return;
+        if (!(event.getEntity() instanceof MechanicalPet pet) || !pet.isCat()
+                || pet.asEntity().level().isClientSide) return;
         boolean anvil = event.getSource().is(DamageTypes.FALLING_ANVIL)
                 || event.getSource().getDirectEntity() instanceof FallingBlockEntity block
                 && block.getBlockState().is(BlockTags.ANVIL);
@@ -37,7 +38,8 @@ public final class PetCreateCompat {
                 .map(key -> key.location().toString().equals("create:roller")).orElse(false);
         if (anvil || roller) {
             event.setCanceled(true);
-            pet.flatten();
+            if (pet.asEntity() instanceof Cat cat) MeowchanicsPancakeBridge.flatten(cat);
+            else pet.flatten();
         }
     }
 
@@ -46,7 +48,7 @@ public final class PetCreateCompat {
         if (!(level instanceof ServerLevel server) || air.bounds == null || air.source.isSourceRemoved()
                 || air.source.getSpeed() == 0 || air.maxDistance <= 0) return;
         for (Entity entity : level.getEntities((Entity)null, air.bounds.inflate(0.08), target ->
-                target instanceof MechanicalPetEntity pet && pet.isCat() && pet.isPancake()
+                target instanceof MechanicalPet pet && pet.isCat() && pet.isPancake()
                 || target instanceof ItemEntity item && item.getItem().is(PetRegistry.PANCAKE_ITEM.get()))) {
             CompoundTag data = entity.getPersistentData();
             long now = level.getGameTime();
@@ -57,30 +59,29 @@ public final class PetCreateCompat {
             data.putInt(FAN_TICKS, Math.min(30, ticks));
             if (now % 5 == 0) server.sendParticles(ParticleTypes.CLOUD, entity.getX(), entity.getY() + 0.12,
                     entity.getZ(), 2, 0.12, 0.04, 0.12, 0.02);
-            if (ticks >= 30) {
-                if (entity instanceof MechanicalPetEntity pet) pet.beginRestore();
-                else if (entity instanceof ItemEntity item) MechanicalCatPancakeItem.restore(server, item);
+            if (entity instanceof ItemEntity item) {
+                // Upgrade a legacy dropped pancake immediately; Meowchanics then owns its native 30-tick fan flow.
+                MechanicalCatPancakeItem.restore(server, item);
+                continue;
+            }
+            if (ticks >= 30 && entity instanceof MechanicalPet pet) {
+                MeowchanicsPancakeBridge.restoreExisting(pet);
             }
         }
     }
 
-    public static InteractionResult pickUp(MechanicalPetEntity pet, Player player, InteractionHand hand) {
-        if (!pet.isCat() || !pet.isPancake() || !pet.isOwnedBy(player)
+    public static InteractionResult pickUp(MechanicalPet pet, Player player, InteractionHand hand) {
+        if (!pet.isCat() || !pet.isPancake() || !pet.asEntity().isOwnedBy(player)
                 || pet.getPetAction() == PetAction.RESTORE) return InteractionResult.PASS;
-        if (pet.level().isClientSide) return InteractionResult.SUCCESS;
-        ItemStack stack = new ItemStack(PetRegistry.PANCAKE_ITEM.get());
-        CompoundTag saved = new CompoundTag();
-        pet.saveWithoutId(saved);
-        // Location and motion come from the new item, never from the captured pet.
-        saved.remove("Pos"); saved.remove("Motion"); saved.remove("Rotation");
-        saved.remove("Passengers"); saved.remove("Leash"); saved.remove("ForgeCaps");
-        stack.getOrCreateTag().put(MechanicalCatPancakeItem.PET_DATA, saved);
-        if (pet.hasCustomName()) stack.setHoverName(pet.getCustomName());
-        ItemEntity drop = new ItemEntity(pet.level(), pet.getX(), pet.getY() + 0.15, pet.getZ(), stack);
+        if (pet.asEntity().level().isClientSide) return InteractionResult.SUCCESS;
+        if (!(pet.asEntity() instanceof Cat cat)) return InteractionResult.FAIL;
+        ItemStack stack = MeowchanicsPancakeBridge.captureNative(cat);
+        if (!MeowchanicsPancakeBridge.isMechanical(stack)) return InteractionResult.FAIL;
+        ItemEntity drop = new ItemEntity(cat.level(), cat.getX(), cat.getY() + 0.15, cat.getZ(), stack);
         drop.setTarget(player.getUUID());
         drop.setNoPickUpDelay();
-        if (!pet.level().addFreshEntity(drop)) return InteractionResult.FAIL;
-        pet.discard();
+        if (!cat.level().addFreshEntity(drop)) return InteractionResult.FAIL;
+        cat.discard();
         player.getItemInHand(hand).hurtAndBreak(1, player, owner -> owner.broadcastBreakEvent(hand));
         return InteractionResult.CONSUME;
     }

@@ -10,18 +10,18 @@ import net.minecraftforge.items.SlotItemHandler;
 
 /** Owner-checked pet panel with real battery, armor, cargo, and player inventory slots. */
 public final class PetMenu extends AbstractContainerMenu {
-    private final MechanicalPetEntity pet;
+    private final MechanicalPet pet;
     private final java.util.UUID viewer;
     private boolean inventoryPage;
 
     public PetMenu(int id, Inventory inventory, FriendlyByteBuf buffer) {
         this(id, inventory, resolve(inventory, buffer.readVarInt()), inventory.player);
     }
-    private static MechanicalPetEntity resolve(Inventory inventory, int entityId) {
-        return inventory.player.level().getEntity(entityId) instanceof MechanicalPetEntity entity ? entity : null;
+    private static MechanicalPet resolve(Inventory inventory, int entityId) {
+        return inventory.player.level().getEntity(entityId) instanceof MechanicalPet entity ? entity : null;
     }
-    public PetMenu(int id, Inventory inventory, MechanicalPetEntity pet) { this(id, inventory, pet, inventory.player); }
-    public PetMenu(int id, Inventory inventory, MechanicalPetEntity pet, Player viewer) {
+    public PetMenu(int id, Inventory inventory, MechanicalPet pet) { this(id, inventory, pet, inventory.player); }
+    public PetMenu(int id, Inventory inventory, MechanicalPet pet, Player viewer) {
         super(PetRegistry.MENU.get(), id);
         this.pet = pet;
         this.viewer = viewer.getUUID();
@@ -57,16 +57,18 @@ public final class PetMenu extends AbstractContainerMenu {
         }
     }
 
-    public MechanicalPetEntity pet() { return pet; }
+    public MechanicalPet pet() { return pet; }
     public boolean isInventoryPage() { return inventoryPage; }
     public void setInventoryPage(boolean value) { inventoryPage = value; }
 
     @Override public boolean stillValid(Player player) {
-        return pet != null && viewer.equals(player.getUUID()) && pet.isAlive() && pet.level() == player.level()
-                && pet.isOwnedBy(player) && pet.distanceToSqr(player) <= 64;
+        return pet != null && viewer.equals(player.getUUID()) && pet.asEntity().isAlive() && pet.asEntity().level() == player.level()
+                && pet.asEntity().isOwnedBy(player) && pet.asEntity().distanceToSqr(player) <= 64;
     }
     @Override public boolean clickMenuButton(Player player, int id) {
         if (!stillValid(player)) return false;
+        if (id == 15) return MeowchanicsCompat.openProfile(player, pet);
+        if (id == 16) return MeowchanicsCompat.openLogistics(player, pet);
         if (id == 14) { inventoryPage = !inventoryPage; return true; }
         if (id < 0 || id > 13) return false;
         pet.command(player, id);

@@ -120,7 +120,7 @@ dependencies {
     implementation fg.deobf("maven.modrinth:v17FatAc:Ghp0qCKY")
     // Planet exploration only; NPC campaigns and extra overworld dungeons are retired.
     runtimeOnly fg.deobf('local.verified:ad-astra:1.15.21')
-    runtimeOnly fg.deobf('local.verified:meowchanics:2.3.1')
+    implementation fg.deobf('local.verified:meowchanics:2.3.1')
     runtimeOnly fg.deobf('local.verified:create-biotech:1.3.0')
     runtimeOnly fg.deobf('curse.maven:botarium-704113:5486070')
     runtimeOnly fg.deobf('curse.maven:resourceful-lib-570073:5659871')

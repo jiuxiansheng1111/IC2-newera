@@ -23,11 +23,11 @@ public final class PetRegistry {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, IC2NewEra.MOD_ID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, IC2NewEra.MOD_ID);
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, IC2NewEra.MOD_ID);
-    public static final RegistryObject<EntityType<MechanicalPetEntity>> CAT = ENTITIES.register("mechanical_cat", () ->
-            EntityType.Builder.<MechanicalPetEntity>of((type, level) -> new MechanicalPetEntity(type, level, true), MobCategory.CREATURE)
+    public static final RegistryObject<EntityType<MechanicalCatEntity>> CAT = ENTITIES.register("mechanical_cat", () ->
+            EntityType.Builder.<MechanicalCatEntity>of(MechanicalCatEntity::new, MobCategory.CREATURE)
                     .sized(0.6F, 0.7F).clientTrackingRange(8).updateInterval(3).build("ic2newera:mechanical_cat"));
     public static final RegistryObject<EntityType<MechanicalPetEntity>> DOG = ENTITIES.register("mechanical_dog", () ->
-            EntityType.Builder.<MechanicalPetEntity>of((type, level) -> new MechanicalPetEntity(type, level, false), MobCategory.CREATURE)
+            EntityType.Builder.<MechanicalPetEntity>of(MechanicalPetEntity::new, MobCategory.CREATURE)
                     .sized(0.75F, 0.85F).clientTrackingRange(8).updateInterval(3).build("ic2newera:mechanical_dog"));
     public static final RegistryObject<Item> CAT_ITEM = ITEMS.register("mechanical_cat", () -> new PetSpawnItem(new Item.Properties(), true));
     public static final RegistryObject<Item> DOG_ITEM = ITEMS.register("mechanical_dog", () -> new PetSpawnItem(new Item.Properties(), false));
@@ -42,11 +42,8 @@ public final class PetRegistry {
         RECIPE_SERIALIZERS.register(bus);
     }
     @SubscribeEvent public static void attributes(EntityAttributeCreationEvent event) {
-        AttributeSupplier attributes = Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 40)
-                .add(Attributes.MOVEMENT_SPEED, 0.25).add(Attributes.FOLLOW_RANGE, 16)
-                .add(Attributes.ATTACK_DAMAGE, 3.0).build();
-        event.put(CAT.get(), attributes);
-        event.put(DOG.get(), attributes);
+        event.put(CAT.get(), MechanicalCatEntity.attributes().build());
+        event.put(DOG.get(), MechanicalPetEntity.attributes().build());
     }
 }
 

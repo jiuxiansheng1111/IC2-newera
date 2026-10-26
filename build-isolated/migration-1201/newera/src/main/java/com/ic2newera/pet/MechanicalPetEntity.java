@@ -14,6 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
@@ -47,10 +48,12 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.network.NetworkHooks;
 
 import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /** Durable, server-authoritative companion with nonlethal cat/dog play behavior. */
-public final class MechanicalPetEntity extends net.minecraft.world.entity.TamableAnimal {
+public final class MechanicalPetEntity extends net.minecraft.world.entity.TamableAnimal implements MechanicalPet {
     private static final EntityDataAccessor<Boolean> CAT = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> PEACEFUL = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> PANCAKE = SynchedEntityData.defineId(MechanicalPetEntity.class, EntityDataSerializers.BOOLEAN);
@@ -74,7 +77,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private static final ResourceLocation LAOWU_CATNIP = new ResourceLocation("laowu", "cat_catnip_pouch");
     private static final ResourceLocation MIRROR_BLOCK = new ResourceLocation("ic2newera", "floor_mirror");
     private static final TagKey<Item> SHOVELS = TagKey.create(Registries.ITEM, new ResourceLocation("forge", "tools/shovels"));
-    private UUID panelViewer;
+    private final Set<UUID> panelViewers = new HashSet<>();
     private long interactionGraceUntil;
     private UUID playPartner;
     private int playPhaseTicks;
@@ -90,16 +93,18 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private BlockPos mirrorTarget;
     private int enemyAttackCooldown;
 
-    public MechanicalPetEntity(EntityType<? extends MechanicalPetEntity> type, Level level, boolean cat) {
+    public MechanicalPetEntity(EntityType<? extends MechanicalPetEntity> type, Level level) {
         super(type, level);
-        entityData.set(CAT, cat);
+        entityData.set(CAT, false);
         setPersistenceRequired();
     }
     public static AttributeSupplier.Builder attributes() {
         return Animal.createMobAttributes().add(Attributes.MAX_HEALTH, 40).add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.FOLLOW_RANGE, 16).add(Attributes.ATTACK_DAMAGE, 3.0);
     }
-    public boolean isCat() { return entityData.get(CAT); }
+    @Override public TamableAnimal asEntity() { return this; }
+    @Override public boolean isCat() { return false; }
+    @Override public boolean isNativeBusy() { return false; }
     public boolean isFollowing() { return !isOrderedToSit(); }
     public boolean isPeaceful() { return entityData.get(PEACEFUL); }
     public boolean isPancake() { return entityData.get(PANCAKE); }
@@ -178,7 +183,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     }
     @Override protected void defineSynchedData() {
         super.defineSynchedData();
-        entityData.define(CAT, true); entityData.define(PEACEFUL, false); entityData.define(PANCAKE, false);
+        entityData.define(CAT, false); entityData.define(PEACEFUL, false); entityData.define(PANCAKE, false);
         entityData.define(ACTION, PetAction.IDLE.ordinal()); entityData.define(ACTION_TICKS, 0);
         entityData.define(HUNGER, MAX_HUNGER);
         entityData.define(PET_CHEST, ItemStack.EMPTY);
@@ -217,11 +222,11 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     }
     private boolean busy() {
         PetAction action = getPetAction();
-        return panelViewer != null || isPancake() || action.isInteraction() || action.isPlayAction()
+        return hasPanelViewers() || isPancake() || isNativeBusy() || action.isInteraction() || action.isPlayAction()
                 || action == PetAction.FLATTEN || action == PetAction.RESTORE;
     }
     private boolean canFight() {
-        if (!isAlive() || !isPowered() || !isFollowing() || isPancake() || panelViewer != null
+        if (!isAlive() || !isPowered() || !isFollowing() || isPancake() || hasPanelViewers()
                 || level().getGameTime() < interactionGraceUntil || getPetAction().isInteraction()
                 || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) return false;
         Player owner = level() instanceof ServerLevel server && getOwnerUUID() != null
@@ -230,7 +235,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     }
     private boolean validMonsterTarget(LivingEntity target) {
         if (!(target instanceof net.minecraft.world.entity.monster.Enemy) || target == this || !target.isAlive()
-                || target instanceof MechanicalPetEntity || distanceToSqr(target) > 16 * 16
+                || target instanceof MechanicalPet || distanceToSqr(target) > 16 * 16
                 || !hasLineOfSight(target) || getOwnerUUID() != null && getOwnerUUID().equals(target.getUUID())) return false;
         if (target instanceof net.minecraft.world.entity.NeutralMob neutral && !neutral.isAngryAt(this)) {
             Player owner = getOwnerUUID() == null ? null : level() instanceof ServerLevel server
@@ -261,7 +266,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         private BlockPos mirror;
         MirrorHissGoal() { setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK)); }
         @Override public boolean canUse() {
-            if (!isCat() || !isPowered() || !isFollowing() || panelViewer != null || isPancake()
+            if (!isCat() || !isPowered() || !isFollowing() || hasPanelViewers() || isPancake()
                     || !isAlive() || getTarget() != null || getPetAction().isInteraction()
                     || level().getGameTime() < interactionGraceUntil || mirrorHissCooldown > 0) return false;
             if (mirrorSearchCooldown-- > 0) return false;
@@ -270,7 +275,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             return mirror != null;
         }
         @Override public boolean canContinueToUse() {
-            return mirror != null && isCat() && isPowered() && isFollowing() && panelViewer == null
+            return mirror != null && isCat() && isPowered() && isFollowing() && !hasPanelViewers()
                     && !isPancake() && getTarget() == null && !getPetAction().isInteraction()
                     && level().getGameTime() >= interactionGraceUntil && mirrorHissCooldown <= 0
                     && isMirror(mirror) && isMirrorFront(mirror) && hasMirrorSight(mirror)
@@ -351,6 +356,11 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         server.playSound(null, getX(), getY(), getZ(), sound, net.minecraft.sounds.SoundSource.NEUTRAL, volume, 0.9F + random.nextFloat() * 0.2F);
     }
     @Override public boolean doHurtTarget(net.minecraft.world.entity.Entity target) {
+        if (isNativeBusy()) {
+            if (!isAlive() || !isTame() || !isPowered() || isPancake() || hasPanelViewers()
+                    || getPetAction().isInteraction() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) return false;
+            return super.doHurtTarget(target);
+        }
         if (!(target instanceof LivingEntity living) || !validMonsterTarget(living)
                 || !hasLineOfSight(living) || !canFight() || enemyAttackCooldown > 0) return false;
         boolean hit = super.doHurtTarget(target);
@@ -377,9 +387,10 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         if (jumpCooldown > 0) jumpCooldown--;
         if (enemyAttackCooldown > 0) enemyAttackCooldown--;
         if (mirrorHissCooldown > 0) mirrorHissCooldown--;
-        if (panelViewer != null && (level() instanceof ServerLevel server ? server.getServer().getPlayerList().getPlayer(panelViewer) : null) == null)
-            setPanelViewer(panelViewer, false);
-        if (getTarget() != null && (!canFight() || !validMonsterTarget(getTarget()))) setTarget(null);
+        if (!panelViewers.isEmpty() && level() instanceof ServerLevel server) {
+            panelViewers.removeIf(viewer -> server.getServer().getPlayerList().getPlayer(viewer) == null);
+        }
+        if (getTarget() != null && !isNativeBusy() && (!canFight() || !validMonsterTarget(getTarget()))) setTarget(null);
         if (getActionTicks() > 0) {
             entityData.set(ACTION_TICKS, getActionTicks() - 1);
             if (getActionTicks() <= 1) {
@@ -389,7 +400,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             }
             if (getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) refreshDimensions();
         }
-        if (panelViewer != null || isPancake() || !isPowered() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) {
+        if (hasPanelViewers() || isPancake() || !isPowered() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) {
             getNavigation().stop();
             if (!isPowered()) {
                 setTarget(null);
@@ -405,7 +416,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
             energyRemainder = 0;
             return;
         }
-        boolean active = getTarget() != null || getNavigation().isInProgress() || getPetAction().isInteraction()
+        boolean active = isNativeBusy() || getTarget() != null || getNavigation().isInProgress() || getPetAction().isInteraction()
                 || getPetAction().isPlayAction() || getDeltaMovement().horizontalDistanceSqr() > 0.0004;
         energyRemainder += active ? ACTIVE_EU_PER_TICK_NUMERATOR : IDLE_EU_PER_TICK_NUMERATOR;
         if (energyRemainder < POWER_UNIT) return;
@@ -424,7 +435,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         if (isPancake()) return;
         if (getHunger() > 0) {
             starvationTicks = 0;
-            boolean active = isPowered() && (getTarget() != null || getNavigation().isInProgress()
+            boolean active = isPowered() && (isNativeBusy() || getTarget() != null || getNavigation().isInProgress()
                     || getPetAction().isInteraction() || getPetAction().isPlayAction()
                     || getDeltaMovement().horizontalDistanceSqr() > 0.0004);
             hungerElapsedTicks += active ? 10 : 1;
@@ -445,56 +456,60 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         entityData.set(HUNGER, Math.max(0, Math.min(MAX_HUNGER, hunger)));
         if (getHunger() > 0) starvationTicks = 0;
     }
-    private MechanicalPetEntity findPartner(UUID id) {
-        return level() instanceof ServerLevel server && server.getEntity(id) instanceof MechanicalPetEntity other ? other : null;
+    private MechanicalPet findPartner(UUID id) {
+        if (!(level() instanceof ServerLevel server)) return null;
+        return server.getEntity(id) instanceof MechanicalPet other ? other : null;
     }
     private void tickPlay() {
-        if (panelViewer != null || isOrderedToSit() || isPeaceful() || isPancake() || !isPowered() || getTarget() != null || level().getGameTime() < interactionGraceUntil
-                || getPetAction().isInteraction() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) {
+        if (hasPanelViewers() || isOrderedToSit() || isPeaceful() || isPancake() || !isPowered() || getTarget() != null || level().getGameTime() < interactionGraceUntil
+                || getPetAction().isInteraction() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE
+                || isNativeBusy()) {
             if (playPartner != null) interruptPlay(0);
             return;
         }
         if (playPartner != null) {
-            MechanicalPetEntity other = findPartner(playPartner);
-            if (other == null || !other.isAlive() || other.isPeaceful() || other.isPancake() || other.isCat() == isCat()
-                    || distanceToSqr(other) > 16 || other.playPartner == null || !other.playPartner.equals(getUUID())) {
+            MechanicalPet other = findPartner(playPartner);
+            if (other == null || !other.asEntity().isAlive() || other.isPeaceful() || other.isPancake() || other.isCat() == isCat()
+                    || distanceToSqr(other.asEntity()) > 16 || other.getPlayPartnerId() == null || !other.getPlayPartnerId().equals(getUUID())) {
                 interruptPlay(0); return;
             }
-            if (other.panelViewer != null || other.isOrderedToSit() || level().getGameTime() < other.interactionGraceUntil
+            TamableAnimal otherEntity = other.asEntity();
+            if (other.getPanelViewerId() != null || otherEntity.isOrderedToSit() || level().getGameTime() < other.getInteractionGraceUntil()
                     || other.getPetAction().isInteraction() || other.getPetAction() == PetAction.FLATTEN || other.getPetAction() == PetAction.RESTORE
-                    || !hasLineOfSight(other) || !other.hasLineOfSight(this)) { interruptPlay(0); return; }
-            getLookControl().setLookAt(other, 30F, 30F);
-            if (getUUID().compareTo(other.getUUID()) < 0) {
-                if (distanceToSqr(other) > 2.25) getNavigation().moveTo(other, 0.8); else getNavigation().stop();
+                    || !hasLineOfSight(otherEntity) || !otherEntity.hasLineOfSight(this)) { interruptPlay(0); return; }
+            getLookControl().setLookAt(otherEntity, 30F, 30F);
+            if (getUUID().compareTo(otherEntity.getUUID()) < 0) {
+                if (distanceToSqr(otherEntity) > 2.25) getNavigation().moveTo(otherEntity, 0.8); else getNavigation().stop();
                 if (--playPhaseTicks <= 0) advancePlay(other);
             }
             return;
         }
         if (tickCount % 10 != 0) return;
         AABB bounds = getBoundingBox().inflate(4.0);
-        MechanicalPetEntity candidate = level().getEntitiesOfClass(MechanicalPetEntity.class, bounds,
-                other -> other != this && other.isAlive() && other.isCat() != isCat() && !other.isPeaceful() && !other.isPancake()
-                        && other.panelViewer == null && other.playPartner == null && !other.isOrderedToSit()
-                        && other.isPowered() && other.getTarget() == null
+        MechanicalPet candidate = level().getEntitiesOfClass(TamableAnimal.class, bounds,
+                entity -> entity != this && entity instanceof MechanicalPet other && other.asEntity().isAlive()
+                        && other.isCat() != isCat() && !other.isPeaceful() && !other.isPancake()
+                        && other.getPanelViewerId() == null && other.getPlayPartnerId() == null && !entity.isOrderedToSit()
+                        && other.isPowered() && entity.getTarget() == null
                         && !other.getPetAction().isInteraction() && other.getPetAction() != PetAction.FLATTEN && other.getPetAction() != PetAction.RESTORE
-                        && level().getGameTime() >= other.interactionGraceUntil && hasLineOfSight(other) && other.hasLineOfSight(this)
-                       )
-                .stream().filter(other -> getUUID().compareTo(other.getUUID()) < 0)
-                .min(java.util.Comparator.comparingDouble(this::distanceToSqr)).orElse(null);
-        if (candidate == null || distanceToSqr(candidate) > 16) return;
-        if (!faces(candidate) || !candidate.faces(this)) return;
-        playPartner = candidate.getUUID(); candidate.playPartner = getUUID();
+                        && level().getGameTime() >= other.getInteractionGraceUntil() && hasLineOfSight(entity) && entity.hasLineOfSight(this)
+                        && !other.isNativeBusy())
+                .stream().map(entity -> (MechanicalPet) entity).filter(other -> getUUID().compareTo(other.asEntity().getUUID()) < 0)
+                .min(java.util.Comparator.comparingDouble(other -> distanceToSqr(other.asEntity()))).orElse(null);
+        if (candidate == null || distanceToSqr(candidate.asEntity()) > 16) return;
+        if (!faces(candidate) || candidate.asEntity().getLookAngle().normalize().dot(position().subtract(candidate.asEntity().position()).normalize()) <= 0.15) return;
+        playPartner = candidate.asEntity().getUUID(); candidate.setPlayPartnerId(getUUID());
         startPlayPair(candidate);
     }
-    private boolean faces(MechanicalPetEntity other) {
-        Vec3 toward = other.position().subtract(position()).normalize();
+    private boolean faces(MechanicalPet other) {
+        Vec3 toward = other.asEntity().position().subtract(position()).normalize();
         return getLookAngle().normalize().dot(toward) > 0.15;
     }
-    private void startPlayPair(MechanicalPetEntity other) {
-        playPhaseTicks = other.playPhaseTicks = 30;
-        playPhase = other.playPhase = 1;
-        leadAttacks = true;
-        setAction(PetAction.STANDOFF, 30); other.setAction(PetAction.STANDOFF, 30);
+    private void startPlayPair(MechanicalPet other) {
+        playPhaseTicks = 30; other.setPlayPhaseTicks(30);
+        playPhase = 1; other.setPlayPhase(1);
+        leadAttacks = true; other.setLeadAttacks(true);
+        setAction(PetAction.STANDOFF, 30); other.setPetAction(PetAction.STANDOFF, 30);
     }
     private boolean safeFlatGround() {
         if (!onGround() || !safeStep(Vec3.ZERO)) return false;
@@ -528,63 +543,79 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
                 && level().noCollision(this, getBoundingBox().move(motion))
                 && Math.abs(next.x - getX()) < 1.5 && Math.abs(next.z - getZ()) < 1.5;
     }
-    private void advancePlay(MechanicalPetEntity other) {
+    private void advancePlay(MechanicalPet other) {
         PetAction action = switch (playPhase) { case 1 -> PetAction.POUNCE; case 2 -> PetAction.SWIPE; case 3 -> PetAction.RETREAT; default -> PetAction.STANDOFF; };
         int nextPhase = playPhase == 3 ? 0 : (playPhase == 0 ? 1 : playPhase + 1);
-        playPhase = other.playPhase = nextPhase;
+        playPhase = nextPhase; other.setPlayPhase(nextPhase);
         boolean lead = leadAttacks;
         if (action == PetAction.POUNCE) {
-            MechanicalPetEntity attacker = lead ? this : other, retreating = lead ? other : this;
-            Vec3 toward = retreating.position().subtract(attacker.position()).normalize().scale(0.32).add(0, 0.18, 0);
-            if (attacker.safeStep(new Vec3(toward.x, 0, toward.z))) {
-                attacker.setDeltaMovement(toward);
-                attacker.hasImpulse = true;
+            MechanicalPet attacker = lead ? this : other, retreating = lead ? other : this;
+            TamableAnimal attackerEntity = attacker.asEntity(), retreatingEntity = retreating.asEntity();
+            Vec3 toward = retreatingEntity.position().subtract(attackerEntity.position()).normalize().scale(0.32).add(0, 0.18, 0);
+            if (attacker.canSafelyStep(new Vec3(toward.x, 0, toward.z))) {
+                attackerEntity.setDeltaMovement(toward); attackerEntity.hasImpulse = true;
             }
-            attacker.setAction(PetAction.POUNCE, 18); retreating.setAction(PetAction.RETREAT, 20);
-            playPhaseTicks = other.playPhaseTicks = 20;
+            attacker.setPetAction(PetAction.POUNCE, 18); retreating.setPetAction(PetAction.RETREAT, 20);
+            playPhaseTicks = 20; other.setPlayPhaseTicks(20);
         } else if (action == PetAction.SWIPE) {
-            MechanicalPetEntity attacker = lead ? this : other, retreating = lead ? other : this;
-            Vec3 pushMotion = retreating.position().subtract(attacker.position()).normalize().scale(0.25);
-            if (attacker.distanceToSqr(retreating) <= 5 && retreating.safeStep(pushMotion)) {
-                retreating.setDeltaMovement(pushMotion.x, Math.max(0.08, retreating.getDeltaMovement().y), pushMotion.z);
-                retreating.hasImpulse = true;
+            MechanicalPet attacker = lead ? this : other, retreating = lead ? other : this;
+            TamableAnimal attackerEntity = attacker.asEntity(), retreatingEntity = retreating.asEntity();
+            Vec3 pushMotion = retreatingEntity.position().subtract(attackerEntity.position()).normalize().scale(0.25);
+            if (attackerEntity.distanceToSqr(retreatingEntity) <= 5 && retreating.canSafelyStep(pushMotion)) {
+                retreatingEntity.setDeltaMovement(pushMotion.x, Math.max(0.08, retreatingEntity.getDeltaMovement().y), pushMotion.z);
+                retreatingEntity.hasImpulse = true;
             }
-            attacker.setAction(PetAction.SWIPE, 12); retreating.setAction(PetAction.RETREAT, 20);
-            playPhaseTicks = other.playPhaseTicks = 20;
+            attacker.setPetAction(PetAction.SWIPE, 12); retreating.setPetAction(PetAction.RETREAT, 20);
+            playPhaseTicks = 20; other.setPlayPhaseTicks(20);
         } else if (action == PetAction.RETREAT) {
-            setAction(PetAction.RETREAT, 20); other.setAction(PetAction.RETREAT, 20);
-            Vec3 away = position().subtract(other.position()).normalize().scale(0.2);
-            Vec3 otherAway = other.position().subtract(position()).normalize().scale(0.2);
-            if (safeStep(away)) { setDeltaMovement(away.x, 0.1, away.z); hasImpulse = true; }
-            if (other.safeStep(otherAway)) { other.setDeltaMovement(otherAway.x, 0.1, otherAway.z); other.hasImpulse = true; }
-            playPhaseTicks = other.playPhaseTicks = 20;
+            setAction(PetAction.RETREAT, 20); other.setPetAction(PetAction.RETREAT, 20);
+            Vec3 away = position().subtract(other.asEntity().position()).normalize().scale(0.2);
+            Vec3 otherAway = other.asEntity().position().subtract(position()).normalize().scale(0.2);
+            if (canSafelyStep(away)) { setDeltaMovement(away.x, 0.1, away.z); hasImpulse = true; }
+            if (other.canSafelyStep(otherAway)) { other.asEntity().setDeltaMovement(otherAway.x, 0.1, otherAway.z); other.asEntity().hasImpulse = true; }
+            playPhaseTicks = 20; other.setPlayPhaseTicks(20);
         } else {
-            leadAttacks = !leadAttacks;
-            setAction(PetAction.STANDOFF, 30); other.setAction(PetAction.STANDOFF, 30); playPhaseTicks = other.playPhaseTicks = 30;
+            leadAttacks = !leadAttacks; other.setLeadAttacks(leadAttacks);
+            setAction(PetAction.STANDOFF, 30); other.setPetAction(PetAction.STANDOFF, 30);
+            playPhaseTicks = 30; other.setPlayPhaseTicks(30);
         }
     }
     private void setAction(PetAction action, int ticks) {
         if (getPetAction() == PetAction.BARK && action != PetAction.BARK) PetSounds.stop(this);
         entityData.set(ACTION, action.ordinal()); entityData.set(ACTION_TICKS, ticks);
     }
-    public void setPanelViewer(UUID viewer, boolean open) {
+    @Override public void setPetAction(PetAction action, int ticks) { setAction(action, ticks); }
+    @Override public UUID getPlayPartnerId() { return playPartner; }
+    @Override public void setPlayPartnerId(UUID id) { playPartner = id; }
+    @Override public UUID getPanelViewerId() { return panelViewers.stream().findFirst().orElse(null); }
+    @Override public boolean hasPanelViewers() { return !panelViewers.isEmpty(); }
+    @Override public long getInteractionGraceUntil() { return interactionGraceUntil; }
+    @Override public void setInteractionGraceUntil(long tick) { interactionGraceUntil = tick; }
+    @Override public int getPlayPhaseTicks() { return playPhaseTicks; }
+    @Override public void setPlayPhaseTicks(int ticks) { playPhaseTicks = ticks; }
+    @Override public int getPlayPhase() { return playPhase; }
+    @Override public void setPlayPhase(int phase) { playPhase = phase; }
+    @Override public boolean isLeadAttacks() { return leadAttacks; }
+    @Override public void setLeadAttacks(boolean lead) { leadAttacks = lead; }
+    @Override public boolean canSafelyStep(Vec3 motion) { return safeStep(motion); }
+    @Override public void setPanelViewer(UUID viewer, boolean open) {
         if (level().isClientSide) return;
-        if (open) { panelViewer = viewer; interruptPlay(PLAYER_GRACE_TICKS); }
-        else if (viewer != null && viewer.equals(panelViewer)) panelViewer = null;
+        if (open && viewer != null) { panelViewers.add(viewer); interruptPlay(PLAYER_GRACE_TICKS); }
+        else if (viewer != null) panelViewers.remove(viewer);
     }
     private void interruptPlay(int grace) {
         if (grace > 0) interactionGraceUntil = level().getGameTime() + grace;
-        MechanicalPetEntity other = playPartner == null ? null : findPartner(playPartner);
-        if (other != null && other.playPartner != null && other.playPartner.equals(getUUID())) {
-            other.playPartner = null; other.playPhaseTicks = 0; other.playPhase = 0;
-            if (grace > 0) other.interactionGraceUntil = interactionGraceUntil;
-            other.setAction(PetAction.IDLE, 0); other.getNavigation().stop();
+        MechanicalPet other = playPartner == null ? null : findPartner(playPartner);
+        if (other != null && getUUID().equals(other.getPlayPartnerId())) {
+            other.setPlayPartnerId(null); other.setPlayPhaseTicks(0); other.setPlayPhase(0);
+            if (grace > 0) other.setInteractionGraceUntil(interactionGraceUntil);
+            other.setPetAction(PetAction.IDLE, 0); other.asEntity().getNavigation().stop();
         }
         playPartner = null; playPhaseTicks = 0; playPhase = 0; getNavigation().stop();
         if (getPetAction() == PetAction.STANDOFF || getPetAction() == PetAction.POUNCE || getPetAction() == PetAction.SWIPE || getPetAction() == PetAction.RETREAT)
             setAction(PetAction.IDLE, 0);
     }
-    public void command(Player player, int id) {
+    @Override public void command(Player player, int id) {
         if (level().isClientSide || !isOwnedBy(player) || distanceToSqr(player) > 64) return;
         if (id < 0 || id > 13 || (isPancake() && id != 0 && id != 5)) return;
         if (!isPowered() && id != 0 && id != 5) return;
@@ -626,7 +657,10 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         }
     }
     /** Call only from the Create fan compatibility bridge after a real fan restoration interaction. */
-    public void beginRestore() {
+    @Override public void nativeHiss() { }
+    @Override public void nativeFlatten() { }
+    @Override public void nativeRestore() { }
+    @Override public void beginRestore() {
         if (level().isClientSide || !isCat() || !isPancake() || getPetAction() == PetAction.RESTORE) return;
         AABB standing = new AABB(getX() - 0.3, getY(), getZ() - 0.3, getX() + 0.3, getY() + 0.7, getZ() + 0.3);
         if (!level().getWorldBorder().isWithinBounds(standing) || !level().noCollision(this, standing)) return;
@@ -634,7 +668,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         getNavigation().stop();
     }
     /** Called by the mechanical press integration when this cat is flattened. */
-    public void flatten() {
+    @Override public void flatten() {
         if (!level().isClientSide && isCat() && !isPancake() && getPetAction() != PetAction.FLATTEN) {
             PetSounds.stop(this);
             interruptPlay(PLAYER_GRACE_TICKS); setAction(PetAction.FLATTEN, 20); getNavigation().stop();
@@ -660,7 +694,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
     private InteractionResult tryFeed(Player player, InteractionHand hand) {
         if (isPancake() || getPetAction() == PetAction.FLATTEN || getPetAction() == PetAction.RESTORE) return InteractionResult.PASS;
         ItemStack stack = player.getItemInHand(hand);
-        if (stack.is(PetRegistry.PANCAKE_ITEM.get())) return InteractionResult.PASS;
+        if (stack.is(PetRegistry.PANCAKE_ITEM.get()) || MeowchanicsPancakeBridge.isMechanical(stack)) return InteractionResult.PASS;
         ResourceLocation heldId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (isCat() && LAOWU_CATNIP.equals(heldId)) {
             if (level().isClientSide) return InteractionResult.SUCCESS;
@@ -696,7 +730,7 @@ public final class MechanicalPetEntity extends net.minecraft.world.entity.Tamabl
         return food != null && food.isMeat() ? 20 : 0;
     }
     /** Called by placement-item code after spawning; owner UUID is saved by TamableAnimal's normal NBT. */
-    public void bindTo(Player owner) { if (!level().isClientSide) tame(owner); }
+    @Override public void bindTo(Player owner) { if (!level().isClientSide) tame(owner); }
     @Override public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
         boolean damaged = super.hurt(source, amount);
         if (damaged && !level().isClientSide && getPetAction() == PetAction.BARK) setAction(PetAction.IDLE, 0);

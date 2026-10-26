@@ -1,6 +1,6 @@
 package com.ic2newera.client.pet;
 
-import com.ic2newera.pet.MechanicalPetEntity;
+import com.ic2newera.pet.MechanicalPet;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -12,18 +12,19 @@ import net.minecraft.world.item.DyeableLeatherItem;
 import net.minecraft.world.item.HorseArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.entity.TamableAnimal;
 
 /** Cuboid chest packs and horse-armor overlays that follow the authored pet rig. */
-final class PetEquipmentLayer extends RenderLayer<MechanicalPetEntity, AuthoredPetModel> {
+final class PetEquipmentLayer<T extends TamableAnimal & MechanicalPet> extends RenderLayer<T, AuthoredPetModel<T>> {
     private static final ResourceLocation WHITE = new ResourceLocation(
             "ic2newera", "textures/entity/pets/equipment_white.png");
 
-    PetEquipmentLayer(RenderLayerParent<MechanicalPetEntity, AuthoredPetModel> parent) {
+    PetEquipmentLayer(RenderLayerParent<T, AuthoredPetModel<T>> parent) {
         super(parent);
     }
 
     @Override
-    public void render(PoseStack pose, MultiBufferSource buffers, int packedLight, MechanicalPetEntity pet,
+    public void render(PoseStack pose, MultiBufferSource buffers, int packedLight, T pet,
                        float limbSwing, float limbSwingAmount, float partialTick, float ageInTicks,
                        float netHeadYaw, float headPitch) {
         ItemStack chest = pet.getPetChestStack();
@@ -46,7 +47,7 @@ final class PetEquipmentLayer extends RenderLayer<MechanicalPetEntity, AuthoredP
         return 0xA9AFB2;
     }
 
-    private static void renderArmor(AuthoredPetModel model, MechanicalPetEntity pet, PoseStack pose,
+    private static <T extends TamableAnimal & MechanicalPet> void renderArmor(AuthoredPetModel<T> model, T pet, PoseStack pose,
                                    com.mojang.blaze3d.vertex.VertexConsumer consumer, int light, int color) {
         boolean cat = pet.isCat();
         // A narrow back plate follows the torso while leaving cat wings and the rear flame clear.
@@ -94,7 +95,7 @@ final class PetEquipmentLayer extends RenderLayer<MechanicalPetEntity, AuthoredP
         }
     }
 
-    private static void renderChestPacks(AuthoredPetModel model, MechanicalPetEntity pet, PoseStack pose,
+    private static <T extends TamableAnimal & MechanicalPet> void renderChestPacks(AuthoredPetModel<T> model, T pet, PoseStack pose,
                                         com.mojang.blaze3d.vertex.VertexConsumer consumer, int light) {
         boolean cat = pet.isCat();
         float y0 = cat ? 7F : 7F;
@@ -118,7 +119,7 @@ final class PetEquipmentLayer extends RenderLayer<MechanicalPetEntity, AuthoredP
         }
     }
 
-    private static void box(AuthoredPetModel model, MechanicalPetEntity pet, PoseStack pose,
+    private static <T extends TamableAnimal & MechanicalPet> void box(AuthoredPetModel<T> model, T pet, PoseStack pose,
                             com.mojang.blaze3d.vertex.VertexConsumer consumer, int light, String bone,
                             float x0, float y0, float z0, float x1, float y1, float z1, int color) {
         model.renderEquipmentCuboid(pet, pose, consumer, light, bone, x0, y0, z0, x1, y1, z1, color);

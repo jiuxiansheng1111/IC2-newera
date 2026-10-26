@@ -1,6 +1,6 @@
 package com.ic2newera.client.pet;
 
-import com.ic2newera.pet.MechanicalPetEntity;
+import com.ic2newera.pet.MechanicalPet;
 import com.ic2newera.pet.PetAction;
 import com.ic2newera.pet.PetMenu;
 import com.ic2newera.pet.PetInventory;
@@ -17,6 +17,8 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
     private static final int PANEL_HEIGHT = 230;
     private final Button[] commandButtons = new Button[14];
     private Button pageButton;
+    private Button nativeProfileButton;
+    private Button nativeLogisticsButton;
     private int page;
 
     public PetScreen(PetMenu menu, Inventory inventory, Component title) {
@@ -49,7 +51,18 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
         }
         pageButton = addRenderableWidget(Button.builder(Component.empty(), button -> advancePage())
                 .bounds(leftPos + 194, topPos + 7, 98, 20).build());
+        if (!isDog) {
+            nativeProfileButton = addNativeButton(15, "screen.ic2newera.pet.native_profile", x, y + 69);
+            nativeLogisticsButton = addNativeButton(16, "screen.ic2newera.pet.native_logistics", x + 142, y + 69);
+        }
         menu.setInventoryPage(false);
+    }
+
+    private Button addNativeButton(int id, String key, int x, int y) {
+        return addRenderableWidget(Button.builder(Component.translatable(key), button -> {
+            if (minecraft != null && minecraft.gameMode != null)
+                minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
+        }).bounds(x, y, 138, 20).build());
     }
 
     private void advancePage() {
@@ -71,8 +84,8 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
 
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xE61A2022);
-        MechanicalPetEntity pet = menu.pet();
-        if (pet == null || !pet.isAlive()) {
+        MechanicalPet pet = menu.pet();
+        if (pet == null || !pet.asEntity().isAlive()) {
             graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.unavailable"), leftPos + 8, topPos + 35, 0xE8796B);
             return;
         }
@@ -81,9 +94,9 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
             graphics.drawString(font, pet.isCat() ? Component.translatable("screen.ic2newera.pet.kind.cat")
                     : Component.translatable("screen.ic2newera.pet.kind.dog"), leftPos + 8, topPos + 31, 0xE9C46A);
             graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.health",
-                    Math.round(pet.getHealth()), Math.round(pet.getMaxHealth())), leftPos + 112, topPos + 31, 0xF0C7B0);
+                    Math.round(pet.asEntity().getHealth()), Math.round(pet.asEntity().getMaxHealth())), leftPos + 112, topPos + 31, 0xF0C7B0);
             graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.hunger",
-                    pet.getHunger(), MechanicalPetEntity.MAX_HUNGER), leftPos + 8, topPos + 47,
+                    pet.getHunger(), MechanicalPet.MAX_HUNGER), leftPos + 8, topPos + 47,
                     pet.getHunger() == 0 ? 0xFFFF5B55 : 0xB5D18A);
             int charge = pet.getBatteryCharge();
             graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.battery",
@@ -104,15 +117,15 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
         graphics.fill(leftPos + 5, topPos + 28, leftPos + imageWidth - 5, topPos + 110, 0xFF293337);
         graphics.fill(leftPos + 8, topPos + 31, leftPos + 105, topPos + 107, 0xFF13191B);
         InventoryScreen.renderEntityInInventoryFollowsMouse(graphics, leftPos + 55, topPos + 104, 33,
-                (float) (leftPos + 55) - mouseX, (float) (topPos + 64) - mouseY, pet);
+                (float) (leftPos + 55) - mouseX, (float) (topPos + 64) - mouseY, pet.asEntity());
         graphics.drawString(font, pet.isCat() ? Component.translatable("screen.ic2newera.pet.kind.cat")
                 : Component.translatable("screen.ic2newera.pet.kind.dog"), leftPos + 115, topPos + 36, 0xE9C46A);
         String statusKey = pet.isPancake() ? "screen.ic2newera.pet.status.pancake"
                 : pet.isFollowing() ? "screen.ic2newera.pet.status.following" : "screen.ic2newera.pet.status.waiting";
         graphics.drawString(font, Component.translatable(statusKey), leftPos + 115, topPos + 50, 0xD7E0DE);
         graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.health",
-                Math.round(pet.getHealth()), Math.round(pet.getMaxHealth())), leftPos + 115, topPos + 64, 0xF0C7B0);
-        graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.hunger", pet.getHunger(), MechanicalPetEntity.MAX_HUNGER),
+                Math.round(pet.asEntity().getHealth()), Math.round(pet.asEntity().getMaxHealth())), leftPos + 115, topPos + 64, 0xF0C7B0);
+        graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.hunger", pet.getHunger(), MechanicalPet.MAX_HUNGER),
                 leftPos + 115, topPos + 78, pet.getHunger() == 0 ? 0xFFFF5B55 : 0xB5D18A);
         int charge = pet.getBatteryCharge();
         graphics.drawString(font, Component.translatable("screen.ic2newera.pet.status.battery",
@@ -142,9 +155,9 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
     }
 
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        MechanicalPetEntity pet = menu.pet();
-        boolean accessible = pet != null && pet.isAlive() && minecraft != null && minecraft.player != null
-                && pet.isOwnedBy(minecraft.player) && pet.distanceToSqr(minecraft.player) <= 64;
+        MechanicalPet pet = menu.pet();
+        boolean accessible = pet != null && pet.asEntity().isAlive() && minecraft != null && minecraft.player != null
+                && pet.asEntity().isOwnedBy(minecraft.player) && pet.asEntity().distanceToSqr(minecraft.player) <= 64;
         boolean transition = pet == null || pet.getPetAction() == PetAction.FLATTEN || pet.getPetAction() == PetAction.RESTORE;
         boolean barking = pet != null && pet.getPetAction() == PetAction.BARK;
         boolean interactionBusy = pet != null && pet.getPetAction().isInteraction();
@@ -156,6 +169,12 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
             boolean enabledDuringInteraction = !interactionBusy || i == 0 || i == 5 || (barking && i == 6);
             boolean powered = pet != null && (pet.isPowered() || i == 0 || i == 5);
             button.active = page != 2 && accessible && !transition && enabledForPancake && enabledDuringInteraction && powered;
+        }
+        if (nativeProfileButton != null) {
+            nativeProfileButton.visible = page != 2;
+            nativeProfileButton.active = accessible && !transition;
+            nativeLogisticsButton.visible = page == 1;
+            nativeLogisticsButton.active = accessible && pet != null && pet.hasPetChest() && !transition;
         }
         pageButton.setMessage(Component.translatable(page == 0 ? "screen.ic2newera.pet.page.cute"
                 : page == 1 ? "screen.ic2newera.pet.page.inventory" : "screen.ic2newera.pet.page.actions"));

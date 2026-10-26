@@ -6,9 +6,23 @@
   "mixins": [
     "FarmerCookingPotMixin",
     "TopArmorMaterialMixin",
-    "PetAirCurrentMixin"
+    "PetAirCurrentMixin",
+    "MeowchanicsEventsMixin",
+    "MeowchanicsHissingMixin",
+    "MeowchanicsChestDataMixin",
+    "MeowchanicsChestContainerMixin",
+    "MeowchanicsPackageMenuMixin",
+    "MeowchanicsProfileMixin",
+    "MeowchanicsPancakeMixin",
+    "MeowchanicsBreedingMixin",
+    "MeowchanicsFusionMixin",
+    "MeowchanicsSplitMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "MeowchanicsCarrierPreviewMixin",
+    "MeowchanicsPancakeRenderMixin"
+  ]
 }

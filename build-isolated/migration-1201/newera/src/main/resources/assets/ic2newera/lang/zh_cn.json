@@ -346,5 +346,7 @@
   "screen.ic2newera.pet.tip.cargo": "宠物货物栏；箱子必须保持装备才能存取。",
   "screen.ic2newera.pet.tip.cargo_locked": "先在箱子槽放入普通箱子以启用27格货物栏。",
   "screen.ic2newera.pet.page.inventory": "物品与装备",
-  "screen.ic2newera.pet.page.actions": "互动动作"
+  "screen.ic2newera.pet.page.actions": "互动动作",
+  "screen.ic2newera.pet.native_profile": "老吴档案 / 饰品",
+  "screen.ic2newera.pet.native_logistics": "物流地址 / 包裹"
 }

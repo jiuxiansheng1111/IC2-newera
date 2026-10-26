@@ -1,41 +1,59 @@
 package com.ic2newera.pet;
 
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.Level;
 
-/** A captured mechanical cat. Restored by actual fan airflow, without recipes or an inventory button. */
+/** Legacy registry item retained only to migrate old mechanical-cat pancakes into Meowchanics' native item. */
 public final class MechanicalCatPancakeItem extends Item {
     public static final String PET_DATA = "MechanicalCat";
-    public MechanicalCatPancakeItem(Properties properties) { super(properties); }
 
+    public MechanicalCatPancakeItem(Properties properties) { super(properties.stacksTo(1)); }
+
+    @Override
+    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slot, boolean selected) {
+        super.inventoryTick(stack, level, entity, slot, selected);
+        if (level.isClientSide || !(entity instanceof Player player) || stack.getItem() != this) return;
+        ItemStack migrated = MeowchanicsPancakeBridge.convertLegacy(stack);
+        if (migrated.getItem() != this) player.getInventory().setItem(slot, migrated);
+    }
+
+    /** Right-clicking a legacy stack also upgrades it immediately, including offhand stacks. */
+    @Override
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        ItemStack migrated = MeowchanicsPancakeBridge.convertLegacy(stack);
+        if (migrated == stack) return InteractionResultHolder.pass(stack);
+        player.setItemInHand(hand, migrated);
+        return InteractionResultHolder.sidedSuccess(migrated, level.isClientSide);
+    }
+
+    /** Dropped legacy stacks become appliance-compatible before Meowchanics' item tick can restore them. */
+    @Override
+    public boolean onEntityItemUpdate(ItemStack stack, ItemEntity item) {
+        if (!item.level().isClientSide && stack.getItem() == this) {
+            ItemStack migrated = MeowchanicsPancakeBridge.convertLegacy(stack);
+            if (migrated.getItem() != this) {
+                item.setItem(migrated);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Create airflow invokes this for old dropped stacks; migration leaves restoration to the native handler. */
     public static boolean restore(ServerLevel level, ItemEntity item) {
-        ItemStack stack = item.getItem();
-        if (!item.isAlive() || stack.getCount() != 1 || !stack.is(PetRegistry.PANCAKE_ITEM.get())
-                || !stack.hasTag() || !stack.getTag().contains(PET_DATA, 10)) return false;
-        CompoundTag saved = stack.getTag().getCompound(PET_DATA).copy();
-        if (!saved.hasUUID("UUID") || !saved.hasUUID("Owner")) return false;
-        for (ServerLevel dimension : level.getServer().getAllLevels())
-            if (dimension.getEntity(saved.getUUID("UUID")) != null) return false;
-        MechanicalPetEntity pet = PetRegistry.CAT.get().create(level);
-        if (pet == null) return false;
-        saved.putBoolean("MechanicalCat", true);
-        saved.putBoolean("MechanicalPetPancake", true);
-        saved.putInt("MechanicalPetAction", PetAction.IDLE.ordinal());
-        saved.putInt("MechanicalPetActionTicks", 0);
-        saved.remove("Pos"); saved.remove("Motion"); saved.remove("Rotation");
-        pet.load(saved);
-        pet.moveTo(item.getX(), item.getY(), item.getZ(), item.getYRot(), 0);
-        // Require space for the fully restored cat, not just the flat item's box.
-        AABB standing = new AABB(item.getX() - 0.3, item.getY(), item.getZ() - 0.3,
-                item.getX() + 0.3, item.getY() + 0.7, item.getZ() + 0.3);
-        if (!level.getWorldBorder().isWithinBounds(standing) || !level.noCollision(pet, standing)) return false;
-        pet.beginRestore();
-        if (!level.addFreshEntity(pet)) return false;
-        item.discard();
+        if (!item.isAlive() || item.level().isClientSide
+                || !(item.getItem().getItem() instanceof MechanicalCatPancakeItem)) return false;
+        ItemStack migrated = MeowchanicsPancakeBridge.convertLegacy(item.getItem());
+        if (migrated.getItem() instanceof MechanicalCatPancakeItem) return false;
+        item.setItem(migrated);
         return true;
     }
 }

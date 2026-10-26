@@ -15,10 +15,10 @@ public final class PetInventory extends ItemStackHandler {
     public static final int CARGO_SIZE = 27;
     public static final int SIZE = CARGO_START + CARGO_SIZE;
     private static final ResourceLocation IC2_RE_BATTERY = new ResourceLocation("ic2", "re_battery");
-    private final MechanicalPetEntity pet;
+    private final MechanicalPet pet;
     private boolean loading;
 
-    PetInventory(MechanicalPetEntity pet) {
+    PetInventory(MechanicalPet pet) {
         super(SIZE);
         this.pet = pet;
     }
