@@ -1,12 +1,18 @@
-IC2：新纪元 1.20.1 — 玩家测试包 r47
+IC2：新纪元 1.20.1 — 玩家测试包 r48
 
 状态说明
-r47 面向 Minecraft 1.20.1 / Forge 47.4.28 / Java 17。最终源码构建已成功，并完成静态资源核对；本轮已在新的独立1.20.1验收世界完成两次三机器人施工：小屋280/280、小亭64/64；缺料补给、暂停继续及重载续建均有现场记录。2026-10-27已通过既有脚本更新本机独立1.20.1实例，保留旧JAR备份；本机可正常启动原独立实例，不必重新导入。可分享的游玩包文件名为 IC2-New-Era-1.20.1-Forge-47.4.28-r47.mrpack。源码同步以公开分支和项目交付记录为准。
+r48 面向 Minecraft 1.20.1 / Forge 47.4.28 / Java 17，新增依赖已按下文版本固定。r48 已构建并安装，具体产物以本轮交付回执为准；新增功能尚未实机验收。r47 的两项三机器人施工验收只属于 r47，不代表 r48 通过。r47 包名为 IC2-New-Era-1.20.1-Forge-47.4.28-r47.mrpack，保留作历史基线。
 
 导入与启动
-将 .mrpack 拖入支持Modrinth整合包的PCL2，导入为独立实例。旧版PCL2拖入无反应时，使用整合包安装入口手动选取mrpack。包内提供便携Java17及对应源码；15个依赖从锁定作者地址联网下载。若未自动识别Java，可选择实例内IC2-NewEra-runtime/java17/bin/javaw.exe。本包供新的1.20.1世界使用，不迁移1.19.2旧世界。
+将 .mrpack 拖入支持Modrinth整合包的PCL2，导入为独立实例。旧版PCL2拖入无反应时，使用整合包安装入口手动选取mrpack。包内沿用便携Java17及对应源码；客户端配置锁定30个第三方模组依赖，由启动器从作者来源下载。Linux服务端本地私用包包含适用于服务端的上游JAR；这些第三方JAR不提交到公开GitHub。若未自动识别Java，可选择实例内IC2-NewEra-runtime/java17/bin/javaw.exe。本包供新的1.20.1世界使用，不迁移1.19.2旧世界。
 
-r47 协作建造与图纸
+r48 新增依赖与多人玩法（已随包固定，待实机验收）
+连锁采集使用 FTB Ultimine 2001.1.8、FTB Library 2001.2.13 和 Architectury API 9.2.14；按住 `~` 触发，服务端最大方块数固定为64，避免点按误拆。客户端可在控制设置调整键位。中键整理使用 Simple Inventory Sorter 23.0.11，执行容器真实排序，不是 Mouse Tweaks 拖动物品；整合包包含 Ultimine、FTB Library 和 Inventory Sorter 的 zh_cn 翻译补丁。
+AE2 15.4.11 + GuideME 20.1.15 负责 ME 网络仓储、终端检索与样板自动合成，使用 AE2 原生 ME Terminal、Pattern Provider、Storage Bus。旧新纪元终端仍只提供旧存档物品取回。本阶段手机到 AE2 的对接延期，由玩家直接使用 AE2 原生终端；手机现有机器人、工业监控和 AI 联网能力保持，机器人按 ProcessGraph 操作真实 IC2/Create/原版机器，AI 不代玩家提交 AE2 合成。
+飞行/推进扩展采用 Create: Propulsion 0.4.1、Valkyrien Skies 2.4.11、Kotlin for Forge 4.11.0，作为 Create 推进路线，不另加 Clockwork。Propulsion 项目注明 very early alpha，飞行和Linux原生运行仍待验收；VS Linux原生库要求 glibc，Alpine/musl不在官方兼容说明内。
+六个图形前置仅装客户端：Embeddium 0.3.31、Oculus 1.8.0、Iris & Oculus Flywheel Compat 2.0.3、Entity Model Features 3.3.12、Entity Texture Features 7.2.6、Fusion 1.3.15b；EMF需配ETF。服务端不要安装这六项。包内没有实际光影材质包；玩家如需光影需自行选择兼容资源。r48新增功能尚未实机验收。
+
+r47 历史验收：协作建造与图纸
 在机器人工作页打开“建造与生产线”，选择1–8名，人数包含领队。同主人、同维度、64格内已加载的空闲机器人可参与。先给每台机器人准备电池、食物和材料，各自使用自己的货物槽，不会自动从队友背包取料。先预览，再点“开始施工”。共享进度持久保存；缺料、停电、通路受阻时等待补给，可暂停、继续或取消；取消保留已放建筑。
 点击“文件图纸 / 图片”→“打开图纸目录”，放入.nbt、.schem v2/v3、.litematic、带内嵌贴图的cuboid .bbmodel、紧凑.json或PNG/JPG。固定目录为当前版本目录/IC2-NewEra-blueprints/inbox；附带example-house.json（300构件，含外部台阶）、simple-pavilion.json（64构件青白小亭）与README.md。也可拖文件进窗口。
 普通蓝图可直接解析；自由描述点“AI创作”，参考图片点“解析并预览”，需要启用玩家已有的AI配置，图片需要视觉模型。文字/图片会发送至已配置AI服务，图片和密钥不发给游戏服务器。AI结果按外观优先生成三维方块方案，内部可自行调整；无法保证单张图片准确还原不可见结构。生成JSON存generated，复制到inbox后可编辑重导入。
@@ -25,7 +31,7 @@ r47 协作建造与图纸
 - 狗面板“大狗到底叫不叫”保留完整622.714秒用户音频，手动播放/停止并伴舞。此音效已随JAR内置，无需Voice-Bundle；狗攻击低吼，不替换为猫饼发射音。
 
 可选机器人AI语音
-旧的 `IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip` 保持独立、原样保留，只用于原有机器人AI语音环境；r47没有更换或重新打包语音bundle。
+旧的 `IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip` 保持独立、原样保留，只用于原有 Windows 机器人AI语音环境；r48不更换或重新打包语音bundle。该 Win64 语音包不能直接用于 Linux；Linux 服务端没有配备语音 AI 后端。狗叫声已内置在新纪元 JAR，不依赖 Voice-Bundle。
 1. 先导入普通mrpack并正常退出Minecraft。
 2. 下载并完整解压外层Voice-Bundle ZIP；同目录中已包含 `Install.cmd` 和原样的内层Voice-Slim ZIP，无需另外下载工具或手动配对。
 3. 运行 `Install.cmd`，选刚导入的1.20.1 / Forge 47.4.28版本目录（含相符的版本JSON），不要选mods、saves或共享.minecraft目录。工具面向新的独立实例；遇到已有自定义语音目录会拒绝覆盖。
@@ -33,6 +39,6 @@ r47 协作建造与图纸
 在机器人设置页选择中/日/英语音；声音生成、实际安装与新机器推理仍待验收。普通文字游玩不需要此附件，机器人AI语音默认关闭。宠物狗叫声是新纪元内独立音效，不需要安装Voice-Bundle。
 
 范围与注意事项
-Minecraft、账号、API密钥和存档不随包提供。自由LLM聊天需玩家自行设置服务。不要把第三方模组JAR或许可未核实的用户音频提交到公开源码仓库。第三方许可与来源见 THIRD-PARTY-NOTICES.txt；r47实测状态见 PLAYTEST-STATUS.txt。
+Minecraft、账号、API密钥和存档不随包提供。自由LLM聊天需玩家自行设置服务。第三方模组JAR只按作者下载URL用于构建客户端锁文件与私用Linux服务端包，不提交公开GitHub；许可未核实的用户音频同样不公开同步。第三方许可与来源见 THIRD-PARTY-NOTICES.txt；r48待验收范围及r47历史实测见 PLAYTEST-STATUS.txt。
 
-历史r43已修复Ad Astra精确版本冲突；r47继续使用已锁定的Ad Astra 1.15.21依赖。构建和静态核对不代表游戏内功能已通过验收。
+历史r43已修复Ad Astra精确版本冲突；r47基线和r48包均固定Ad Astra 1.15.21。构建和静态核对不代表游戏内功能已通过验收。

@@ -15,7 +15,8 @@ import java.util.regex.Pattern;
 public final class LLMKnowledgeBase {
     // The isolated 1.20.1 runtime must not retrieve Classic 1.19.2 machine instructions.
     private static final String DOCUMENT = readDocument("robot_capabilities_zh.md") + "\n\n"
-            + readDocument("migration_runtime_zh.md") + "\n\n" + readDocument("wormhole_and_orders_zh.md")
+            + readDocument("migration_runtime_zh.md") + "\n\n" + readDocument("runtime_enhancements_zh.md")
+            + "\n\n" + readDocument("wormhole_and_orders_zh.md")
             + "\n\n" + readDocument("mechanical_pets_zh.md") + "\n\n" + readDocument("blueprint_building_zh.md");
     private static final List<Section> SECTIONS = List.copyOf(splitSections(DOCUMENT));
     private static final int MAX_CONTEXT_CHARS = 6_000;

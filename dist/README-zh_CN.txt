@@ -1,16 +1,26 @@
-IC2：新纪元 r47 — Minecraft 1.20.1 / Forge 47.4.28
+IC2：新纪元 r48 — Forge 1.20.1 / 47.4.28 / Java 17
 
-最新游玩包：IC2-New-Era-1.20.1-Forge-47.4.28-r47.mrpack
-314,079,769字节，约314MB。拖入PCL2导入，或从整合包安装入口选择。内置Java17、中文和完整狗音频；首次联网下载15个锁定依赖。本机独立1.20.1实例已更新r47，旧JAR保留备份，无需重新导入。
+客户端：IC2-New-Era-1.20.1-Forge-47.4.28-r48.mrpack
+拖入 PCL2 安装为独立实例。包含新纪元本体，启动器按锁定URL下载30个第三方模组；附Windows便携Java17及匹配源码。请勿覆盖1.19.2旧世界。
 
-本轮已手动进入新验收世界：3机器人小屋280/280、另一队3机器人青白小亭64/64全部完成。补玻璃后自动续建；暂停、补齐材料、继续及保存重载恢复通过。材料余量和实际放置数量吻合。
-修复工作状态误取消导航、底半砖站位/点击面、同队空闲机器人挡位自动让路；改善小窗口图纸列表与翻页。小屋原280图纸需要玩家搭临时外部通路；新的300构件小屋自带外部台阶，未完整再造。64构件小亭不需要额外通路。不会为任意蓝图自动生成脚手架。
+Linux服务端：IC2-New-Era-Server-1.20.1-r48.tar.gz
+包含官方Forge服务端核心及libraries、25个配套模组、默认配置与中英启动说明，不是只有mods的附件。
+完整解压到独立目录，准备Java17，阅读并自行同意Minecraft EULA后将eula.txt改为true，再运行 ./start-server.sh。
+默认内存2G–6G、TCP25565、online-mode=true。启动说明见归档README.zh-CN.md；支持目标是glibc Linux，包含x86_64/AArch64原生库，不用于Alpine/musl。实际Linux运行与多人联机尚未验收。
 
-右键机器人→工作→建造与生产线，选择1–8台。同主人附近空闲机器人可分工，共享进度，各自使用自己的货物槽。图纸目录IC2-NewEra-blueprints/inbox附example-house.json、simple-pavilion.json与README；桌面“机器人建造图纸”快捷方式也可进入。文字/图片AI需已有服务配置；图片质量、其他导入格式和多人服务器仍待实测。
+本轮更新
+- AE2原生ME仓储、终端、样板自动合成；IC2R自带EU接入AE2 Energy Acceptor，静态核对已完成。
+- 手机本轮先不改，后续再做AE对接；机器人、工业监控与已有AI互联网保留。旧新纪元终端仅保留旧物品取回。
+- 中文FTB Ultimine（默认按住~，每次上限64）和中键整理。
+- Create: Propulsion + Valkyrien Skies工业飞行方案。是1.20.1替代方案，不是Create Aeronautics；Propulsion仍处早期开发阶段。
+- 客户端专用Embeddium/Oculus/Flywheel兼容桥及ETF/EMF/Fusion材质前置。未附实际光影或材质包；兼容桥2.0.3为beta。
+- JEI两端均保留。自动中文补丁新增324个差异键。新增功能未实机验收。
 
-原猫狗模型、洁白羽翼与尾焰、镜子、装备、箱子、饥饿/电池、狗音频原样保留。狗面板“大狗到底叫不叫”播放/停止和伴舞不依赖语音附件。宠物、镜面和声音的历史待验收项未因本轮建造实测而自动通过。
+可选语音
+IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip与校验文件原样保留，不能直接用于Linux服务器；Linux AI语音后端尚未部署。
+机械狗面板完整叫声音频已内置，不依赖Voice-Bundle。原猫狗模型、贴图和音频没有改动。
 
-可选机器人AI语音：IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip
-6,778,174,122字节，原样保留。完全解压后，在游戏关闭时运行Install.cmd，选择独立Forge版本目录；已经安装者不必重复安装。需要兼容CUDA12.8的NVIDIA显卡/驱动。两包共7,092,253,891字节，小于10GB；实际解压另需空间。
-
-.sha256用于校验。dist仅保留r47、Voice-Bundle、两份校验和本说明，旧r46普通包及校验移入回收站。公开源码排除受限资源、原始参考、用户音频、凭据、日志和存档。实测细节见项目docs/migration-1201-build47-cooperative-playtest.md。
+验证与交付
+r48源码离线构建成功，本机独立1.20.1实例已更新31个JAR；客户端/服务端包已回读核对。
+服务端仅执行官方 --initSettings，eula=false，未生成世界；不代表全模组启动完成或Linux验收。未新增/运行自动化测试。
+详细版本、哈希和未验收项目见 docs/delivery-r48-server-ae-2026-10-28.md。第三方原JAR不上传公开GitHub，客户端按作者URL下载。

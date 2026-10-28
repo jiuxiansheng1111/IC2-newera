@@ -1,0 +1,5 @@
+{
+  "command.valkyrienskies.get_ship.success": "已找到名称为 %s、ID 为 %s 的船舶结构",
+  "command.valkyrienskies.dry.no_blocks": "船体没有方块！",
+  "command.valkyrienskies.dry.success": "已成功干燥 %s 个方块"
+}

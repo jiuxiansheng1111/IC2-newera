@@ -1,10 +1,10 @@
-IC2：新纪元 r42 — 来源与第三方说明
+IC2：新纪元 r48 — 来源与第三方说明
 
 本项目自有代码：IC2: New Era contributors，MIT（LICENSE-first-party-MIT.txt）。用户提供的狗叫音频已按其要求作为本地交付的新纪元游戏音效使用；权利归属与公开再分发许可未核实。不得将音频标为原创/MIT，也不得同步到公开GitHub或作为公开素材再分发。
 
-普通r42 mrpack列出15个第三方运行时模组；连同新纪元本体共16个。第三方JAR不嵌入overrides，由启动器从清单锁定的作者地址下载并验证哈希；其资产及许可归各自作者。本机独立实例已安装，不代表游戏实机验收通过。
+已验收的r47玩家包使用15个第三方依赖；r48固定新增15项，客户端依赖清单共30个第三方模组（新纪元本体不计）。客户端mrpack通过锁定清单从下列作者/官方项目地址下载并校验。Linux私用服务端包包含适用于服务端的对应上游原始JAR，省略客户端专用渲染模组；第三方JAR不进入公开GitHub源码。所有第三方代码、资产与商标仍归各自作者，版本固定不代表游戏功能已验收。
 
-目标1.20.1 / Forge 47.4.28依赖：
+已验收r47基线依赖（15项）：
 - Ad Astra 1.15.21 — https://www.curseforge.com/minecraft/mc-mods/ad-astra/files/8833730
 - Botarium 2.3.4 — https://www.curseforge.com/minecraft/mc-mods/botarium/files/5486070
 - Carbon Config 2.0.2.1 — https://www.curseforge.com/minecraft/mc-mods/carbon-config/files/8119981
@@ -21,7 +21,28 @@ IC2：新纪元 r42 — 来源与第三方说明
 - Create: Meowchanics / 机械动力：老吴学 2.3.1 — CurseForge file 9163511: https://www.curseforge.com/minecraft/mc-mods/create-meowchanics/files/9163511
 - Create: Biotech 1.3.0 — CurseForge file 8675155: https://www.curseforge.com/minecraft/mc-mods/create-biotech/files/8675155 ; upstream project: https://github.com/Nobodiiiii/Create-Biotech
 
-Create 6.0.8自带Flywheel、Ponder、Registrate嵌套依赖；它们按Create发行构件提供，不作为额外运行时模组另行分发。r42使用Ad Astra 1.15.21，r41及之前旧包中的Ad Astra/Create版本属于历史版本，不适用于r42锁定清单。构件的具体文件哈希见项目本地 `build-isolated/migration-1201/dependencies/runtime-lock-1201.json`。
+r48新增的15项（均为Minecraft 1.20.1 / Forge；功能验收仍待完成）：
+- Applied Energistics 2 15.4.11 — https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2/files/8991271 ; upstream: https://github.com/AppliedEnergistics/Applied-Energistics-2/releases/tag/forge/v15.4.11
+- GuideME 20.1.15（AE2必需）— https://www.curseforge.com/minecraft/mc-mods/guideme/files/8204776
+- FTB Ultimine 2001.1.8 — https://www.curseforge.com/minecraft/mc-mods/ftb-ultimine-forge/files/7880472
+- FTB Library 2001.2.13（Ultimine必需）— https://www.curseforge.com/minecraft/mc-mods/ftb-library-forge/files/8226927
+- Architectury API 9.2.14（FTB Library/Ultimine必需）— https://www.curseforge.com/minecraft/mc-mods/architectury-api/files/5137938
+- Simple Inventory Sorter 23.0.11 — https://www.curseforge.com/minecraft/mc-mods/inventory-sorter/files/7188685
+- Create: Propulsion 0.4.1 — https://modrinth.com/mod/create-propulsion/version/2oBX64AJ ; project installation notes: https://valkyrienskies.org/wiki/create-propulsion
+- Valkyrien Skies 2.4.11 — https://cdn.modrinth.com/data/V5ujR2yw/versions/pOkdwuUh/valkyrienskies-120-2.4.11.jar
+- Kotlin for Forge 4.11.0（Valkyrien Skies必需）— https://cdn.modrinth.com/data/ordsPcFz/versions/hmeyC41q/kotlinforforge-4.11.0-all.jar
+- Embeddium 0.3.31+mc1.20.1（client-only）— https://cdn.modrinth.com/data/sk9rgfiA/versions/UTbfe5d1/embeddium-0.3.31%2Bmc1.20.1.jar
+- Oculus 1.20.1-1.8.0（client-only）— https://cdn.modrinth.com/data/GchcoXML/versions/iQ1SwGc3/oculus-mc1.20.1-1.8.0.jar
+- Iris & Oculus Flywheel Compat 2.0.3（client-only，beta）— https://cdn.modrinth.com/data/ndHYMY2K/versions/dE1A45cG/oculus-flywheel-compat-Forge-2.0.3.jar
+- Entity Model Features 3.3.12（client-only，需Entity Texture Features）— https://cdn.modrinth.com/data/4I1XuqiY/versions/mQR6L8Qe/entity_model_features-3.3.12-1.20.1-forge.jar
+- Entity Texture Features 7.2.6（client-only）— https://cdn.modrinth.com/data/BVzZfTc1/versions/EAHEZRbp/entity_texture_features-7.2.6-1.20.1-forge.jar
+- Fusion 1.3.15b（client-only）— https://cdn.modrinth.com/data/p19vrgc2/versions/EQaOpkjt/fusion-1.3.15b-forge-mc1.20.1.jar
+
+FTB Ultimine的服务端目标配置为按住`~`并将最大连锁方块数设为64；最终配置包仍需封装核对。整合包内置Ultimine、FTB Library和Inventory Sorter的独立zh_cn翻译补丁。六项图形前置不得放入Linux服务器mods，整合包未附带实际光影材质包。Create: Propulsion项目将自身描述为very early alpha；即使版本标为release，也不应据此省略风险说明。Valkyrien Skies的Linux原生运行依赖glibc，Alpine/musl不在其声明兼容范围。
+
+依赖/来源与私用服务端包中JAR的逐文件哈希以r48依赖锁定清单和交付回执为准；构建/安装状态见回执，新增功能仍未实机验收。
+
+Create 6.0.8自带Flywheel、Ponder、Registrate嵌套依赖；它们按Create发行构件提供，不作为额外运行时模组另行分发。r48延续r47基线中的Ad Astra 1.15.21与Create 6.0.8；更早玩家包中的Ad Astra/Create版本属于历史版本。既有基线构件哈希见 `build-isolated/migration-1201/dependencies/runtime-lock-1201.json`，新增项目哈希以r48依赖锁文件及包内清单为准。
 
 代码与资产许可边界
 - Meowchanics的CurseForge项目和JAR附带MIT许可文件；本地依赖审计另将作者原创模型/贴图等资产标为All Rights Reserved。MIT代码许可不能据此复制、打包或再发布这些独立资产。
@@ -31,9 +52,9 @@ Create 6.0.8自带Flywheel、Ponder、Registrate嵌套依赖；它们按Create�
 - Minecraft/Forge项目与Mojang/Microsoft、角色及配音权利方无官方关联。
 
 语音与便携Java历史资源
-旧Voice-Bundle `IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip`按用户要求保留，不因r42更改或重打包。它包含的第三方语音模型/参考录音公开再分发权利未核实，只限用户原持有资源的本地迁移用途；不得上传公开GitHub。r42中的用户狗音频与该可选机器人AI语音附件相互独立，许可状态同样未核实且不得公开同步。
+旧Voice-Bundle `IC2-NewEra-Voice-Bundle-Win64-2026.10.24.zip`按用户要求保持原样，r48不更换、不重打包；Win64语音包不能直接用于Linux，Linux服务端未配备AI语音后端。它包含的第三方语音模型/参考录音公开再分发权利未核实，只限用户原持有资源的本地迁移用途；不得上传公开GitHub。新纪元JAR中的用户狗音频与该可选机器人AI语音附件相互独立，狗叫声已内置且不依赖Voice-Bundle；音频许可状态同样未核实且不得公开同步。
 
-Eclipse Temurin OpenJDK 17.0.20+8 Windows x64为未修改的上游二进制，GPLv2 with Classpath Exception；各组件声明在java17/legal/，匹配源码为 `OpenJDK17U-jdk-sources_17.0.20_8.tar.gz`，参考标签 jdk-17.0.20+8_adopt。Java 17按要求保留；最终r42归档内的文件/清单仍须在打包后核对。
+Eclipse Temurin OpenJDK 17.0.20+8 Windows x64为未修改的上游二进制，GPLv2 with Classpath Exception；各组件声明在java17/legal/，匹配源码为 `OpenJDK17U-jdk-sources_17.0.20_8.tar.gz`，参考标签 jdk-17.0.20+8_adopt。r48保留Java 17；最终归档内的文件/清单以交付回执为准。
 https://adoptium.net/temurin/releases/?version=17
 https://github.com/adoptium/jdk17u/tree/jdk-17.0.20+8_adopt
 

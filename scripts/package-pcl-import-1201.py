@@ -18,20 +18,21 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "build-isolated/player-packaging/20261027-cooperative-playtest-r47"
+OUT = ROOT / "build-isolated/player-packaging/20261028-server-ae-r48"
 LOCK = ROOT / "build-isolated/migration-1201/dependencies/runtime-lock-1201.json"
 DEPS = LOCK.parent
-CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build47-cooperative-playtest"
+ENHANCEMENTS_LOCK = ROOT / "scripts/player-enhancements-lock-1201.json"
+CHECKPOINT = ROOT / "build-isolated/migration-1201/checkpoints/build48-server-ae"
 OWN_JAR = "ic2newera-0.2.0-migration1201-all.jar"
-OWN_SHA256 = "E966A336DD9E9FE6DE35716EF8B39EFB96C70BD0B9C6BC904533A50CACBEEBEA"
+OWN_SHA256 = "5C98DDAFD0511AB0CF5D679314916603FE677D34681F4F89F7380B58200218FE"
 JAVA_DIR = ROOT / "build-isolated/player-packaging/20261024-r41-java17/java-source"
 JAVA_ZIP = "OpenJDK17U-jdk_x64_windows_hotspot_17.0.20_8.zip"
 JAVA_SOURCE = "OpenJDK17U-jdk-sources_17.0.20_8.tar.gz"
 JAVA_ZIP_SHA256 = "418497BE5CF585BDD2203D6486A565D66D3F5E992D5630D45104CB873FAB8122"
 JAVA_SOURCE_SHA256 = "A9FADD969738666D59A241BC6FB01D0963154489D934EE387630DD4DCA5E8F54"
 JAVA_ROOT = "jdk-17.0.20+8"
-PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r47.mrpack"
-PACK_VERSION = "0.2.0-playtest.20261027-r47-cooperative-playtest"
+PACK_NAME = "IC2-New-Era-1.20.1-Forge-47.4.28-r48.mrpack"
+PACK_VERSION = "0.2.0-playtest.20261028-r48-server-ae"
 
 
 def json_bytes(value: object) -> bytes:
@@ -66,6 +67,10 @@ def read_locked_mods() -> list[dict]:
     rows = lock.get("runtimeMods")
     if not isinstance(rows, list) or len(rows) != 15:
         raise ValueError("Expected exactly 15 locked third-party runtime mods")
+    enhancements = json.loads(ENHANCEMENTS_LOCK.read_text(encoding="utf-8-sig"))
+    if enhancements.get("target") != {"minecraft": "1.20.1", "forge": "47.4.28", "java": 17}:
+        raise ValueError("Enhancement lock target differs from the core lock")
+    rows = rows + enhancements["mods"]
     result = []
     for row in rows:
         mod_id = row["modId"]
@@ -82,7 +87,7 @@ def read_locked_mods() -> list[dict]:
                        "url": source, "sizeBytes": row["sizeBytes"], "localSha256": row["sha256"].upper(),
                        "sha1": sha_file(local, "sha1").lower(),
                        "sha512": sha_file(local, "sha512").lower()})
-    if len({row["modId"] for row in result}) != 15 or len({row["file"].casefold() for row in result}) != 15:
+    if len({row["modId"] for row in result}) != len(rows) or len({row["file"].casefold() for row in result}) != len(rows):
         raise ValueError("The dependency lock contains duplicate mod ids or filenames")
     return result
 
@@ -201,6 +206,7 @@ def build_pack() -> dict:
         "overrides/config/ProjectE/custom_emc.json": json_bytes(emc),
         "overrides/config/ic2newera-robot-voice.json": json_bytes({"enabled": False}),
         "overrides/options.txt": "lang:zh_cn\nguiScale:0\n".encode("utf-8"),
+        "overrides/defaultconfigs/ftbultimine/ftbultimine-server.snbt": b"{\n  max_blocks: 64\n}\n",
         "overrides/PCL/Setup.ini": ("VersionArgumentJavaV2:2\n"
                                      "VersionArgumentIndie:1\n"
                                      "VersionArgumentIndieV2:True\n"
@@ -240,7 +246,7 @@ def build_pack() -> dict:
         "game": "minecraft",
         "versionId": PACK_VERSION,
         "name": "IC2：新纪元 1.20.1（PCL导入包）",
-        "summary": "Forge 47.4.28；便携Java17；宠物音频内置，机器人AI语音默认关闭。首次导入联网下载15个锁定依赖。",
+        "summary": f"Forge 47.4.28；AE2仓储；连锁采集与中键整理；工业飞行与光影材质前置。首次导入联网下载{len(mods)}个锁定依赖。",
         "files": index_files,
         "dependencies": {"minecraft": "1.20.1", "forge": "47.4.28"}
     }
@@ -300,7 +306,7 @@ def build_pack() -> dict:
         if "modrinth.index.json" not in names:
             raise ValueError("Modrinth index is not at archive root")
         index_read = json.loads(packed.read("modrinth.index.json"))
-        if index_read != index or len(index_read["files"]) != 15:
+        if index_read != index or len(index_read["files"]) != len(mods):
             raise ValueError("Modrinth index round-trip differs from the intended dependency set")
         for row in java_file_rows:
             path = "overrides/IC2-NewEra-runtime/java17/" + row["path"]
@@ -317,7 +323,7 @@ def build_pack() -> dict:
         if b"lang:zh_cn" not in packed.read("overrides/options.txt"):
             raise ValueError("Chinese language option is missing")
         if "overrides/mods/" + OWN_JAR not in names:
-            raise ValueError("First-party r45 mod was not included")
+            raise ValueError("First-party r48 mod was not included")
         if any(name.startswith("overrides/mods/") and name.lower().endswith(".jar") and OWN_JAR not in name
                for name in names):
             raise ValueError("A third-party mod JAR was copied into overrides")

@@ -1,0 +1,6 @@
+工作目录：服务端实例根目录（包含 libraries/、mods/、eula.txt 和 user_jvm_args.txt）
+启动命令（Linux，要求 Java 17）：
+java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.20.1-47.4.28/unix_args.txt nogui
+
+面板如需指定 Java，可在启动环境中设置 JAVA17_HOME=/绝对路径/到/Java17；启动命令仍使用上方命令。不要使用 java -jar forge*.jar，也不要将命令工作目录设到其他位置。
+控制台输入 stop 正常保存并关闭服务端。

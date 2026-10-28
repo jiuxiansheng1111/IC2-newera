@@ -1,6 +1,6 @@
 # IC2 新纪元：工业与电子知识
 
-本指南覆盖四种新增矿物和十种已有粉末的受控矿物、六种新纪元合金锭、九种电子材料、两台材料处理机和工业网络。化学实验、反应链与化工机器已退出当前范围，不能当作可用玩法推荐。
+本指南面向 Minecraft 1.20.1 / Forge 47.4.28 的 r48 计划，覆盖受控矿物、合金、电子材料、AE2、材料处理机和工业网络。目标 IC2 实现是 IC2 Refactored 2.10.33-ex120，不是 IC2 Classic。化学实验、反应链与化工机器已退出当前范围，不能当作可用玩法推荐。
 
 ## 唯一配方与数量来源
 
@@ -8,22 +8,24 @@
 
 若客户端还未收到服务器工艺图，AI 应明确无法核实具体路线，不得猜测。最终可制作配方以当前 JEI/机器界面为准；指南只说明用途、分工与边界。
 
-## 两个模组与新纪元的分工
+## 1.20.1 当前模组与新纪元的分工
 
-- IC2 Classic 提供 EU、电网、储能、基础粉碎/熔炼/合金机器及其原生物流。
+- IC2 Refactored 2.10.33-ex120 提供当前迁移目标中的 EU、电网、储能和原生加工机器；不要把它称为 IC2 Classic，也不要因名称相似假定两者的 ID、配方、界面或 API 相同。
 - Create 提供转速、机械加工、粉碎轮、风扇水洗、物品物流与机械自动化。
 - EU 与 Create 转速网络各自独立；已有新纪元 EU 电动机提供单向 EU→转轴动力，没有反向发电。工业网络只传数据，不承载电力、转速、物品或流体。
 - 新纪元新增矿物阶段与合金、电子材料、两台材料处理机、工业网络和生产规划；不重做 IC2/Create 原生设备。
 
-## IC2 Classic 粉碎机界面：I / C / S 按钮、槽位和升级（Macerator / GUI）
+## IC2 Classic 2.1.3.4 / Minecraft 1.19.2 历史界面参考（不适用于1.20.1 IC2R）
 
-玩家截图左上角的 I、C、S 是三个独立的界面按钮，不是合在一起的“ICS”缩写，也不是机器状态灯。IC2 Classic 2.1.3.4 对应的悬停名称分别是：I = 机器访问控制（Machine Access Control），C = 比较器设置（Comparator Settings），S = 格子过滤器信息（Slot Filter Info）。同一套按钮会在提供相应界面组件的 IC2 机器 GUI 中重复出现。
+以下 I/C/S、槽位和 ID 说明仅记录 IC2 Classic 2.1.3.4 的 1.19.2 界面，不能据此解释 1.20.1 IC2R 截图，也不能据此推断当前注册 ID 或可用升级。1.20.1 请以实际 IC2R 界面、注册表、JEI 和服务器同步 ProcessGraph 为准。
+
+在该历史版本中，玩家截图左上角的 I、C、S 是三个独立界面按钮，不是合在一起的“ICS”缩写，也不是机器状态灯；悬停名称分别为 I = 机器访问控制（Machine Access Control），C = 比较器设置（Comparator Settings），S = 格子过滤器信息（Slot Filter Info）。同一套按钮会在提供相应界面组件的 IC2 Classic 机器 GUI 中重复出现。
 
 - **I：机器访问控制。** 打开按机器方位配置的面板。D/U/N/S/W/E 分别是下、上、北、南、西、东；这里的 S 是“南”，和左上角的 S 按钮不是一回事。绿色勾选开关控制该面是否可被外部库存访问；旁边标成 B 的按钮循环该面的物品规则：禁止、导入、导出、双向。点选某个库存格时还可针对该格设置访问规则。底部选项限制每格只放 1 个物品、每种物品只放 1 组；红色叉号表示该限制当前关闭，点击可切换，“重置”恢复默认设置。这些选项用于管道/自动化的输入输出，不改变机器配方。
 - **C：比较器设置。** 配置机器向红石比较器提供的状态信号。机器支持哪些来源取决于机器本身，常见来源包括库存填充、EU 缓冲、运行/进度或燃料状态；页面可设置最小/最大/平均评估与反转。它控制红石读数，不负责选配方、输入物品或机器供电。
 - **S：格子过滤器信息 / 有效格子输入。** 查看所选机器槽位允许的物品。可用条目随机器、槽位和当前已注册配方而变化；它说明“哪些物品能放进这个格子”，不是额外的物品槽，也不是全局配方搜索。把正确原料放进 Macerator 的输入格，确切配方及数量仍以当前 JEI 为准。
 
-粉碎机注册 ID 是 ic2:macerator。左边闪电形条是 EU 能量/充能显示，箭头形条是加工进度。右边竖排四格属于 SlotType.UPGRADES，中文槽位名为“升级”；只能放机器接受的 IC2 升级组件，是可选位，不是四个原料格，留空也能工作。组件可改变速度、耗能、储能或物品导入/导出行为，具体以组件提示与机器校验为准。
+在该历史版本中，粉碎机 ID 为 `ic2:macerator`；左侧闪电形条是 EU 能量/充能显示，箭头形条是加工进度，右侧竖排四格为升级位。上述说明不代表 IC2R 当前使用相同 ID、UI 或槽位规则。
 
 ## 已有矿物的打粉与水洗
 
@@ -49,7 +51,7 @@
 
 下界石英是硅工业来源，不新增硅矿。九种新纪元电子材料为石英粉、硅、高纯硅、PCB、集成电路、CPU、RAM、GPU 和工业固态硬盘。服务器请求所需产量或查询生产方案时以当前同步工艺图为准。
 
-复用 IC2 Classic 2.1.3.4 电路 ic2:circuit、ic2:advanced_circuit、ic2:complex_circuit，复用 Create 电子管与精密构件；不注册同用途替代品。IC2 的合金熔炼机 ic2:alloy_smelter 用于图中批准的多输入合金路线。
+旧版 IC2 Classic 的电路 ID 与 `ic2:alloy_smelter` 不应作为 1.20.1 的活动配方输入或机器 ID。迁移决定已批准新增新纪元合金兼容炉与高级电炉；二者是当前范围内的新增设备，不因 IC2R 替换而取消。目标版本实际物品 ID、配方和设备条件统一从服务端 ProcessGraph、注册表及 JEI 核对，不在本静态指南里沿用 Classic ID。
 
 ## 工业网络和控制
 
@@ -59,11 +61,30 @@
 
 ## 资料与版本边界
 
-IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki 和 Create Ponder。静态指南、旧版本教程或旧安装包不能覆盖当前服务器工艺图。PCL2 历史安装记录对应先前交付版本，不代表本次新工业阶段已安装或实机验收。
+1.20.1 的 IC2R 与 Create 操作查目标实例 JEI、IC2R 当前手册/界面和 Create Ponder；IC2 Classic 及其 1.19 文档只作历史参考。静态指南、旧版本教程或旧安装包不能覆盖当前服务器 ProcessGraph。PCL2 历史安装记录对应先前交付版本，不代表本次新工业阶段已实机验收。
 
 ## 终端移除与网络保留
 
-终端机已移除，不能新合成、远程托管或作为生产中转。旧存档只保留取回原库存的兼容入口。机器人生产使用进料箱、周转箱和成品箱；交换机、光纤、适配器、控制服务器与手机继续使用，工业数据网不输送物品或EU。手机机器人联系不限距离，但目标须已加载、有电且属于当前玩家；机器控制与音乐仍需有权限的工业WiFi。工厂AI只能解读状态，不能执行终端提案。
+旧新纪元终端不再承担新仓储、合成、远程托管或生产中转。其方块/物品/方块实体/菜单注册仍保留用于从旧存档取回库存；终端不进入工业网络，普通创造物品栏与 JEI 中隐藏。不要移除这些兼容注册或恢复菜单，否则旧终端中的物品可能无法取回。
+
+## AE2：仓储、终端与自动合成
+
+Applied Energistics 2（AE2）是本整合包唯一负责 ME 网络仓储、终端检索及样板自动合成的系统。玩家使用 AE2 原生 ME Terminal、Pattern Provider（样板供应器）和 Storage Bus（存储总线）搭建网络；新纪元不另造 ME 库存、终端、样板队列或合成提交系统。AE2 终端显示的是接入该 ME 网络且可访问的存储，不等于世界全部物品清单。
+
+计划随 r48 固定为 Forge 1.20.1 的 AE2 15.4.11 与必需的 GuideME 20.1.15；AE2 声明 GuideME 为必需依赖，并声明 JEI、The One Probe、Jade 为可选集成。AE2 版本页：[CurseForge 15.4.11](https://www.curseforge.com/minecraft/mc-mods/applied-energistics-2/files/8991271)，[官方发布说明](https://github.com/AppliedEnergistics/Applied-Energistics-2/releases/tag/forge/v15.4.11)。r48 集成、首次启动、AE2网络和服务端互操作仍未实机验收。
+
+AE2 15.4.11 与 IC2 Refactored 2.10.33-ex120 的配对包含 IC2R 一侧的原生 AE2 能量接收器桥接：`ae2:energy_acceptor` 注册为 IC2R EnergyNet sink，代码常量为 `EU_TO_AE_RATIO=2.0`，即实现按 1 EU 注入 2 AE。此结论来自双方归档与 API 的静态检查，未实机测量；这是 IC2 Refactored 的互操作，不适用于把 IC2 Classic 当成同一实现。AE2 能量指南另说明 Forge Energy 通过 Energy Acceptor 转换时为 2 FE = 1 AE。Ad Astra 使用 Botarium/Forge Energy 接口，因此其发电设备可尝试通过 AE2 Energy Acceptor 供能；具体发电机、电缆连接方向与传输量尚未实测，不应宣称已验收。
+
+机器人仍负责按 ProcessGraph 批准路线操作 IC2/Create/原版机器及实体进料、周转和成品箱；这些加工路线与 AE2 样板自动合成不是同一功能。工业控制服务器的 ProductionPlanner 只生成流程/机器/原料规划，不盘点全厂库存，也不自动取料。手机继续承担机器人联系、状态与授权机器控制；内置 AI 继续互联网/知识问答和工业状态解读。手机界面没有 AE2 合成提交入口，AI 不会替玩家向 ME 网络提交合成请求。
+
+## r48 新增便利与客户端图形模组
+
+以下为计划固定入 r48 的 Forge 1.20.1 版本；相关游戏功能与服务器兼容性仍未实机验收：
+
+- FTB Ultimine 2001.1.8（客户端与服务器）提供按住 `~` 触发的连锁采集；必需 FTB Library 2001.2.13 与 Architectury API 9.2.14。r48 目标最大方块数为 64，以服务器配置为准；整合包会内置 Ultimine、FTB Library 和 Inventory Sorter 的 zh_cn 翻译补丁，实际操作仍需验收。
+- Simple Inventory Sorter 23.0.11 提供真正的容器中键整理，不等同于 Mouse Tweaks 的拖拽搬运。其 JAR 未声明 Forge/MC 模组依赖；客户端/服务器安装与同步要求仍需联机验收。
+- Create: Propulsion 0.4.1 是 Create 6 系列的飞行/推进扩展，作为本包的推进路线选择，不另加 Clockwork。它依赖 Create 至少 6.0.6 和 Valkyrien Skies 至少 2.4.0；固定的 VS 2.4.11 还需要 Kotlin for Forge 4.11.0。项目说明标注为很早期 alpha，游戏功能仍待实测。VS 2.4.11 含 Linux x86_64 与 AArch64 原生库；官方兼容说明要求 glibc，Alpine/musl 不在其支持说明内。
+- r48 客户端固定六个渲染/贴图相关模组：Embeddium 0.3.31、Oculus 1.8.0、Iris & Oculus Flywheel Compat 2.0.3、Entity Model Features 3.3.12、Entity Texture Features 7.2.6、Fusion 1.3.15b；EMF 需要 ETF。六者均为 client-only，不能放进 Linux 服务端 mods。整合包没有包含任何实际光影材质包；Oculus-Flywheel-Compat 为 beta，渲染兼容仍待验收。
 
 ## 本模组注册物品与方块索引
 - 下列名称由当前简体中文语言文件自动生成；精确配方步骤和数量见当前服务器同步 ProcessGraph 与 JEI。
@@ -143,5 +164,5 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 锌粉（物品，`ic2newera:zinc_dust`）
 
 ## 官方参考
-- IC2 Classic 机器与 1.19 数据包：<https://github.com/TinyModularThings/IC2Classic/wiki/Machines>、<https://github.com/TinyModularThings/IC2Classic/wiki/1.19.x-Datapacks>
+- IC2 Classic 机器与 1.19 数据包（仅历史版本参考，不是 1.20.1 IC2R 文档）：<https://github.com/TinyModularThings/IC2Classic/wiki/Machines>、<https://github.com/TinyModularThings/IC2Classic/wiki/1.19.x-Datapacks>
 - Create 动力、压机与搅拌器：<https://github.com/Creators-of-Create/Create/wiki/Stress-Units,-Capacity-and-Impact>、<https://github.com/Creators-of-Create/Create/wiki/Mechanical-Press>、<https://github.com/Creators-of-Create/Create/wiki/Mechanical-Mixer>

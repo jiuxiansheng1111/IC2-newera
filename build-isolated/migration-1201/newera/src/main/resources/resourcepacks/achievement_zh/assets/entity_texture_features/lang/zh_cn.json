@@ -1,0 +1,14 @@
+{
+  "config.entity_features.search": "搜索…",
+  "config.entity_texture_features.player_skin_transparent_sub.tooltip": "",
+  "config.entity_texture_features.random_settings.title": "随机 / 自定义生物设置",
+  "config.entity_texture_features.skin_editor.overlays.-2_extra_space_for_other_lang": "",
+  "config.entity_texture_features.skin_editor.overlays.-1_extra_space_for_other_lang": "",
+  "config.entity_texture_features.skin_editor.overlays.0_extra_space_for_other_lang": "",
+  "config.entity_texture_features.property_explanation.resourcepack": "资源包\n逐一检查已加载资源包的名称\n§aresourcepack.<n>=<资源包列表|正则表达式|匹配模式>",
+  "config.entity_texture_features.property_explanation.usingShaders": "正在使用光影\n当前是否正在使用 Iris 光影\n§ausingShaders.<n>=<true/false>",
+  "config.entity_texture_features.property_explanation.hardcore": "极限模式\n世界是否为极限模式\n§ahardcore.<n>=<true/false>",
+  "config.entity_texture_features.property_explanation.client_game_mode": "客户端玩家的游戏模式列表\n原版模式编号：0=生存，1=创造，2=冒险，3=旁观\n§aclientGameMode.<n>=<列表>",
+  "config.entity_texture_features.property_explanation.difficulty": "难度列表\n原版难度编号：0=和平，1=简单，2=普通，3=困难\n§adifficulty.<n>=<列表>",
+  "config.entity_texture_features.property_explanation.regional_difficulty": "区域难度列表\n每个区块的区域难度范围为 0.0 至 6.75\n参见 https://minecraft.wiki/w/Difficulty#Regional_difficulty\n§aregionalDifficulty.<n>=<列表>"
+}
