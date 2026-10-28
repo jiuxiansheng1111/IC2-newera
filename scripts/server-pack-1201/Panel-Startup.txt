@@ -1,6 +1,11 @@
-工作目录：服务端实例根目录（包含 libraries/、mods/、eula.txt 和 user_jvm_args.txt）
-启动命令（Linux，要求 Java 17）：
-java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.20.1-47.4.28/unix_args.txt nogui
+工作目录：服务端根目录（须包含 server.jar、libraries/、mods/、eula.txt、user_jvm_args.txt）
 
-面板如需指定 Java，可在启动环境中设置 JAVA17_HOME=/绝对路径/到/Java17；启动命令仍使用上方命令。不要使用 java -jar forge*.jar，也不要将命令工作目录设到其他位置。
-控制台输入 stop 正常保存并关闭服务端。
+推荐启动：直接运行平台脚本 Start.sh 或 Start.bat。它使用 Forge 官方参数文件启动单个 Java 进程，并从 user_jvm_args.txt 读取实际服务端堆参数。
+
+面板只支持 java -jar 时的命令：
+java -Xms32M -Xmx128M -jar server.jar
+
+面板需预装系统 Java 17，并将工作目录设为服务端根目录。外层 32M/128M 只分配给轻量 launcher；Forge 子进程的服务端堆仍由同目录 user_jvm_args.txt 设置（默认 -Xms2G -Xmx6G）。launcher 自动附加 nogui；不要重复传入 nogui。其他 Minecraft 参数可追加在 server.jar 后。
+
+首次启动前，服主须阅读 https://www.minecraft.net/eula 并自行决定是否接受；仅在本人决定接受后手动将 eula.txt 设置为 eula=true。启动入口不会自动同意 EULA。
+正常停止请在服务端控制台输入 stop，等待存档写入并正常退出。

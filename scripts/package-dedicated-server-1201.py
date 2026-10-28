@@ -13,6 +13,7 @@ import io
 import json
 import os
 import re
+import stat
 import tarfile
 import tomllib
 import zipfile
@@ -27,9 +28,11 @@ TEMPLATE = ROOT / "scripts/server-pack-1201"
 BLUEPRINTS = ROOT / "build-isolated/migration-1201/newera/art/robot-blueprints"
 NOTICES = ROOT / "scripts/player-pack/THIRD-PARTY-NOTICES.txt"
 PROJECTE_BLACKLIST = ROOT / "build-isolated/migration-1201/newera/scripts/projecte-emc-1201-blacklist.json"
-OUT_DIR = ROOT / "build-isolated/server-packaging/20261028-r48-server"
-ARCHIVE_NAME = "IC2-New-Era-Server-1.20.1-r48.tar.gz"
-TOP = ARCHIVE_NAME.removesuffix(".tar.gz")
+OUT_DIR = ROOT / "build-isolated/server-packaging/20261028-r48-full-server"
+ARCHIVE_STEM = "IC2-New-Era-Server-1.20.1-r48-Full"
+TAR_NAME = ARCHIVE_STEM + ".tar.gz"
+ZIP_NAME = ARCHIVE_STEM + ".zip"
+TOP = ARCHIVE_STEM
 ALLOWED_TEMPLATE_SUFFIXES = {".sh", ".bat", ".txt", ".md", ".properties"}
 ALLOWED_TEMPLATE_PATHS = {"defaultconfigs/ftbultimine/ftbultimine-server.snbt"}
 PLATFORM_MODS = {"minecraft", "forge", "javafml", "lowcodefml"}
@@ -111,6 +114,24 @@ def manifest_attributes(jar: zipfile.ZipFile) -> dict[str, str]:
             key, value = line.split(":", 1)
             attrs[key.strip().lower()] = value.strip()
     return attrs
+
+
+def validate_launcher(data: bytes, source: str) -> dict:
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as jar:
+            attrs = manifest_attributes(jar)
+            if attrs.get("main-class") != "com.ic2newera.serverlaunch.ServerLauncher":
+                fail("Launcher manifest Main-Class must be com.ic2newera.serverlaunch.ServerLauncher")
+            class_data = jar.read("com/ic2newera/serverlaunch/ServerLauncher.class")
+    except (zipfile.BadZipFile, KeyError) as exc:
+        fail(f"Invalid server launcher JAR {source}: {exc}")
+    if len(class_data) < 8 or class_data[:4] != b"\xca\xfe\xba\xbe":
+        fail("Launcher ServerLauncher.class is not a valid JVM class file")
+    major = int.from_bytes(class_data[6:8], "big")
+    if major != 61:
+        fail(f"Launcher bytecode major must be 61 (Java 17), got {major}")
+    return {"path": "server.jar", "source": source, "mainClass": attrs["main-class"],
+            "bytecodeMajor": major, "sizeBytes": len(data), "sha256": sha256_bytes(data)}
 
 
 def metadata_from_jar(data: bytes, source: str) -> tuple[list[dict], list[dict]]:
@@ -402,6 +423,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--own-jar", required=True, type=Path)
     parser.add_argument("--own-sha256", required=True)
+    parser.add_argument("--launcher-jar", required=True, type=Path)
+    parser.add_argument("--launcher-sha256", required=True)
+    parser.add_argument("--launcher-source", required=True,
+                        help="Source identifier/path recorded in the server manifest")
     parser.add_argument("--forge-root", type=Path, default=FORGE_ROOT_DEFAULT)
     args = parser.parse_args()
     # Lock integrity is checked before any archive assembly or metadata closure work.
@@ -439,12 +464,22 @@ def main() -> None:
                "sizeBytes": len(own_data), "sha256": sha256_bytes(own_data), "environment": "both"}
     selected.append((own_row, own_path, own_data, "both", "own"))
 
+    launcher_path = args.launcher_jar
+    if launcher_path.is_symlink() or not launcher_path.is_file():
+        fail(f"Server launcher JAR missing/non-regular: {launcher_path}")
+    launcher_path = launcher_path.resolve()
+    launcher_data = launcher_path.read_bytes()
+    if sha256_bytes(launcher_data) != args.launcher_sha256.upper():
+        fail("Launcher JAR SHA-256 does not match --launcher-sha256")
+    launcher_audit = validate_launcher(launcher_data, args.launcher_source)
+
     # Read only the prepared/libraries subtree from the installer output.
     forge_root = args.forge_root.resolve()
     if not forge_root.is_dir():
         fail(f"Forge root does not exist: {forge_root}")
     arg_audit = validate_forge_args(forge_root)
     collect_library_files(forge_root, files)
+    add_bytes(files, "server.jar", launcher_data)
 
     mandatory: list[dict] = []
     included_ids: set[str] = set()
@@ -560,6 +595,7 @@ def main() -> None:
                       for name, data in sorted(files.items())]
     manifest = {"schemaVersion": 1, "package": TOP, "minecraft": "1.20.1",
                 "forge": "47.4.28", "java": 17,
+                "launcher": launcher_audit,
                 "mods": mod_sources, "embeddedJarSelections": [
                     {k: v for k, v in item.items() if k != "data"} for item in jarjar_selections
                 ], "clientOnlyExcluded": client_only,
@@ -570,14 +606,15 @@ def main() -> None:
     check_no_forbidden_paths(files)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    archive_path = OUT_DIR / ARCHIVE_NAME
-    if archive_path.exists():
-        fail(f"Refusing to overwrite existing archive: {archive_path}")
-    temp_path = OUT_DIR / (ARCHIVE_NAME + ".partial")
-    if temp_path.exists():
-        fail(f"Refusing to overwrite existing partial archive: {temp_path}")
+    tar_path, zip_path = OUT_DIR / TAR_NAME, OUT_DIR / ZIP_NAME
+    for target in (tar_path, zip_path, OUT_DIR / (TAR_NAME + ".partial"),
+                   OUT_DIR / (ZIP_NAME + ".partial")):
+        if target.exists():
+            fail(f"Refusing to overwrite existing archive/partial: {target}")
+    expected = {f"{TOP}/{k}": (len(v), sha256_bytes(v)) for k, v in files.items()}
+    partials = [OUT_DIR / (TAR_NAME + ".partial"), OUT_DIR / (ZIP_NAME + ".partial")]
     try:
-        with tarfile.open(temp_path, "w:gz", format=tarfile.PAX_FORMAT) as tar:
+        with tarfile.open(partials[0], "w:gz", format=tarfile.PAX_FORMAT) as tar:
             for name, data in sorted(files.items()):
                 member_name = safe_name(f"{TOP}/{name}")
                 info = tarfile.TarInfo(member_name)
@@ -587,44 +624,73 @@ def main() -> None:
                 info.uid = info.gid = 0
                 info.uname = info.gname = ""
                 tar.addfile(info, io.BytesIO(data))
-        # Read the produced tar back and verify every expected member digest.
-        expected = {f"{TOP}/{k}": (len(v), sha256_bytes(v)) for k, v in files.items()}
-        with tarfile.open(temp_path, "r:gz") as tar:
-            members = tar.getmembers()
-            actual_names = {m.name for m in members if m.isfile()}
-            if actual_names != set(expected):
+        with zipfile.ZipFile(partials[1], "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            for name, data in sorted(files.items()):
+                member_name = safe_name(f"{TOP}/{name}")
+                info = zipfile.ZipInfo(member_name, date_time=(1980, 1, 1, 0, 0, 0))
+                mode = 0o755 if name.lower().endswith(".sh") else 0o644
+                info.create_system = 3
+                info.external_attr = (stat.S_IFREG | mode) << 16
+                info.compress_type = zipfile.ZIP_DEFLATED
+                archive.writestr(info, data)
+
+        # Read both archives back; exact member sets and per-file hashes must match.
+        with tarfile.open(partials[0], "r:gz") as archive:
+            members = archive.getmembers()
+            if {m.name for m in members if m.isfile()} != set(expected):
                 fail("Tar member set differs from expected payload")
             for member in members:
                 safe_name(member.name)
                 if not member.isfile():
                     fail(f"Non-regular tar entry: {member.name}")
-                if member.mode != (0o755 if member.name.lower().endswith(".sh") else 0o644):
+                expected_mode = 0o755 if member.name.lower().endswith(".sh") else 0o644
+                if member.mode != expected_mode:
                     fail(f"Incorrect file mode in tar: {member.name}")
-                extracted = tar.extractfile(member)
-                if extracted is None:
+                stream = archive.extractfile(member)
+                if stream is None:
                     fail(f"Unable to read back tar member: {member.name}")
-                data = extracted.read()
+                content = stream.read()
                 size, digest = expected[member.name]
-                if len(data) != size or sha256_bytes(data) != digest:
+                if len(content) != size or sha256_bytes(content) != digest:
                     fail(f"Tar read-back hash mismatch: {member.name}")
-        os.replace(temp_path, archive_path)
+        with zipfile.ZipFile(partials[1], "r") as archive:
+            infos = archive.infolist()
+            if {info.filename for info in infos} != set(expected):
+                fail("ZIP member set differs from expected payload")
+            for info in infos:
+                safe_name(info.filename)
+                mode = (info.external_attr >> 16) & 0o777
+                expected_mode = 0o755 if info.filename.lower().endswith(".sh") else 0o644
+                if stat.S_IFMT(info.external_attr >> 16) != stat.S_IFREG or mode != expected_mode:
+                    fail(f"Incorrect ZIP file type/mode: {info.filename}")
+                content = archive.read(info)
+                size, digest = expected[info.filename]
+                if len(content) != size or sha256_bytes(content) != digest:
+                    fail(f"ZIP read-back hash mismatch: {info.filename}")
+        os.replace(partials[0], tar_path)
+        os.replace(partials[1], zip_path)
     except Exception:
-        if temp_path.exists():
-            temp_path.unlink()
+        for partial in partials:
+            if partial.exists():
+                partial.unlink()
         raise
 
     audit = {"createdUtc": datetime.now(timezone.utc).isoformat(),
-             "archive": str(archive_path.relative_to(ROOT).as_posix()),
-             "archiveSha256": sha256_file(archive_path), "archiveSizeBytes": archive_path.stat().st_size,
+             "archives": [{"path": str(path.relative_to(ROOT).as_posix()),
+                           "sha256": sha256_file(path), "sizeBytes": path.stat().st_size}
+                          for path in (zip_path, tar_path)],
              "serverManifestSha256": sha256_bytes(files["server-manifest.json"]),
+             "launcher": launcher_audit,
              "forgeInstaller": "complete", "forgeArgsLibraries": arg_audit,
              "serverWorld": "not_started", "linuxHardwareVerified": False,
              "testsRun": False, "thirdPartyScope": "Locally held dependencies packaged only for the user's own server migration; no third-party content is uploaded to GitHub.",
              "clientOnlyGraphicsIncluded": False,
-             "tarReadbackSha256Verified": True, "fileCount": len(files)}
+             "tarReadbackSha256Verified": True, "zipReadbackSha256Verified": True,
+             "sameTopFolderAndContents": True, "fileCount": len(files)}
     audit_path = OUT_DIR / "artifact-audit.json"
     audit_path.write_text(json.dumps(audit, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Created {archive_path}")
+    print(f"Created {zip_path}")
+    print(f"Created {tar_path}")
     print(f"Artifact audit: {audit_path}")
 
 

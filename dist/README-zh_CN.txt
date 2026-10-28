@@ -3,9 +3,13 @@ IC2：新纪元 r48 — Forge 1.20.1 / 47.4.28 / Java 17
 客户端：IC2-New-Era-1.20.1-Forge-47.4.28-r48.mrpack
 拖入 PCL2 安装为独立实例。包含新纪元本体，启动器按锁定URL下载30个第三方模组；附Windows便携Java17及匹配源码。请勿覆盖1.19.2旧世界。
 
-Linux服务端：IC2-New-Era-Server-1.20.1-r48.tar.gz
+完整服务端：IC2-New-Era-Server-1.20.1-r48-Full.zip（常规解压）
+Linux归档：IC2-New-Era-Server-1.20.1-r48-Full.tar.gz
+已解压目录：IC2-New-Era-Server-1.20.1-r48-Full/
 包含官方Forge服务端核心及libraries、25个配套模组、默认配置与中英启动说明，不是只有mods的附件。
-完整解压到独立目录，准备Java17，阅读并自行同意Minecraft EULA后将eula.txt改为true，再运行 ./start-server.sh。
+完整解压到独立目录，准备Java17，阅读并自行同意Minecraft EULA后将eula.txt改为true，再运行 chmod +x Start.sh start-server.sh 和 ./Start.sh。
+根目录还有Start.bat与server.jar，面板只支持JAR时按Panel-Startup.txt启动。server.jar为启动入口，实际Forge核心已完整放在libraries内。
+主包不内置Java17，使用服务器现有Java；需要时参考JAVA17-OPTIONAL.txt另选安装。
 默认内存2G–6G、TCP25565、online-mode=true。启动说明见归档README.zh-CN.md；支持目标是glibc Linux，包含x86_64/AArch64原生库，不用于Alpine/musl。实际Linux运行与多人联机尚未验收。
 
 本轮更新
