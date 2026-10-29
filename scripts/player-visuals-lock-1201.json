@@ -1,0 +1,44 @@
+{
+  "target": {
+    "minecraft": "1.20.1",
+    "forge": "47.4.28",
+    "platform": "Windows x64"
+  },
+  "sourceDirectory": "build-isolated/player-packaging/20261029-r50-windows-visuals/sources",
+  "shaderProfile": "MEDIUM",
+  "assets": [
+    {
+      "kind": "shader",
+      "title": "Complementary Shaders - Reimagined",
+      "version": "r5.9.3",
+      "projectId": "HVnmMxH1",
+      "versionId": "Bqen1mJX",
+      "file": "ComplementaryReimagined_r5.9.3.zip",
+      "source": "https://cdn.modrinth.com/data/HVnmMxH1/versions/Bqen1mJX/ComplementaryReimagined_r5.9.3.zip",
+      "versionUrl": "https://modrinth.com/shader/complementary-reimagined/version/r5.9.3",
+      "sizeBytes": 553397,
+      "sha1": "838139b54cddb56b2e83cd260d8efd960ac536d6",
+      "sha256": "FED6C879E732CF7FC7BC6570EBB1DEF43235AA7E96F62859FBDBDBFA0B484B38",
+      "sha512": "45304b1d7862afdb2177b7e6226fc9c6737911d17a4ad46cc9c519ca4deb935f05072cd337cd8b19a15bb8062b57b54eceec7bdee4cd572d94858e2946d37d85",
+      "archiveIntegrityVerified": true,
+      "distribution": "Modrinth index download, unmodified ZIP"
+    },
+    {
+      "kind": "resourcepack",
+      "title": "Bare Bones",
+      "version": "1.1.7",
+      "projectId": "rox3U8B6",
+      "versionId": "s3lwqPHV",
+      "file": "Bare Bones 1.20.zip",
+      "source": "https://cdn.modrinth.com/data/rox3U8B6/versions/s3lwqPHV/Bare%20Bones%201.20.zip",
+      "versionUrl": "https://modrinth.com/resourcepack/bare-bones/version/1.1.7",
+      "sizeBytes": 7791662,
+      "sha1": "31d55c22f6f26529ff6ba810dba48873862ae358",
+      "sha256": "F362E683A1E59AED2FAB35C839B2CB30AD3F60D509BED4414DE9A9351884E4CD",
+      "sha512": "2a7b9ab20e5a0437ffddf553087fce5f9163032eed7369a566f5876332ec398dc1ab095f360fdf4d7eb27a77b32982335029ac9bb3843785e9e875e6fae15932",
+      "archiveIntegrityVerified": true,
+      "distribution": "Modrinth index download, unmodified ZIP"
+    }
+  ],
+  "notes": "Third-party ZIP files are downloaded by the launcher via Modrinth manifest. No ZIP reupload in overrides."
+}
