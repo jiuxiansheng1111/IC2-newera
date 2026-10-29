@@ -5,7 +5,7 @@
     "forge": "47.4.28",
     "java": 17
   },
-  "revision": "r48",
+  "revision": "r51",
   "runtimeVerification": "Metadata, official source hashes and API compatibility reviewed; full client/server and Linux play acceptance pending.",
   "mods": [
     {
@@ -170,6 +170,17 @@
       "sourceVersionUrl": "https://modrinth.com/mod/p19vrgc2/version/EQaOpkjt",
       "sizeBytes": 972917,
       "sha256": "10AA5A2E07F3E04F68925D1452765E0992029A20F2C0953FC62A70FC5BF6B50E",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
+      "modId": "yes_steve_model",
+      "version": "2.6.5-forge+mc1.20.1",
+      "file": "ysm-2.6.5-forge+mc1.20.1-release.jar",
+      "source": "https://cdn.modrinth.com/data/86xjpqqS/versions/Zqooxsd2/ysm-2.6.5-forge%2Bmc1.20.1-release.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/yes-steve-model/version/2.6.5-forge%2Bmc1.20.1",
+      "sizeBytes": 63269843,
+      "sha256": "25B5E902B96F4C298690208F8B433CBC31737C23F87590354DBD86F00207BC8F",
       "environment": "client",
       "releaseChannel": "release"
     }
