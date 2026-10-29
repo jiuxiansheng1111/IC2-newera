@@ -161,24 +161,6 @@
       ],
       "shade": true,
       "faces": {
-        "north": {
-          "texture": "#base",
-          "uv": [
-            4,
-            14,
-            5,
-            15
-          ]
-        },
-        "south": {
-          "texture": "#base",
-          "uv": [
-            4,
-            14,
-            5,
-            15
-          ]
-        },
         "east": {
           "texture": "#base",
           "uv": [
@@ -230,24 +212,6 @@
       ],
       "shade": true,
       "faces": {
-        "north": {
-          "texture": "#base",
-          "uv": [
-            4,
-            14,
-            5,
-            15
-          ]
-        },
-        "south": {
-          "texture": "#base",
-          "uv": [
-            4,
-            14,
-            5,
-            15
-          ]
-        },
         "east": {
           "texture": "#base",
           "uv": [
@@ -412,15 +376,6 @@
             4,
             6
           ]
-        },
-        "down": {
-          "texture": "#shell",
-          "uv": [
-            3,
-            5,
-            4,
-            6
-          ]
         }
       }
     },
@@ -481,15 +436,6 @@
             4,
             6
           ]
-        },
-        "down": {
-          "texture": "#shell",
-          "uv": [
-            3,
-            5,
-            4,
-            6
-          ]
         }
       }
     },
@@ -516,24 +462,6 @@
           ]
         },
         "south": {
-          "texture": "#trim",
-          "uv": [
-            4,
-            2,
-            5,
-            3
-          ]
-        },
-        "east": {
-          "texture": "#trim",
-          "uv": [
-            4,
-            2,
-            5,
-            3
-          ]
-        },
-        "west": {
           "texture": "#trim",
           "uv": [
             4,
@@ -593,34 +521,7 @@
             3
           ]
         },
-        "east": {
-          "texture": "#trim",
-          "uv": [
-            4,
-            2,
-            5,
-            3
-          ]
-        },
-        "west": {
-          "texture": "#trim",
-          "uv": [
-            4,
-            2,
-            5,
-            3
-          ]
-        },
         "up": {
-          "texture": "#trim",
-          "uv": [
-            4,
-            2,
-            5,
-            3
-          ]
-        },
-        "down": {
           "texture": "#trim",
           "uv": [
             4,
@@ -790,51 +691,6 @@
             6,
             6
           ]
-        },
-        "south": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
-        },
-        "east": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
-        },
-        "west": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
-        },
-        "up": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
-        },
-        "down": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
         }
       }
     },
@@ -852,15 +708,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#anchor",
-          "uv": [
-            10,
-            5,
-            11,
-            6
-          ]
-        },
-        "south": {
           "texture": "#anchor",
           "uv": [
             10,
@@ -921,15 +768,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#anchor",
-          "uv": [
-            10,
-            5,
-            11,
-            6
-          ]
-        },
-        "south": {
           "texture": "#anchor",
           "uv": [
             10,
@@ -1058,15 +896,6 @@
       ],
       "shade": true,
       "faces": {
-        "north": {
-          "texture": "#glow",
-          "uv": [
-            5,
-            5,
-            6,
-            6
-          ]
-        },
         "south": {
           "texture": "#glow",
           "uv": [

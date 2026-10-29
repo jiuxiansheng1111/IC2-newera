@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/cobalt_ingot",
+  "display": {
+    "icon": {
+      "item": "ic2newera:magnetic_coil"
+    },
+    "title": "约束磁场",
+    "description": "获得磁约束线圈。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:magnetic_coil"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

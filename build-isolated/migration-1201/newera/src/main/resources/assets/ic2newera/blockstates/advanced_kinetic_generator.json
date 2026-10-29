@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "ic2newera:block/advanced_kinetic_generator"
+    },
+    "facing=north": {
+      "model": "ic2newera:block/advanced_kinetic_generator",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ic2newera:block/advanced_kinetic_generator",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "ic2newera:block/advanced_kinetic_generator",
+      "y": 90
+    },
+    "facing=down": {
+      "model": "ic2newera:block/advanced_kinetic_generator",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "ic2newera:block/advanced_kinetic_generator",
+      "x": 270
+    }
+  }
+}

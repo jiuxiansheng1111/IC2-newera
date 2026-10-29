@@ -70,9 +70,6 @@
         },
         "up": {
           "texture": "#shell"
-        },
-        "down": {
-          "texture": "#shell"
         }
       }
     },
@@ -103,9 +100,6 @@
         },
         "up": {
           "texture": "#trim"
-        },
-        "down": {
-          "texture": "#trim"
         }
       }
     },
@@ -123,9 +117,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#trim"
-        },
-        "south": {
           "texture": "#trim"
         },
         "east": {
@@ -158,9 +149,6 @@
         "north": {
           "texture": "#chamber"
         },
-        "south": {
-          "texture": "#chamber"
-        },
         "east": {
           "texture": "#chamber"
         },
@@ -191,9 +179,6 @@
         "north": {
           "texture": "#heater"
         },
-        "south": {
-          "texture": "#heater"
-        },
         "east": {
           "texture": "#heater"
         },
@@ -222,9 +207,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#chamber"
-        },
-        "south": {
           "texture": "#chamber"
         },
         "east": {
@@ -326,9 +308,6 @@
         "south": {
           "texture": "#vent"
         },
-        "east": {
-          "texture": "#vent"
-        },
         "west": {
           "texture": "#vent"
         },
@@ -362,9 +341,6 @@
         "east": {
           "texture": "#vent"
         },
-        "west": {
-          "texture": "#vent"
-        },
         "up": {
           "texture": "#vent"
         },
@@ -386,9 +362,6 @@
       ],
       "shade": true,
       "faces": {
-        "north": {
-          "texture": "#vent"
-        },
         "south": {
           "texture": "#vent"
         },
@@ -419,9 +392,6 @@
       ],
       "shade": true,
       "faces": {
-        "north": {
-          "texture": "#vent"
-        },
         "south": {
           "texture": "#vent"
         },
@@ -466,42 +436,6 @@
         },
         "up": {
           "texture": "#ports"
-        },
-        "down": {
-          "texture": "#ports"
-        }
-      }
-    },
-    {
-      "from": [
-        5,
-        13,
-        4
-      ],
-      "to": [
-        11,
-        14,
-        5
-      ],
-      "shade": true,
-      "faces": {
-        "north": {
-          "texture": "#heater"
-        },
-        "south": {
-          "texture": "#heater"
-        },
-        "east": {
-          "texture": "#heater"
-        },
-        "west": {
-          "texture": "#heater"
-        },
-        "up": {
-          "texture": "#heater"
-        },
-        "down": {
-          "texture": "#heater"
         }
       }
     }

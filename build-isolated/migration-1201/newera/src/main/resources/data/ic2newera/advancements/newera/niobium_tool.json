@@ -1,0 +1,36 @@
+{
+  "parent": "ic2newera:newera/niobium_titanium",
+  "display": {
+    "icon": {
+      "item": "ic2newera:niobium_titanium_pickaxe"
+    },
+    "title": "铌钛工具",
+    "description": "获得任意一件铌钛合金工具。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:niobium_titanium_pickaxe",
+              "ic2newera:niobium_titanium_axe",
+              "ic2newera:niobium_titanium_shovel",
+              "ic2newera:niobium_titanium_hoe"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

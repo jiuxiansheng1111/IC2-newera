@@ -45,6 +45,14 @@ final class IndustrialMachineInspector {
             supported = true;
             details.addAll(motor.getDisplayLines().subList(0, 5));
         }
+        if (machine instanceof com.ic2newera.motor.KineticGeneratorBlockEntity generator) {
+            supported = true;
+            details.addAll(generator.getDisplayLines().subList(0, 4));
+        }
+        if (machine instanceof com.ic2newera.motor.UniversalTransformerBlockEntity transformer) {
+            supported = true;
+            details.addAll(transformer.getDisplayLines().subList(0, 4));
+        }
         if (machine instanceof com.ic2newera.machine.ProcessorBlockEntity processor) {
             supported = true;
             runState = processor.progressTicks() > 0 ? "RUNNING" : "IDLE";

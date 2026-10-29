@@ -41,6 +41,45 @@ ROWS = [
     ('lunar_crystal', 'wormhole_blueprint', 'lunar_resonance_crystal', '月球共鸣', '获得月球共鸣晶体。', None),
     ('wormhole_device', 'lunar_crystal', 'wormhole_device', '空间锚点', '获得一台虫洞装置。', None),
     ('wormhole_module', 'wormhole_device', 'wormhole_module', '随身跨越', '获得一个虫洞模块。', None),
+    ('basic_generator', 'eu_motor', 'kinetic_generator', '机械生电', '获得一台初级机械发电机。', None),
+    ('advanced_motor', 'eu_motor', 'advanced_eu_motor', '更强的驱动', '获得一台高级 EU 电动机。', None),
+    ('advanced_generator', 'basic_generator', 'advanced_kinetic_generator', '高速发电', '获得一台高级机械发电机。', None),
+    ('universal_transformer', 'advanced_motor', 'universal_transformer', '电压自由转换', '获得一台万能变压器。', None),
+    ('intermediate_bank', 'power_bank', 'intermediate_power_bank', '储能进阶', '获得中级充电宝。', None),
+    ('advanced_bank', 'intermediate_bank', 'advanced_power_bank', '大容量储能', '获得高级充电宝。', None),
+    ('nuclear_bank', 'advanced_bank', 'nuclear_power_bank', '核能随行', '获得核能充电宝。', None),
+    ('vanadium_ore', 'minerals', 'vanadium_ore', '钒矿新发现', '获得钒矿石。', None),
+    ('vanadium_ingot', 'vanadium_ore', 'vanadium_ingot', '提炼钒', '获得钒锭。', None),
+    ('niobium_ore', 'minerals', 'niobium_ore', '寻找铌矿', '获得铌矿石。', None),
+    ('niobium_ingot', 'niobium_ore', 'niobium_ingot', '提炼铌', '获得铌锭。', None),
+    ('cobalt_ore', 'minerals', 'cobalt_ore', '钴蓝矿脉', '获得钴矿石。', None),
+    ('cobalt_ingot', 'cobalt_ore', 'cobalt_ingot', '提炼钴', '获得钴锭。', None),
+    ('molybdenum_ore', 'minerals', 'molybdenum_ore', '耐热矿脉', '获得钼矿石。', None),
+    ('molybdenum_ingot', 'molybdenum_ore', 'molybdenum_ingot', '提炼钼', '获得钼锭。', None),
+    ('tantalum_ore', 'minerals', 'tantalum_ore', '稀有钽矿', '获得钽矿石。', None),
+    ('tantalum_ingot', 'tantalum_ore', 'tantalum_ingot', '提炼钽', '获得钽锭。', None),
+    ('vanadium_steel', 'vanadium_ingot', 'vanadium_steel_ingot', '钒钢冶炼', '获得钒钢锭。', None),
+    ('niobium_titanium', 'niobium_ingot', 'niobium_titanium_ingot', '铌钛合金', '获得铌钛合金锭。', None),
+    ('magnetic_coil', 'cobalt_ingot', 'magnetic_coil', '约束磁场', '获得磁约束线圈。', None),
+    ('heat_plate', 'molybdenum_ingot', 'heat_resistant_plate', '抵御高温', '获得耐热护板。', None),
+    ('pulse_capacitor', 'tantalum_ingot', 'pulse_capacitor', '脉冲储能', '获得脉冲电容。', None),
+    ('servo_joint', 'magnetic_coil', 'servo_armor_joint', '动力关节', '获得装甲伺服关节。', None),
+    ('resonance_cluster', 'minerals', 'resonance_cluster', '共振矿簇', '获得共振矿簇。', None),
+    ('resonance_shard', 'resonance_cluster', 'resonance_shard', '共振碎晶', '获得共振碎晶。', None),
+    ('resonance_core', 'resonance_shard', 'resonance_core', '共振核心', '获得共振核心。', None),
+    ('vanadium_tool', 'vanadium_steel', 'vanadium_steel_pickaxe', '钒钢工具', '获得任意一件钒钢工具。', ['vanadium_steel_pickaxe','vanadium_steel_axe','vanadium_steel_shovel','vanadium_steel_hoe']),
+    ('niobium_tool', 'niobium_titanium', 'niobium_titanium_pickaxe', '铌钛工具', '获得任意一件铌钛合金工具。', ['niobium_titanium_pickaxe','niobium_titanium_axe','niobium_titanium_shovel','niobium_titanium_hoe']),
+]
+
+# Every piece can be acquired at a different time; the native criteria retain progress.
+ARMOR_SETS = [
+    ('bronze_armor', 'alloys', 'aluminium_bronze', '铝青铜护具'),
+    ('steel_armor', 'alloys', 'tempered_steel', '低碳钢护具'),
+    ('high_carbon_armor', 'alloys', 'tempered_high_carbon_steel', '高碳钢护具'),
+    ('vanadium_armor', 'vanadium_steel', 'vanadium_steel', '钒钢护具'),
+    ('niobium_armor', 'niobium_titanium', 'niobium_titanium', '铌钛护具'),
+    ('magnetic_armor', 'servo_joint', 'magnetic_armor', '磁约束护具'),
+    ('resonance_armor', 'resonance_core', 'resonance_armor', '共振护具'),
 ]
 
 def save(name, value):
@@ -64,4 +103,16 @@ for name, parent, icon, title, description, items in ROWS:
         'criteria': {'obtain': {'trigger':'minecraft:inventory_changed',
             'conditions': {'items':[{'items':['ic2newera:'+item for item in items]}]}}},
         'requirements':[['obtain']]})
-print(f'Generated {len(ROWS)+1} native New Era advancements.')
+for name, parent, prefix, title in ARMOR_SETS:
+    parts = ['helmet', 'chestplate', 'leggings', 'boots']
+    for part in parts:
+        if not (RES / 'assets/ic2newera/models/item' / (prefix+'_'+part+'.json')).is_file():
+            raise ValueError('Missing armor item model: '+prefix+'_'+part)
+    criteria = {part: {'trigger':'minecraft:inventory_changed', 'conditions': {'items':[
+        {'items':['ic2newera:'+prefix+'_'+part]}]}} for part in parts}
+    save(name, {'parent':'ic2newera:newera/'+parent,
+        'display': {'icon':{'item':'ic2newera:'+prefix+'_chestplate'}, 'title':title,
+            'description':'分别获得头盔、胸甲、护腿和靴子；无需同时携带。',
+            'frame':'goal', 'show_toast':True, 'announce_to_chat':False, 'hidden':False},
+        'criteria':criteria, 'requirements':[[part] for part in parts]})
+print(f'Generated {len(ROWS)+len(ARMOR_SETS)+1} native New Era advancements.')

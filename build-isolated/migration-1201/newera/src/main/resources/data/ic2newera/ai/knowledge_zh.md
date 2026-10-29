@@ -4,7 +4,7 @@
 
 ## 新纪元进度入口
 
-独立科技树已移除，改为原版「进度」中的「IC2：新纪元」独立分页。33个关键节点仅含本模组内容；其他模组保留各自分页，进度不作为合成或使用门槛。
+独立科技树已移除，改为原版「进度」中的「IC2：新纪元」独立分页。68个节点覆盖本模组的重要材料、设备、动力转换、伙伴与装备；其他模组保留各自分页，进度不作为合成或使用门槛。
 
 ## 唯一配方与数量来源
 
@@ -16,7 +16,7 @@
 
 - IC2 Refactored 2.10.33-ex120 提供当前迁移目标中的 EU、电网、储能和原生加工机器；不要把它称为 IC2 Classic，也不要因名称相似假定两者的 ID、配方、界面或 API 相同。
 - Create 提供转速、机械加工、粉碎轮、风扇水洗、物品物流与机械自动化。
-- EU 与 Create 转速网络各自独立；已有新纪元 EU 电动机提供单向 EU→转轴动力，没有反向发电。工业网络只传数据，不承载电力、转速、物品或流体。
+- EU 与 Create 转速网络各自独立；新纪元电动机将 EU 转为转轴动力，机械发电机消耗 Create 应力和转速产生 EU，均有初级和高级。工业网络只传数据，不承载电力、转速、物品或流体。
 - 新纪元新增矿物阶段与合金、电子材料、两台材料处理机、工业网络和生产规划；不重做 IC2/Create 原生设备。
 
 ## IC2 Classic 2.1.3.4 / Minecraft 1.19.2 历史界面参考（不适用于1.20.1 IC2R）
@@ -94,7 +94,11 @@ AE2 15.4.11 与 IC2 Refactored 2.10.33-ex120 的配对包含 IC2R 一侧的原�
 - 下列名称由当前简体中文语言文件自动生成；精确配方步骤和数量见当前服务器同步 ProcessGraph 与 JEI。
 - 铬矿石（方块，`ic2newera:chromium_ore`）
 - 电子材料加工机（方块，`ic2newera:electronic_fabricator`）
-- EU电动机（方块，`ic2newera:eu_motor`）
+- 初级EU电动机（方块，`ic2newera:eu_motor`）
+- 高级EU电动机（方块，`ic2newera:advanced_eu_motor`）
+- 初级机械发电机（方块，`ic2newera:kinetic_generator`）
+- 高级机械发电机（方块，`ic2newera:advanced_kinetic_generator`）
+- 万能变压器（方块，`ic2newera:universal_transformer`）
 - 工业控制服务器（方块，`ic2newera:industrial_control_server`）
 - 工业光纤（方块，`ic2newera:industrial_fiber`）
 - 工业网络交换机（方块，`ic2newera:industrial_network_switch`）

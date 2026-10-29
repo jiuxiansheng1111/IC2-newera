@@ -1,0 +1,169 @@
+{
+  "materials": [],
+  "routes": [
+    {
+      "id": "ic2newera:kinetic_generator",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:eu_motor",
+          "count": 1
+        },
+        {
+          "item": "create:shaft",
+          "count": 1
+        },
+        {
+          "item": "ic2:circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2:insulated_copper_cable",
+          "count": 2
+        },
+        {
+          "item": "minecraft:iron_ingot",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:kinetic_generator",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:advanced_eu_motor",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:eu_motor",
+          "count": 1
+        },
+        {
+          "item": "ic2:advanced_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2:lapotron_crystal",
+          "count": 2
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:cpu",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_alloy_ingot",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:advanced_eu_motor",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:advanced_kinetic_generator",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:kinetic_generator",
+          "count": 1
+        },
+        {
+          "item": "ic2:advanced_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2:lapotron_crystal",
+          "count": 2
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:industrial_ssd",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_alloy_ingot",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:advanced_kinetic_generator",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    },
+    {
+      "id": "ic2newera:universal_transformer",
+      "material": "",
+      "classification": "APPROVED_INDUSTRIAL_PROCESS",
+      "machines": [
+        "minecraft:crafting_table"
+      ],
+      "inputs": [
+        {
+          "item": "ic2newera:advanced_power_bank",
+          "count": 1
+        },
+        {
+          "item": "ic2:lapotron_crystal",
+          "count": 2
+        },
+        {
+          "item": "ic2:advanced_circuit",
+          "count": 1
+        },
+        {
+          "item": "create:precision_mechanism",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:integrated_circuit",
+          "count": 1
+        },
+        {
+          "item": "ic2newera:titanium_alloy_ingot",
+          "count": 2
+        }
+      ],
+      "output": {
+        "item": "ic2newera:universal_transformer",
+        "count": 1
+      },
+      "duration_ticks": 0,
+      "eu_per_tick": 0,
+      "priority": 10,
+      "format": "crafting"
+    }
+  ]
+}

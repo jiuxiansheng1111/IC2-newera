@@ -9,6 +9,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 import com.ic2newera.motor.EUMotorBlockEntity;
+import com.ic2newera.motor.KineticGeneratorBlockEntity;
+import com.ic2newera.motor.UniversalTransformerBlockEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.items.ItemStackHandler;
@@ -22,6 +24,8 @@ public final class IndustrialMenu extends AbstractContainerMenu {
     public static final int KIND_SWITCH = 1;
     public static final int KIND_SERVER = 2;
     public static final int KIND_MOTOR = 3;
+    public static final int KIND_GENERATOR = 4;
+    public static final int KIND_TRANSFORMER = 5;
     public static final int SCREEN_WIDTH = 300;
     public static final int SCREEN_HEIGHT = 226;
     public static final int CORE_X = 265;
@@ -57,7 +61,9 @@ public final class IndustrialMenu extends AbstractContainerMenu {
                     case 0 -> hasManagePermission(inventory.player) ? 1 : 0;
                     case 1 -> entity instanceof IndustrialControlServerBlockEntity server ? server.getAccessMode() : 0;
                     case 2 -> ServerControllerAccess.isControllerOwner(inventory.player) ? 1 : 0;
-                    case 3 -> entity instanceof EUMotorBlockEntity motor ? motor.getTargetRpm() : 64;
+                    case 3 -> entity instanceof EUMotorBlockEntity motor ? motor.getTargetRpm()
+                            : entity instanceof KineticGeneratorBlockEntity generator ? generator.getOutputTier()
+                            : entity instanceof UniversalTransformerBlockEntity transformer ? transformer.getOutputTier() : 64;
                     case 4 -> entity instanceof EUMotorBlockEntity motor && motor.isEnabled() ? 1 : 0;
                     default -> 0;
                 };
@@ -143,13 +149,25 @@ public final class IndustrialMenu extends AbstractContainerMenu {
     private boolean hasManagePermission(Player player) {
         BlockEntity device = currentBlockEntity();
         return device instanceof OwnedIndustrialBlockEntity owned ? owned.canManage(player)
-                : device instanceof EUMotorBlockEntity && ServerControllerAccess.canConfigure(player);
+                : (device instanceof EUMotorBlockEntity || device instanceof KineticGeneratorBlockEntity
+                        || device instanceof UniversalTransformerBlockEntity)
+                        && ServerControllerAccess.canConfigure(player);
     }
     public int getAccessMode() { return settings.get(1); }
     public boolean isControllerOwner() { return settings.get(2) != 0; }
     public int getMotorTargetRpm() { return settings.get(3); }
     public boolean isMotorEnabled() { return settings.get(4) != 0; }
     public boolean isMotorMenu() { return kind == KIND_MOTOR; }
+    public boolean isAdvancedMotor() { return currentBlockEntity() instanceof EUMotorBlockEntity motor && motor.isAdvanced(); }
+    public boolean isGeneratorMenu() { return kind == KIND_GENERATOR; }
+    public boolean isTransformerMenu() { return kind == KIND_TRANSFORMER; }
+    public int getGeneratorTier() { return settings.get(3); }
+    public int getGeneratorMinimumTier() {
+        return currentBlockEntity() instanceof KineticGeneratorBlockEntity generator ? generator.getMinimumTier() : 1;
+    }
+    public int getGeneratorMaximumTier() {
+        return currentBlockEntity() instanceof KineticGeneratorBlockEntity generator ? generator.getMaximumTier() : 2;
+    }
     public boolean isServerMenu() { return kind == KIND_SERVER; }
 
     public String getNetworkName() {
@@ -186,6 +204,8 @@ public final class IndustrialMenu extends AbstractContainerMenu {
         if (entity instanceof IndustrialNetworkSwitchBlockEntity networkSwitch) return networkSwitch.getDisplayLines();
         if (entity instanceof IndustrialControlServerBlockEntity server) return server.getDisplayLines();
         if (entity instanceof EUMotorBlockEntity motor) return motor.getDisplayLines();
+        if (entity instanceof KineticGeneratorBlockEntity generator) return generator.getDisplayLines();
+        if (entity instanceof UniversalTransformerBlockEntity transformer) return transformer.getDisplayLines();
         return List.of("网络设备未同步", "状态未知");
     }
 
@@ -214,6 +234,12 @@ public final class IndustrialMenu extends AbstractContainerMenu {
     }
     public void setMotorSettings(int rpm, boolean enabled) {
         IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.SetMotorSettings(pos, rpm, enabled));
+    }
+    public void setGeneratorTier(int tier) {
+        IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.SetGeneratorTier(pos, tier));
+    }
+    public void setTransformerTier(int tier) {
+        IndustrialNetworkPackets.CHANNEL.sendToServer(new IndustrialNetworkPackets.SetTransformerTier(pos, tier));
     }
 
     private BlockEntity currentBlockEntity() {

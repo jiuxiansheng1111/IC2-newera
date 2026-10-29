@@ -4,6 +4,7 @@
   "package": "com.ic2newera.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "Ic2StackedCellFluidViewMixin",
     "FarmerCookingPotMixin",
     "TopArmorMaterialMixin",
     "PetAirCurrentMixin",

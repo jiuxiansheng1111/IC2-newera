@@ -93,7 +93,7 @@
   "block.ic2newera.industrial_network_switch": "Industrial Network Switch",
   "block.ic2newera.industrial_control_server": "Industrial Control Server",
   "block.ic2newera.terminal": "Retired Terminal (Item Recovery Only)",
-  "block.ic2newera.eu_motor": "EU Motor",
+  "block.ic2newera.eu_motor": "Basic EU Motor",
   "item.ic2newera.wifi_amplifier": "WiFi Amplifier",
   "item.ic2newera.low_carbon_steel_dust": "低碳钢粉",
   "item.ic2newera.high_carbon_steel_dust": "高碳钢粉",
@@ -320,5 +320,9 @@
   "screen.ic2newera.pet.page.inventory": "物品与装备",
   "screen.ic2newera.pet.page.actions": "互动动作",
   "screen.ic2newera.pet.native_profile": "老吴档案 / 饰品",
-  "screen.ic2newera.pet.native_logistics": "物流地址 / 包裹"
+  "screen.ic2newera.pet.native_logistics": "物流地址 / 包裹",
+  "block.ic2newera.advanced_eu_motor": "Advanced EU Motor",
+  "block.ic2newera.kinetic_generator": "Basic Mechanical Generator",
+  "block.ic2newera.advanced_kinetic_generator": "Advanced Mechanical Generator",
+  "block.ic2newera.universal_transformer": "Universal Transformer"
 }

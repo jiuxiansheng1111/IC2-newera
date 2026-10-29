@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/power_bank",
+  "display": {
+    "icon": {
+      "item": "ic2newera:intermediate_power_bank"
+    },
+    "title": "储能进阶",
+    "description": "获得中级充电宝。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:intermediate_power_bank"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

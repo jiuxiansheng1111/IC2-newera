@@ -330,7 +330,8 @@ public final class RecipeGuard {
                 .anyMatch(route -> Set.of("campaign_hardware","arsenal_components","arsenal_armor").contains(route.material())
                         && route.output().equals(BuiltInRegistries.ITEM.getKey(stack.getItem())))
                 || Set.of("ic2newera:industrial_control_server",
-                        "ic2newera:industrial_ai_core", "ic2newera:eu_motor", "ic2newera:wifi_amplifier",
+                        "ic2newera:industrial_ai_core", "ic2newera:eu_motor", "ic2newera:advanced_eu_motor",
+                        "ic2newera:kinetic_generator", "ic2newera:advanced_kinetic_generator", "ic2newera:universal_transformer", "ic2newera:wifi_amplifier",
                         "ic2newera:alloy_smelter", "ic2newera:advanced_electric_furnace",
                         "ic2newera:plate_advanced_alloy", "ic2newera:glowtronic_crystal", "ic2newera:uesc")
                 .contains(String.valueOf(BuiltInRegistries.ITEM.getKey(stack.getItem()))));

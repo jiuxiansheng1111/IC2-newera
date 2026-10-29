@@ -1,0 +1,71 @@
+{
+  "generator": "scripts/optimize-machine-models-1201.py",
+  "models": [
+    {
+      "model": "alloy_smelter",
+      "cuboids": 20,
+      "fullyHiddenFacesRemoved": 30
+    },
+    {
+      "model": "advanced_electric_furnace",
+      "cuboids": 15,
+      "fullyHiddenFacesRemoved": 17
+    },
+    {
+      "model": "non_metal_processor",
+      "cuboids": 10,
+      "fullyHiddenFacesRemoved": 10
+    },
+    {
+      "model": "electronic_fabricator",
+      "cuboids": 9,
+      "fullyHiddenFacesRemoved": 12
+    },
+    {
+      "model": "eu_motor",
+      "cuboids": 20,
+      "fullyHiddenFacesRemoved": 23
+    },
+    {
+      "model": "advanced_eu_motor",
+      "cuboids": 12,
+      "fullyHiddenFacesRemoved": 15
+    },
+    {
+      "model": "kinetic_generator",
+      "cuboids": 10,
+      "fullyHiddenFacesRemoved": 13
+    },
+    {
+      "model": "advanced_kinetic_generator",
+      "cuboids": 13,
+      "fullyHiddenFacesRemoved": 15
+    },
+    {
+      "model": "universal_transformer",
+      "cuboids": 8,
+      "fullyHiddenFacesRemoved": 7
+    },
+    {
+      "model": "machine_network_adapter",
+      "cuboids": 6,
+      "fullyHiddenFacesRemoved": 5
+    },
+    {
+      "model": "industrial_network_switch",
+      "cuboids": 10,
+      "fullyHiddenFacesRemoved": 9
+    },
+    {
+      "model": "industrial_control_server",
+      "cuboids": 23,
+      "fullyHiddenFacesRemoved": 18
+    },
+    {
+      "model": "wormhole_device",
+      "cuboids": 16,
+      "fullyHiddenFacesRemoved": 19
+    }
+  ],
+  "runtimeVerified": false
+}

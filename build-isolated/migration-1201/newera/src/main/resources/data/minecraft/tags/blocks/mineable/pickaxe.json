@@ -26,6 +26,10 @@
     "ic2newera:bronze_dust_block",
     "ic2newera:alloy_smelter",
     "ic2newera:advanced_electric_furnace",
-    "ic2newera:wormhole_device"
+    "ic2newera:wormhole_device",
+    "ic2newera:advanced_eu_motor",
+    "ic2newera:kinetic_generator",
+    "ic2newera:advanced_kinetic_generator",
+    "ic2newera:universal_transformer"
   ]
 }

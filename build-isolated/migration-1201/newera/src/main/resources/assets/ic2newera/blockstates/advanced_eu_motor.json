@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "ic2newera:block/advanced_eu_motor"
+    },
+    "facing=north": {
+      "model": "ic2newera:block/advanced_eu_motor",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ic2newera:block/advanced_eu_motor",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "ic2newera:block/advanced_eu_motor",
+      "y": 90
+    },
+    "facing=down": {
+      "model": "ic2newera:block/advanced_eu_motor",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "ic2newera:block/advanced_eu_motor",
+      "x": 270
+    }
+  }
+}

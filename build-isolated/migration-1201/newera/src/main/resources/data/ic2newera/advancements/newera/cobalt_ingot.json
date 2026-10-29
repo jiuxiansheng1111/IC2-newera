@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/cobalt_ore",
+  "display": {
+    "icon": {
+      "item": "ic2newera:cobalt_ingot"
+    },
+    "title": "提炼钴",
+    "description": "获得钴锭。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:cobalt_ingot"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

@@ -134,15 +134,6 @@
             16,
             16
           ]
-        },
-        "down": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
         }
       }
     },
@@ -187,24 +178,6 @@
           ]
         },
         "west": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "up": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "down": {
           "texture": "#shell",
           "uv": [
             0,
@@ -453,24 +426,6 @@
             16
           ]
         },
-        "east": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
         "up": {
           "texture": "#shell",
           "uv": [
@@ -522,24 +477,6 @@
             16
           ]
         },
-        "east": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
         "up": {
           "texture": "#shell",
           "uv": [
@@ -582,15 +519,6 @@
             16
           ]
         },
-        "south": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
         "east": {
           "texture": "#shell",
           "uv": [
@@ -610,15 +538,6 @@
           ]
         },
         "up": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "down": {
           "texture": "#shell",
           "uv": [
             0,
@@ -662,15 +581,6 @@
         },
         "east": {
           "texture": "#ports",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "texture": "#shell",
           "uv": [
             0,
             0,

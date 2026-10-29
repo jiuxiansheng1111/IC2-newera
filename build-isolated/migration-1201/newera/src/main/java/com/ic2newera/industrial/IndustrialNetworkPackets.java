@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 /** Authenticated server-side actions for the sole switch field and opt-in server control switch. */
 public final class IndustrialNetworkPackets {
-    private static final String PROTOCOL = "5";
+    private static final String PROTOCOL = "6";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(IC2NewEra.MOD_ID, "industrial"),
             () -> PROTOCOL, PROTOCOL::equals, PROTOCOL::equals);
@@ -41,6 +41,10 @@ public final class IndustrialNetworkPackets {
                 SetServerAccessMode::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(11, SetMotorSettings.class, SetMotorSettings::encode, SetMotorSettings::decode,
                 SetMotorSettings::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(12, SetGeneratorTier.class, SetGeneratorTier::encode, SetGeneratorTier::decode,
+                SetGeneratorTier::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(13, SetTransformerTier.class, SetTransformerTier::encode, SetTransformerTier::decode,
+                SetTransformerTier::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         registered = true;
     }
 
@@ -76,6 +80,44 @@ public final class IndustrialNetworkPackets {
                 if (hasOpenMenu(player, v.pos, IndustrialMenu.KIND_MOTOR)
                         && player.level().getBlockEntity(v.pos) instanceof com.ic2newera.motor.EUMotorBlockEntity motor)
                     motor.configure(player, v.rpm, v.enabled);
+            });
+            context.setPacketHandled(true);
+        }
+    }
+
+    public record SetGeneratorTier(BlockPos pos, int tier) {
+        private static void encode(SetGeneratorTier value, FriendlyByteBuf buffer) {
+            buffer.writeBlockPos(value.pos); buffer.writeVarInt(value.tier);
+        }
+        private static SetGeneratorTier decode(FriendlyByteBuf buffer) {
+            return new SetGeneratorTier(buffer.readBlockPos(), buffer.readVarInt());
+        }
+        private static void handle(SetGeneratorTier value, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get();
+            context.enqueueWork(() -> {
+                ServerPlayer player = context.getSender();
+                if (hasOpenMenu(player, value.pos, IndustrialMenu.KIND_GENERATOR)
+                        && player.level().getBlockEntity(value.pos) instanceof com.ic2newera.motor.KineticGeneratorBlockEntity generator)
+                    generator.setOutputTier(player, value.tier);
+            });
+            context.setPacketHandled(true);
+        }
+    }
+
+    public record SetTransformerTier(BlockPos pos, int tier) {
+        private static void encode(SetTransformerTier value, FriendlyByteBuf buffer) {
+            buffer.writeBlockPos(value.pos); buffer.writeVarInt(value.tier);
+        }
+        private static SetTransformerTier decode(FriendlyByteBuf buffer) {
+            return new SetTransformerTier(buffer.readBlockPos(), buffer.readVarInt());
+        }
+        private static void handle(SetTransformerTier value, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get();
+            context.enqueueWork(() -> {
+                ServerPlayer player = context.getSender();
+                if (hasOpenMenu(player, value.pos, IndustrialMenu.KIND_TRANSFORMER)
+                        && player.level().getBlockEntity(value.pos) instanceof com.ic2newera.motor.UniversalTransformerBlockEntity transformer)
+                    transformer.setOutputTier(player, value.tier);
             });
             context.setPacketHandled(true);
         }

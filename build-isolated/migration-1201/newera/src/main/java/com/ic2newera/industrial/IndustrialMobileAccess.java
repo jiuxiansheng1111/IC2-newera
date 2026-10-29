@@ -142,7 +142,7 @@ public final class IndustrialMobileAccess {
             if (command == 20) {
                 int rpm;
                 try { rpm = Integer.parseInt(value); }
-                catch (NumberFormatException invalid) { return result(false, "转速只能选择 ±32、±64、±128 RPM。"); }
+                catch (NumberFormatException invalid) { return result(false, "转速只能选择 ±32、±64、±128，或高级电动机的 ±256 RPM。"); }
                 boolean executed = server != null && server.setMotorSpeedFromMobile(player, device.pos(), rpm);
                 return result(executed, executed ? "目标转速已设为 " + rpm + " RPM；原停机/暂停状态保留。请查看供电估算。"
                         : "调速未执行：目标不支持、转速无效或控制权限已失效。");

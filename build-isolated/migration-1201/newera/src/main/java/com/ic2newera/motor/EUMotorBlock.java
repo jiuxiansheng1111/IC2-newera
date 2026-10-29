@@ -19,10 +19,14 @@ import net.minecraftforge.network.NetworkHooks;
 
 /** One shaft output and one opposite EU input, using Create's native rotation graph. */
 public final class EUMotorBlock extends DirectionalKineticBlock implements IBE<EUMotorBlockEntity> {
-    public EUMotorBlock(Properties properties) {
+    private final boolean advanced;
+
+    public EUMotorBlock(Properties properties, boolean advanced) {
         super(properties);
+        this.advanced = advanced;
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.SOUTH));
     }
+    public boolean isAdvanced() { return advanced; }
     @Override public Direction.Axis getRotationAxis(BlockState state) { return state.getValue(FACING).getAxis(); }
     @Override public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
         return face == state.getValue(FACING);

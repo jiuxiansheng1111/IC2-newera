@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "ic2newera:block/universal_transformer"
+    },
+    "facing=north": {
+      "model": "ic2newera:block/universal_transformer",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ic2newera:block/universal_transformer",
+      "y": 270
+    },
+    "facing=west": {
+      "model": "ic2newera:block/universal_transformer",
+      "y": 90
+    },
+    "facing=down": {
+      "model": "ic2newera:block/universal_transformer",
+      "x": 90
+    },
+    "facing=up": {
+      "model": "ic2newera:block/universal_transformer",
+      "x": 270
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/tantalum_ingot",
+  "display": {
+    "icon": {
+      "item": "ic2newera:pulse_capacitor"
+    },
+    "title": "脉冲储能",
+    "description": "获得脉冲电容。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:pulse_capacitor"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

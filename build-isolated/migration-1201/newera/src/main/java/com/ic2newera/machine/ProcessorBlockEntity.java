@@ -5,6 +5,7 @@ import com.ic2newera.menu.ProcessorMenu;
 import com.ic2newera.recipe.ModProcessorRecipes;
 import com.ic2newera.recipe.ProcessorRecipe;
 import com.ic2newera.process.RecipeGuard;
+import com.ic2newera.integration.ic2.EnergyThreading;
 import ic2.api.energy.EnergyNet;
 import ic2.api.energy.tile.IEnergyEmitter;
 import ic2.api.energy.tile.IEnergySink;
@@ -36,6 +37,7 @@ import net.minecraft.world.WorldlyContainer;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Shared server-authoritative inventory, EU sink, and processor for both machines. */
 public final class ProcessorBlockEntity extends BlockEntity implements WorldlyContainer, MenuProvider,
@@ -48,6 +50,8 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
     private final ProcessorKind kind;
     private NonNullList<ItemStack> items;
     private double energy;
+    private final Object energyLock = new Object();
+    private final AtomicBoolean energyDirty = new AtomicBoolean();
     private int progress;
     private int progressDuration;
     private boolean automationPaused;
@@ -59,7 +63,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
     private final ContainerData containerData = new ContainerData() {
         @Override public int get(int index) {
             return switch (index) {
-                case DATA_ENERGY -> (int) Math.floor(clampEnergy(energy, kind.energyCapacity()));
+                case DATA_ENERGY -> (int) Math.floor(energyStored());
                 case DATA_PROGRESS -> progressDuration <= 0 ? 0
                         : Math.min(1000, (int) Math.ceil(progress * 1000.0 / progressDuration));
                 case DATA_DURATION -> progressDuration > 0 ? 1000 : 0;
@@ -69,7 +73,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         }
         @Override public void set(int index, int value) {
             switch (index) {
-                case DATA_ENERGY -> energy = Math.max(0, Math.min(kind.energyCapacity(), value));
+                case DATA_ENERGY -> { synchronized (energyLock) { energy = Math.max(0, Math.min(kind.energyCapacity(), value)); } }
                 case DATA_PROGRESS -> progress = Math.max(0, value);
                 case DATA_DURATION -> progressDuration = Math.max(0, value);
                 case DATA_STATUS -> problem = statusName(value);
@@ -91,7 +95,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
 
     public ProcessorKind kind() { return kind; }
     public ContainerData containerData() { return containerData; }
-    public double energyStored() { return clampEnergy(energy, kind.energyCapacity()); }
+    public double energyStored() { synchronized (energyLock) { return clampEnergy(energy, kind.energyCapacity()); } }
     public int energyCapacity() { return kind.energyCapacity(); }
     public int progressTicks() { return progress; }
     public int progressDurationTicks() { return progressDuration; }
@@ -128,15 +132,21 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         }
     }
 
+    private void stopEnergy() {
+        if (addedToEnergyNet && EnergyNet.instance != null) EnergyThreading.awaitTransfers(this);
+        unregisterEnergyTile();
+        EnergyThreading.flush(this, energyDirty);
+    }
+
     @Override
     public void setRemoved() {
-        unregisterEnergyTile();
+        stopEnergy();
         super.setRemoved();
     }
 
     @Override
     public void onChunkUnloaded() {
-        unregisterEnergyTile();
+        stopEnergy();
         super.onChunkUnloaded();
     }
 
@@ -179,6 +189,8 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
 
     public void serverTick() {
         if (level == null || level.isClientSide) return;
+        EnergyThreading.flush(this, energyDirty);
+        registerEnergyTile();
         updateProblemAndCraft();
     }
 
@@ -205,11 +217,15 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
             return;
         }
         progressDuration = recipe.durationTicks();
-        if (energy < recipe.euPerTick()) {
-            setProblem(energy == 0 ? "NO_POWER" : "LOW_POWER");
+        double before;
+        synchronized (energyLock) {
+            before = energy;
+            if (before >= recipe.euPerTick()) energy -= recipe.euPerTick();
+        }
+        if (before < recipe.euPerTick()) {
+            setProblem(before == 0 ? "NO_POWER" : "LOW_POWER");
             return;
         }
-        energy -= recipe.euPerTick();
         progress++;
         setProblem("NONE");
         if (progress >= recipe.durationTicks()) {
@@ -248,7 +264,8 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         ItemStack result = recipe.getResultItem();
         if (!output.isEmpty() && (!ItemStack.isSameItemSameTags(output, result)
                 || output.getCount() + result.getCount() > output.getMaxStackSize())) return "OUTPUT_FULL";
-        if (energy < recipe.euPerTick()) return energy == 0 ? "NO_POWER" : "LOW_POWER";
+        double stored = energyStored();
+        if (stored < recipe.euPerTick()) return stored == 0 ? "NO_POWER" : "LOW_POWER";
         return "NONE";
     }
 
@@ -293,23 +310,24 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
 
     @Override public int getSinkTier() { return kind.sinkTier(); }
     @Override public double getDemandedEnergy() {
-        return Math.max(0.0, kind.energyCapacity() - clampEnergy(energy, kind.energyCapacity()));
+        return Math.max(0.0, kind.energyCapacity() - energyStored());
     }
 
     @Override
     public double injectEnergy(Direction direction, double amount, double voltage) {
         if (level == null || level.isClientSide || !Double.isFinite(amount) || amount <= 0
                 || !Double.isFinite(voltage) || EnergyNet.instance == null
-                || voltage > EnergyNet.instance.getPowerFromTier(kind.sinkTier())) return amount;
-        double before = clampEnergy(energy, kind.energyCapacity());
-        double room = Math.max(0.0, kind.energyCapacity() - before);
-        double requested = Math.min(amount, room);
-        double after = clampEnergy(before + requested, kind.energyCapacity());
-        double accepted = Math.max(0.0, after - before);
-        if (accepted > 0.0) {
+                || voltage > kind.sinkTier()) return amount;
+        double accepted;
+        synchronized (energyLock) {
+            double before = clampEnergy(energy, kind.energyCapacity());
+            double room = Math.max(0.0, kind.energyCapacity() - before);
+            double requested = Math.min(amount, room);
+            double after = clampEnergy(before + requested, kind.energyCapacity());
+            accepted = Math.max(0.0, after - before);
             energy = after;
-            setChanged();
         }
+        if (accepted > 0.0) EnergyThreading.markChanged(this, energyDirty);
         return Math.max(0.0, amount - accepted);
     }
 
@@ -381,7 +399,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         ContainerHelper.saveAllItems(tag, items);
-        tag.putDouble("Energy", energy);
+        tag.putDouble("Energy", energyStored());
         tag.putInt("Progress", progress);
         tag.putInt("ProgressDuration", progressDuration);
         tag.putBoolean("AutomationPaused", automationPaused);
@@ -395,7 +413,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         ContainerHelper.loadAllItems(tag, items);
         double savedEnergy = tag.contains("Energy", net.minecraft.nbt.Tag.TAG_DOUBLE)
                 ? tag.getDouble("Energy") : tag.getInt("Energy");
-        energy = clampEnergy(savedEnergy, kind.energyCapacity());
+        synchronized (energyLock) { energy = clampEnergy(savedEnergy, kind.energyCapacity()); }
         progress = Math.max(0, tag.getInt("Progress"));
         progressDuration = Math.max(0, tag.getInt("ProgressDuration"));
         automationPaused = tag.getBoolean("AutomationPaused");

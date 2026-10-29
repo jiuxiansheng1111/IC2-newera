@@ -1,0 +1,72 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "ic2newera:universal_transformer",
+          "functions": [
+            {
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "OutputTier",
+                  "target": "BlockEntityTag.OutputTier",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input1EU",
+                  "target": "BlockEntityTag.Input1EU",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input1Credit",
+                  "target": "BlockEntityTag.Input1Credit",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input2EU",
+                  "target": "BlockEntityTag.Input2EU",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input2Credit",
+                  "target": "BlockEntityTag.Input2Credit",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input3EU",
+                  "target": "BlockEntityTag.Input3EU",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input3Credit",
+                  "target": "BlockEntityTag.Input3Credit",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input4EU",
+                  "target": "BlockEntityTag.Input4EU",
+                  "op": "replace"
+                },
+                {
+                  "source": "Input4Credit",
+                  "target": "BlockEntityTag.Input4Credit",
+                  "op": "replace"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ]
+    }
+  ]
+}

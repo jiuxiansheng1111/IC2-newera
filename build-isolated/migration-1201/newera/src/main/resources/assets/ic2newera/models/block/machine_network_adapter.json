@@ -134,15 +134,6 @@
             16,
             16
           ]
-        },
-        "down": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
         }
       }
     },
@@ -160,15 +151,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#ports",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "south": {
           "texture": "#ports",
           "uv": [
             0,
@@ -272,15 +254,6 @@
             16,
             16
           ]
-        },
-        "down": {
-          "texture": "#shell",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
         }
       }
     },
@@ -341,15 +314,6 @@
             16,
             16
           ]
-        },
-        "down": {
-          "texture": "#trim",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
         }
       }
     },
@@ -367,15 +331,6 @@
       "shade": true,
       "faces": {
         "north": {
-          "texture": "#trim",
-          "uv": [
-            0,
-            0,
-            16,
-            16
-          ]
-        },
-        "south": {
           "texture": "#trim",
           "uv": [
             0,

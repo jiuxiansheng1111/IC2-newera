@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/advanced_bank",
+  "display": {
+    "icon": {
+      "item": "ic2newera:nuclear_power_bank"
+    },
+    "title": "核能随行",
+    "description": "获得核能充电宝。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:nuclear_power_bank"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

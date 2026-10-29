@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/niobium_ore",
+  "display": {
+    "icon": {
+      "item": "ic2newera:niobium_ingot"
+    },
+    "title": "提炼铌",
+    "description": "获得铌锭。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:niobium_ingot"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

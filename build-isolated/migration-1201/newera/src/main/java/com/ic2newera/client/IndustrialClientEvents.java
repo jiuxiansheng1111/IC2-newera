@@ -16,6 +16,7 @@ public final class IndustrialClientEvents {
     @SubscribeEvent
     public static void registerRenderers(net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(com.ic2newera.motor.MotorBlocks.EU_MOTOR_TYPE.get(), EUMotorRenderer::new);
+        event.registerBlockEntityRenderer(com.ic2newera.motor.MotorBlocks.KINETIC_GENERATOR_TYPE.get(), KineticGeneratorRenderer::new);
     }
 
     @SubscribeEvent

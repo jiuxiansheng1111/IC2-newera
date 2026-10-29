@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/eu_motor",
+  "display": {
+    "icon": {
+      "item": "ic2newera:kinetic_generator"
+    },
+    "title": "机械生电",
+    "description": "获得一台初级机械发电机。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:kinetic_generator"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

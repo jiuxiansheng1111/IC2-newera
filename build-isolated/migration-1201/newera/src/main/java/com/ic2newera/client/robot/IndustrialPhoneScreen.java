@@ -88,14 +88,14 @@ public final class IndustrialPhoneScreen extends Screen {
         var device = selected();
         boolean motor = device != null && device.kind() == 2 && device.motorRpm() != 0;
         String[] names = device != null && device.kind() == 1 ? new String[]{"聊天 / 语音", "工作 / 管理"}
-                : motor ? new String[]{"启动", "暂停", "32转", "64转", "128转", "反转"} : new String[]{"启用/启动", "关闭/暂停"};
+                : motor ? new String[]{"启动", "暂停", "32转", "64转", "128转", "256转(高级)", "反转"} : new String[]{"启用/启动", "关闭/暂停"};
         int[] commands = device != null && device.kind() == 1 ? new int[]{-1, -2}
-                : motor ? new int[]{10, 11, 20, 20, 20, 20} : new int[]{10, 11};
-        int columns = motor ? (panelWidth < 400 ? 3 : 6) : 2;
+                : motor ? new int[]{10, 11, 20, 20, 20, 20, 20} : new int[]{10, 11};
+        int columns = motor ? (panelWidth < 400 ? 4 : 7) : 2;
         int gap = 4, buttonWidth = (panelWidth - (columns - 1) * gap) / columns;
         for (int i = 0; i < names.length; i++) {
             int action = commands[i];
-            int speed = motor ? switch (i) { case 2 -> 32; case 3 -> 64; case 4 -> 128; default -> -Math.abs(device.motorRpm()); } * Integer.signum(device.motorRpm()) : 0;
+            int speed = motor ? switch (i) { case 2 -> 32; case 3 -> 64; case 4 -> 128; case 5 -> 256; default -> -Math.abs(device.motorRpm()); } * Integer.signum(device.motorRpm()) : 0;
             var button = addRenderableWidget(new UiButton(left + (i % columns) * (buttonWidth + gap), height - 80 + (i / columns) * 22,
                     buttonWidth, 20, UiText.fit(font, Component.literal(names[i]), buttonWidth - 6), b -> {
                 if (action < 0) openChat(device, action == -1 ? RobotControlTabs.Page.CHAT : RobotControlTabs.Page.WORK);

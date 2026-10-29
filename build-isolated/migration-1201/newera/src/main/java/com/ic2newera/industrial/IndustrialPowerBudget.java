@@ -42,7 +42,7 @@ public final class IndustrialPowerBudget {
         BlockEntity blockEntity = level.getBlockEntity(motorPos);
         if (!(blockEntity instanceof EUMotorBlockEntity motor)) return "此位置没有已加载的 EU 电动机。";
         int requested = proposedRpm == null ? motor.getTargetRpm() : proposedRpm;
-        if (requested != 0 && Math.abs(requested) != 32 && Math.abs(requested) != 64 && Math.abs(requested) != 128)
+        if (!motor.supportsTargetRpm(requested))
             return "目标转速无效，无法估算。";
 
         long now = level.getGameTime();
@@ -143,7 +143,7 @@ public final class IndustrialPowerBudget {
             double amount;
             String label;
             if (ref.kind() == LoadKind.MOTOR && entity instanceof EUMotorBlockEntity linkedMotor) {
-                amount = motorCost(linkedMotor.getTargetRpm());
+                amount = linkedMotor.getRatedEuPerTickAt(linkedMotor.getTargetRpm());
                 label = "电机 " + Math.abs(linkedMotor.getTargetRpm()) + " RPM";
             } else {
                 IEnergySink sink = findSink(level, ref.pos());
@@ -158,8 +158,8 @@ public final class IndustrialPowerBudget {
         out.append("已识别电源（当前输出统计）：").append(sources.isEmpty() ? "无可读输出" : String.join("；", sources)).append('\n');
         out.append("已知负载：").append(loads.isEmpty() ? "未读到" : String.join("；", loads)).append('\n');
         out.append("已知电源当前输出统计合计：").append(number(offered)).append(" EU\n");
-        out.append("电机当前计费需求：").append(motorCost(motor.getTargetRpm())).append(" EU/t；运行后 ")
-                .append(Math.abs(proposedRpm)).append(" RPM 需求：").append(motorCost(proposedRpm)).append(" EU/t\n");
+        out.append("电机当前计费需求：").append(motor.getRatedEuPerTickAt(motor.getTargetRpm())).append(" EU/t；运行后 ")
+                .append(Math.abs(proposedRpm)).append(" RPM 需求：").append(motor.getRatedEuPerTickAt(proposedRpm)).append(" EU/t\n");
         out.append("\n额定发电量及线损无法从公开 API 完整读取");
         if (incomplete) {
             out.append("；无法完整估算");
@@ -179,14 +179,15 @@ public final class IndustrialPowerBudget {
         return null;
     }
     private static String sourceLabel(ResourceLocation id) {
-        return IC2_GENERATOR.equals(id) ? "火力" : IC2_SOLAR.equals(id) ? "太阳能" : "电源";
+        return IC2_GENERATOR.equals(id) ? "火力" : IC2_SOLAR.equals(id) ? "太阳能" : "机械发电机";
     }
     private static boolean isSupportedSource(ResourceLocation id) {
-        return IC2_GENERATOR.equals(id) || IC2_SOLAR.equals(id);
+        return IC2_GENERATOR.equals(id) || IC2_SOLAR.equals(id)
+                || id != null && id.getNamespace().equals("ic2newera")
+                && (id.getPath().equals("kinetic_generator") || id.getPath().equals("advanced_kinetic_generator"));
     }
     private static double finiteNonNegative(double value) { return Double.isFinite(value) ? Math.max(0.0, value) : 0.0; }
     private static String number(double value) { return String.format(java.util.Locale.ROOT, "%.2f", value); }
-    private static int motorCost(int rpm) { return Math.abs(rpm) * 5 / 16; }
     private static boolean outside(BlockPos pos, BlockPos origin) {
         return Math.abs(pos.getX() - origin.getX()) > MAX_RADIUS
                 || Math.abs(pos.getY() - origin.getY()) > MAX_RADIUS

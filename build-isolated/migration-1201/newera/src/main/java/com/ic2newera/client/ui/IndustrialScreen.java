@@ -49,7 +49,7 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
             }));
         }
         if (menu.isMotorMenu() && menu.canManage()) {
-            int[] speeds = {32, 64, 128};
+            int[] speeds = menu.isAdvancedMotor() ? new int[]{64, 128, 256} : new int[]{32, 64, 128};
             for (int i = 0; i < speeds.length; i++) {
                 int speed = speeds[i];
                 addRenderableWidget(new UiButton(leftPos + 10 + i * 47, topPos + 30, 43, 20,
@@ -60,6 +60,22 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
                     button -> menu.setMotorSettings(-menu.getMotorTargetRpm(), menu.isMotorEnabled())));
             motorEnableButton = addRenderableWidget(new UiButton(leftPos + 217, topPos + 30, 72, 20,
                     Component.literal("停止"), button -> menu.setMotorSettings(menu.getMotorTargetRpm(), !menu.isMotorEnabled())));
+        }
+        if (menu.isGeneratorMenu() && menu.canManage()) {
+            int first = menu.getGeneratorMinimumTier();
+            int count = menu.getGeneratorMaximumTier() - first + 1;
+            for (int i = 0; i < count; i++) {
+                int tier = first + i;
+                addRenderableWidget(new UiButton(leftPos + 10 + i * 70, topPos + 30, 66, 20,
+                        Component.literal(tier + "级输出"), button -> menu.setGeneratorTier(tier)));
+            }
+        }
+        if (menu.isTransformerMenu() && menu.canManage()) {
+            for (int tier = 1; tier <= 4; tier++) {
+                int selectedTier = tier;
+                addRenderableWidget(new UiButton(leftPos + 10 + (tier - 1) * 70, topPos + 30, 66, 20,
+                        Component.literal(tier + "级输出"), button -> menu.setTransformerTier(selectedTier)));
+            }
         }
         if (!menu.isServerMenu()) return;
         accessButton = addRenderableWidget(new UiButton(leftPos + 222, topPos + 3, 68, 18,
@@ -204,7 +220,7 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
 
     private int rowY() {
         if (menu.isServerMenu()) return 51;
-        if (menu.isMotorMenu() && menu.canManage()) return 58;
+        if ((menu.isMotorMenu() || menu.isGeneratorMenu() || menu.isTransformerMenu()) && menu.canManage()) return 58;
         return menu.isSwitchMenu() && menu.canManage() ? 58 : 34;
     }
 
