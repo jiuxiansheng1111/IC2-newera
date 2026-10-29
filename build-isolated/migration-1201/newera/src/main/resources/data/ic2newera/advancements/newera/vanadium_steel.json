@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/vanadium_ingot",
+  "parent": "ic2newera:newera/vanadium_ore",
   "display": {
     "icon": {
       "item": "ic2newera:vanadium_steel_ingot"

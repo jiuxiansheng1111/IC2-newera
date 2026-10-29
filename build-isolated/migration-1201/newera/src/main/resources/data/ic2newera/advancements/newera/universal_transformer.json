@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/advanced_motor",
+  "parent": "ic2newera:newera/advanced_bank",
   "display": {
     "icon": {
       "item": "ic2newera:universal_transformer"

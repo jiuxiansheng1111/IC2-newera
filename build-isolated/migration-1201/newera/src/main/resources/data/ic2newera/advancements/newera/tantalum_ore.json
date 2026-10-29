@@ -5,7 +5,7 @@
       "item": "ic2newera:tantalum_ore"
     },
     "title": "稀有钽矿",
-    "description": "获得钽矿石。",
+    "description": "获得钽矿石或粗钽。",
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": false,
@@ -18,7 +18,8 @@
         "items": [
           {
             "items": [
-              "ic2newera:tantalum_ore"
+              "ic2newera:tantalum_ore",
+              "ic2newera:raw_tantalum"
             ]
           }
         ]

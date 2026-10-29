@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/magnetic_coil",
+  "parent": "ic2newera:newera/cobalt_ingot",
   "display": {
     "icon": {
       "item": "ic2newera:servo_armor_joint"

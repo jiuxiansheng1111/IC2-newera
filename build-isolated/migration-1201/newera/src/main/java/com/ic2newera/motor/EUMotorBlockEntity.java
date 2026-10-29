@@ -2,7 +2,6 @@ package com.ic2newera.motor;
 
 import com.ic2newera.industrial.ControllableMachine;
 import com.ic2newera.industrial.IndustrialMenu;
-import com.ic2newera.industrial.ServerControllerAccess;
 import com.ic2newera.integration.ic2.EnergyThreading;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import ic2.api.energy.EnergyNet;
@@ -30,6 +29,7 @@ public final class EUMotorBlockEntity extends GeneratingKineticBlockEntity imple
     private double energy;
     private final Object energyLock = new Object();
     private final AtomicBoolean energyDirty = new AtomicBoolean();
+    private final MachineAccess access = new MachineAccess();
     private int targetRpm = 64;
     private boolean enabled = true;
     private boolean automationPaused;
@@ -138,8 +138,11 @@ public final class EUMotorBlockEntity extends GeneratingKineticBlockEntity imple
         } else super.applyNewSpeed(oldSpeed, newSpeed);
     }
 
+    public void claim(Player player) { access.claim(this, player); }
+    public boolean canManage(Player player) { return access.canManage(this, player); }
+
     public boolean configure(Player player, int rpm, boolean value) {
-        if (level == null || level.isClientSide || !ServerControllerAccess.canConfigure(player)
+        if (level == null || level.isClientSide || !canManage(player)
                 || !supportsTargetRpm(rpm)) return false;
         // Remove the old paid source before selecting a new direction/speed.
         powered = false;
@@ -233,16 +236,18 @@ public final class EUMotorBlockEntity extends GeneratingKineticBlockEntity imple
     }
     @Override public Component getDisplayName() { return Component.literal(isAdvanced() ? "高级EU电动机" : "初级EU电动机"); }
     @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_MOTOR, ServerControllerAccess.canConfigure(player));
+        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_MOTOR, canManage(player));
     }
     @Override protected void write(CompoundTag tag, boolean clientPacket) {
         super.write(tag, clientPacket);
+        access.save(tag);
         tag.putDouble("MotorEU", storedEnergy()); tag.putInt("TargetRpm", targetRpm); tag.putBoolean("MotorDisabled", !enabled);
         tag.putBoolean("AutomationPaused", automationPaused); tag.putBoolean("MotorPowered", powered);
         tag.putInt("RestartDelay", restartDelay);
     }
     @Override protected void read(CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
+        access.load(tag);
         double savedEnergy = tag.getDouble("MotorEU");
         if (savedEnergy == 0 && tag.contains("MotorEU", net.minecraft.nbt.Tag.TAG_INT)) savedEnergy = tag.getInt("MotorEU");
         synchronized (energyLock) { energy = clampEnergy(savedEnergy); }

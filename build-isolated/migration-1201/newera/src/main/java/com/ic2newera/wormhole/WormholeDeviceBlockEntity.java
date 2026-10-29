@@ -72,13 +72,15 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
         }
     }
     public void unregisterEnergy() {
-        if (registered && EnergyNet.instance != null) EnergyNet.instance.removeTile(this);
+        if (registered && EnergyNet.instance != null) {
+            EnergyThreading.awaitTransfers(this);
+            EnergyNet.instance.removeTile(this);
+        }
         registered = false;
+        EnergyThreading.flush(this, energyDirty);
     }
     private void stopEnergy() {
-        if (registered && EnergyNet.instance != null) EnergyThreading.awaitTransfers(this);
         unregisterEnergy();
-        EnergyThreading.flush(this, energyDirty);
     }
     @Override public void setRemoved() { stopEnergy(); super.setRemoved(); }
     @Override public void onChunkUnloaded() { stopEnergy(); super.onChunkUnloaded(); }

@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/alloys",
+  "parent": "ic2newera:newera/root",
   "display": {
     "icon": {
       "item": "ic2newera:eu_motor"

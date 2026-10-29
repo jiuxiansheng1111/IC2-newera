@@ -1,7 +1,6 @@
 package com.ic2newera.motor;
 
 import com.ic2newera.industrial.IndustrialMenu;
-import com.ic2newera.industrial.ServerControllerAccess;
 import com.ic2newera.integration.ic2.EnergyThreading;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
@@ -28,6 +27,7 @@ public final class KineticGeneratorBlockEntity extends KineticBlockEntity implem
     private double storedEnergy;
     private final Object energyLock = new Object();
     private final AtomicBoolean energyDirty = new AtomicBoolean();
+    private final MachineAccess access = new MachineAccess();
     private volatile double lastGeneration;
     private volatile int outputTier;
     private boolean energyRegistered;
@@ -119,8 +119,11 @@ public final class KineticGeneratorBlockEntity extends KineticBlockEntity implem
         if (level.getGameTime() % 20 == 0) sendData();
     }
 
+    public void claim(Player player) { access.claim(this, player); }
+    public boolean canManage(Player player) { return access.canManage(this, player); }
+
     public boolean setOutputTier(Player player, int tier) {
-        if (level == null || level.isClientSide || !ServerControllerAccess.canConfigure(player)
+        if (level == null || level.isClientSide || !canManage(player)
                 || tier < getMinimumTier() || tier > getMaximumTier()) return false;
         if (tier != outputTier) {
             if (energyRegistered && EnergyNet.instance != null) EnergyThreading.awaitTransfers(this);
@@ -163,16 +166,18 @@ public final class KineticGeneratorBlockEntity extends KineticBlockEntity implem
 
     @Override public Component getDisplayName() { return Component.literal(isAdvanced() ? "高级机械发电机" : "初级机械发电机"); }
     @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_GENERATOR, ServerControllerAccess.canConfigure(player));
+        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_GENERATOR, canManage(player));
     }
     @Override protected void write(CompoundTag tag, boolean clientPacket) {
         super.write(tag, clientPacket);
+        access.save(tag);
         tag.putDouble("GeneratedEU", stored());
         tag.putDouble("LastGeneration", lastGeneration);
         tag.putInt("OutputTier", outputTier);
     }
     @Override protected void read(CompoundTag tag, boolean clientPacket) {
         super.read(tag, clientPacket);
+        access.load(tag);
         synchronized (energyLock) { storedEnergy = clampEnergy(tag.getDouble("GeneratedEU")); }
         lastGeneration = clientPacket && Double.isFinite(tag.getDouble("LastGeneration"))
                 ? Math.max(0, tag.getDouble("LastGeneration")) : 0;

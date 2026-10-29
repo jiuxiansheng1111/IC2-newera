@@ -1,7 +1,6 @@
 package com.ic2newera.motor;
 
 import com.ic2newera.industrial.IndustrialMenu;
-import com.ic2newera.industrial.ServerControllerAccess;
 import com.ic2newera.integration.ic2.EnergyThreading;
 import ic2.api.energy.EnergyNet;
 import ic2.api.energy.tile.IEnergyAcceptor;
@@ -29,6 +28,7 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     public static final int CAPACITY = 65_536;
     private final Object energyLock = new Object();
     private final AtomicBoolean energyDirty = new AtomicBoolean();
+    private final MachineAccess access = new MachineAccess();
     private final double[] energy = new double[4];
     private final double[] credit = new double[4];
     private volatile int outputTier = 1;
@@ -91,8 +91,11 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
         }
     }
 
+    public void claim(Player player) { access.claim(this, player); }
+    public boolean canManage(Player player) { return access.canManage(this, player); }
+
     public boolean setOutputTier(Player player, int tier) {
-        if (level == null || level.isClientSide || !ServerControllerAccess.canConfigure(player) || tier < 1 || tier > 4) return false;
+        if (level == null || level.isClientSide || !canManage(player) || tier < 1 || tier > 4) return false;
         if (tier != outputTier) {
             if (registered && EnergyNet.instance != null) EnergyThreading.awaitTransfers(this);
             unregisterEnergy();
@@ -167,11 +170,12 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     }
     @Override public Component getDisplayName() { return Component.literal("万能变压器"); }
     @Override public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_TRANSFORMER, ServerControllerAccess.canConfigure(player));
+        return new IndustrialMenu(id, inventory, worldPosition, IndustrialMenu.KIND_TRANSFORMER, canManage(player));
     }
 
     @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
+        access.save(tag);
         synchronized (energyLock) {
             tag.putInt("OutputTier", outputTier);
             for (int i = 0; i < 4; i++) {
@@ -182,6 +186,7 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     }
     @Override public void load(CompoundTag tag) {
         super.load(tag);
+        access.load(tag);
         synchronized (energyLock) {
             outputTier = Math.max(1, Math.min(4, tag.getInt("OutputTier")));
             double remaining = CAPACITY;

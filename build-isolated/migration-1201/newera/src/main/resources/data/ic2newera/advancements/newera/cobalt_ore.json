@@ -5,7 +5,7 @@
       "item": "ic2newera:cobalt_ore"
     },
     "title": "钴蓝矿脉",
-    "description": "获得钴矿石。",
+    "description": "获得钴矿石或粗钴。",
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": false,
@@ -18,7 +18,8 @@
         "items": [
           {
             "items": [
-              "ic2newera:cobalt_ore"
+              "ic2newera:cobalt_ore",
+              "ic2newera:raw_cobalt"
             ]
           }
         ]

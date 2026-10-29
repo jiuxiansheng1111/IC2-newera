@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/niobium_ingot",
+  "parent": "ic2newera:newera/niobium_ore",
   "display": {
     "icon": {
       "item": "ic2newera:niobium_titanium_ingot"

@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-STEM = "IC2-New-Era-Server-1.20.1-r55-Complete"
-WORK = ROOT / "build-isolated/server-packaging/20261030-r55-complete"
+STEM = "IC2-New-Era-Server-1.20.1-r60-Complete"
+WORK = ROOT / "build-isolated/server-packaging/20261030-r60-complete"
 LAUNCHER = ROOT / "build-isolated/server-packaging/20261028-r48-full-server/launcher/server.jar"
 LAUNCHER_HASH = "603D3BC2C0C52C87E0C61D128514FF33D373E50AE5CDE917AEABA90C77292590"
 
@@ -32,10 +32,10 @@ def main(jar: Path, expected: str) -> None:
     marker = "## 推荐启动"
     if marker not in old:
         raise ValueError("Unexpected server README")
-    header = ("# IC2：新纪元 1.20.1 Forge 完整服务器 r55\n\n"
+    header = ("# IC2：新纪元 1.20.1 Forge 完整服务器 r60\n\n"
               "本包包括新纪元、Create、IC2 Refactored、Create: Propulsion 和 YSM 2.6.3，"
               "共 26 个服务端模组。新纪元新增初级/高级电动机、初级/高级机械发电机、万能变压器和原版进度，"
-              "并包含合金炉掉落与堆叠流体单元兼容修复。客户端与服务器必须同时使用 r55 新纪元。\n\n"
+              "并包含合金炉掉落与堆叠流体单元兼容修复。客户端与服务器必须同时使用 r60 新纪元。\n\n"
               "更新已有服务器前请正常停服并备份；只替换 mods 内的新纪元 JAR。若 YSM 已安装，"
               "保留且核对它是 2.6.3，绝不要同时放两个 YSM 版本。已有 world、config、server.properties、"
               "语音和自行安装的其他模组不应被本包默认文件覆盖。客户端专用小地图、光影等不放服务器。"

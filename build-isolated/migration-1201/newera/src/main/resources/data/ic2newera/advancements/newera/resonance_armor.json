@@ -1,5 +1,5 @@
 {
-  "parent": "ic2newera:newera/resonance_core",
+  "parent": "ic2newera:newera/tantalum_ingot",
   "display": {
     "icon": {
       "item": "ic2newera:resonance_armor_chestplate"

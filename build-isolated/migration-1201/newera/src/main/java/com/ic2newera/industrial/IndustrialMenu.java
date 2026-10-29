@@ -149,9 +149,9 @@ public final class IndustrialMenu extends AbstractContainerMenu {
     private boolean hasManagePermission(Player player) {
         BlockEntity device = currentBlockEntity();
         return device instanceof OwnedIndustrialBlockEntity owned ? owned.canManage(player)
-                : (device instanceof EUMotorBlockEntity || device instanceof KineticGeneratorBlockEntity
-                        || device instanceof UniversalTransformerBlockEntity)
-                        && ServerControllerAccess.canConfigure(player);
+                : device instanceof EUMotorBlockEntity motor ? motor.canManage(player)
+                : device instanceof KineticGeneratorBlockEntity generator ? generator.canManage(player)
+                : device instanceof UniversalTransformerBlockEntity transformer && transformer.canManage(player);
     }
     public int getAccessMode() { return settings.get(1); }
     public boolean isControllerOwner() { return settings.get(2) != 0; }

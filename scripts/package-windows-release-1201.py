@@ -1,4 +1,4 @@
-"""Create the shareable r55 PCL/Modrinth client package from the verified r53 baseline."""
+"""Create the shareable r60 PCL/Modrinth client package from the verified r53 baseline."""
 from __future__ import annotations
 
 import argparse
@@ -15,7 +15,7 @@ if not BASE.is_file():
 BASE_HASH = "F5B9D50E2BAA58E51A871AD13A0E0C78BBC6D836728C5A2744B1108D53D1B5AA"
 OLD_OWN_HASH = "AB37FDC221399C2FD31AA6B3F0CA85A89A8D06369181DBB5CC20669F21AC0DDF"
 OWN = "overrides/mods/ic2newera-0.2.0-migration1201-all.jar"
-NAME = "IC2-New-Era-Windows-1.20.1-r55-Complete.mrpack"
+NAME = "IC2-New-Era-Windows-1.20.1-r60-Complete.mrpack"
 
 
 def sha(path: Path) -> str:
@@ -44,27 +44,37 @@ def build(jar: Path, expected: str) -> None:
         index = json.loads(source.read("modrinth.index.json"))
         if len(index["files"]) != 38 or index["dependencies"] != {"minecraft": "1.20.1", "forge": "47.4.28"}:
             raise ValueError("Unexpected r53 download manifest")
-        index.update({"versionId": "0.2.0-windows.20261030-r55-complete",
+        resource_path = "resourcepacks/Bare Bones 1.20.zip"
+        if sum(item["path"] == resource_path for item in index["files"]) != 1:
+            raise ValueError("Unexpected old resource pack entry")
+        index["files"] = [item for item in index["files"] if item["path"] != resource_path]
+        options = source.read("overrides/options.txt")
+        previous = b'resourcePacks:["vanilla", "file/Bare Bones 1.20.zip"]'
+        if options.count(previous) != 1:
+            raise ValueError("Unexpected old resource pack selection")
+        options = options.replace(previous, b'resourcePacks:["vanilla"]')
+        index.update({"versionId": "0.2.0-windows.20261030-r60-complete",
                       "name": "IC2：新纪元 Windows 完整整合包",
                       "summary": "37个模组，含 YSM、小地图、ITT 光影、动力转换和崩溃修复。"})
-        info = ("IC2：新纪元 Windows 完整客户端 r55\n"
+        info = ("IC2：新纪元 Windows 完整客户端 r60\n"
                 "Minecraft 1.20.1 / Forge 47.4.28，共37个模组；使用PCL导入本 .mrpack。\n"
-                "第三方模组、ITT 3.2光影和Bare Bones材质通过原作者或发行平台的清单下载，首次导入需联网。\n"
+                "第三方模组和ITT 3.2光影通过原作者或发行平台的清单下载，首次导入需联网；默认使用原版材质。\n"
                 "含YSM 2.6.3、Xaero小地图、MC百科搜索、Freecam、输入法修复和Cloth Config。\n"
                 "新增初级/高级EU电动机、初级/高级机械发电机、万能变压器和68个新纪元进度。\n"
                 "合金炉/高级电炉掉落及IC2堆叠流体单元兼容已修正；客户端和服务器须同时更新新纪元。\n"
-                "服务器完整包为 IC2-New-Era-Server-1.20.1-r55-Complete.zip，包含YSM 2.6.3。\n"
+                "服务器完整包为 IC2-New-Era-Server-1.20.1-r60-Complete.zip，包含YSM 2.6.3。\n"
                 "游戏共同运行、联机、光影和新增转换设备仍需实机确认。零雾构想材质未提供。\n").encode("utf-8")
-        english = ("IC2: New Era Windows r55: Minecraft 1.20.1 / Forge 47.4.28, 37 mods. "
+        english = ("IC2: New Era Windows r60: Minecraft 1.20.1 / Forge 47.4.28, 37 mods. "
                    "Import this .mrpack with PCL or another compatible launcher and allow the pinned third-party downloads. "
-                   "Install the matching r55 New Era server; gameplay and multiplayer still require verification.\n").encode("utf-8")
+                   "Install the matching r60 New Era server; gameplay and multiplayer still require verification.\n").encode("utf-8")
         old_notes = source.read("overrides/IC2-NewEra-info/WINDOWS-MINIMAP-r53.txt")
         notices = source.read("overrides/IC2-NewEra-info/THIRD-PARTY-NOTICES.txt")
         if old_notes not in notices:
             raise ValueError("Expected r53 info in third-party notices")
         replacements = {"modrinth.index.json": (json.dumps(index, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
                         OWN: own,
-                        "overrides/IC2-NewEra-info/WINDOWS-COMPLETE-r55.txt": info,
+                        "overrides/options.txt": options,
+                        "overrides/IC2-NewEra-info/WINDOWS-COMPLETE-r60.txt": info,
                         "overrides/IC2-NewEra-info/README-zh_CN.txt": info,
                         "overrides/IC2-NewEra-info/README-en_US.txt": english,
                         "overrides/IC2-NewEra-info/THIRD-PARTY-NOTICES.txt": notices.replace(old_notes, info)}
@@ -96,13 +106,17 @@ def build(jar: Path, expected: str) -> None:
                 raise ValueError("Unchanged client payload differs: " + name)
         if any(n.startswith("overrides/mods/") and n.endswith(".jar") and n != OWN for n in names):
             raise ValueError("Unexpected embedded third-party JAR")
+        if len(index["files"]) != 37 or any(v["path"] == resource_path for v in index["files"]):
+            raise ValueError("Unexpected resource pack manifest")
+        if archive.read("overrides/options.txt") != options:
+            raise ValueError("Default resource pack selection differs")
         if not any(v["path"] == "shaderpacks/iterationT 3.2.0.zip" for v in index["files"]):
             raise ValueError("ITT shader entry missing")
     partial.replace(output)
     checksum = sha(output)
     output.with_name(NAME + ".sha256").write_text(checksum + "  " + NAME + "\n", encoding="ascii")
     print(json.dumps({"client": str(output), "sha256": checksum, "sizeBytes": output.stat().st_size,
-                      "mods": 37, "downloads": 38, "newEraSha256": expected.upper()}, ensure_ascii=True))
+                      "mods": 37, "downloads": 37, "newEraSha256": expected.upper()}, ensure_ascii=True))
 
 
 if __name__ == "__main__":

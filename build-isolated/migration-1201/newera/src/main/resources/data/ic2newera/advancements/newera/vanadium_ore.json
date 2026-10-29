@@ -5,7 +5,7 @@
       "item": "ic2newera:vanadium_ore"
     },
     "title": "钒矿新发现",
-    "description": "获得钒矿石。",
+    "description": "获得钒矿石或粗钒。",
     "frame": "task",
     "show_toast": true,
     "announce_to_chat": false,
@@ -18,7 +18,8 @@
         "items": [
           {
             "items": [
-              "ic2newera:vanadium_ore"
+              "ic2newera:vanadium_ore",
+              "ic2newera:raw_vanadium"
             ]
           }
         ]

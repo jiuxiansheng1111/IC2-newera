@@ -1,7 +1,6 @@
 package com.ic2newera.motor;
 
 import com.ic2newera.industrial.IndustrialMenu;
-import com.ic2newera.industrial.ServerControllerAccess;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -9,7 +8,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -36,14 +37,20 @@ public final class KineticGeneratorBlock extends DirectionalKineticBlock impleme
     @Override public BlockEntityType<? extends KineticGeneratorBlockEntity> getBlockEntityType() {
         return MotorBlocks.KINETIC_GENERATOR_TYPE.get();
     }
+    @Override public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (!level.isClientSide && placer instanceof Player player && level.getBlockEntity(pos) instanceof KineticGeneratorBlockEntity generator)
+            generator.claim(player);
+    }
     @Override public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player,
                                             InteractionHand hand, BlockHitResult hit) {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (player instanceof ServerPlayer serverPlayer && level.getBlockEntity(pos) instanceof KineticGeneratorBlockEntity generator) {
+            generator.claim(player);
             NetworkHooks.openScreen(serverPlayer, generator, buffer -> {
                 buffer.writeBlockPos(pos);
                 buffer.writeVarInt(IndustrialMenu.KIND_GENERATOR);
-                buffer.writeBoolean(ServerControllerAccess.canConfigure(player));
+                buffer.writeBoolean(generator.canManage(player));
             });
             return InteractionResult.CONSUME;
         }
