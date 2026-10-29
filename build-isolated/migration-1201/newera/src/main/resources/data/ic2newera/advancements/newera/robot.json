@@ -1,0 +1,40 @@
+{
+  "parent": "ic2newera:newera/robot_blueprint",
+  "display": {
+    "icon": {
+      "item": "ic2newera:anon_robot_doll"
+    },
+    "title": "新的伙伴",
+    "description": "获得八种机器人娃娃中的任意一种。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:anon_robot_doll",
+              "ic2newera:tomori_robot_doll",
+              "ic2newera:soyo_robot_doll",
+              "ic2newera:taki_robot_doll",
+              "ic2newera:rana_robot_doll",
+              "ic2newera:sakiko_robot_doll",
+              "ic2newera:uika_robot_doll",
+              "ic2newera:umiri_robot_doll"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

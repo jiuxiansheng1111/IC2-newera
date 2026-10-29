@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/wormhole_device",
+  "display": {
+    "icon": {
+      "item": "ic2newera:wormhole_module"
+    },
+    "title": "随身跨越",
+    "description": "获得一个虫洞模块。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:wormhole_module"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

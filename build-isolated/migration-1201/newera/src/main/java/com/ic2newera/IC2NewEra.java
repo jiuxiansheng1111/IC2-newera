@@ -13,8 +13,6 @@ import com.ic2newera.industrial.*;
 import com.ic2newera.process.ProcessGraph;
 import com.ic2newera.process.RecipeGuard;
 import com.ic2newera.equipment.ModEquipment;
-import com.ic2newera.technology.TechnologyTree;
-import com.ic2newera.technology.TechnologyService;
 import com.ic2newera.menu.ModMenus;
 import com.ic2newera.network.NetworkHandler;
 import com.ic2newera.research.ResearchEvents;
@@ -80,7 +78,6 @@ public final class IC2NewEra {
         IndustrialNetworkPackets.register();
         com.ic2newera.network.ProcessGraphPacket.register();
         MinecraftForge.EVENT_BUS.register(ResearchEvents.ForgeEvents.class);
-        MinecraftForge.EVENT_BUS.register(TechnologyService.class);
         MinecraftForge.EVENT_BUS.register(RecipeGuard.class);
         MinecraftForge.EVENT_BUS.addListener(IC2NewEra::registerReloadListeners);
     }
@@ -91,6 +88,5 @@ public final class IC2NewEra {
 
     private static void registerReloadListeners(AddReloadListenerEvent event) {
         event.addListener(new ProcessGraph.ReloadListener());
-        event.addListener(new TechnologyTree.ReloadListener());
     }
 }

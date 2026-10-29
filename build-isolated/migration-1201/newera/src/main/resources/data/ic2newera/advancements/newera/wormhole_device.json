@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/lunar_crystal",
+  "display": {
+    "icon": {
+      "item": "ic2newera:wormhole_device"
+    },
+    "title": "空间锚点",
+    "description": "获得一台虫洞装置。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:wormhole_device"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "parent": "ic2newera:newera/impure_dust",
+  "display": {
+    "icon": {
+      "item": "ic2newera:nickel_dust"
+    },
+    "title": "纯净的粉末",
+    "description": "获得镍、铬、钛或钨净粉中的任意一种。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:nickel_dust",
+              "ic2newera:chromium_dust",
+              "ic2newera:titanium_dust",
+              "ic2newera:tungsten_dust"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

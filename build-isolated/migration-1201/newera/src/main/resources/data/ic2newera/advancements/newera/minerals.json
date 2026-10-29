@@ -1,0 +1,36 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:nickel_ore"
+    },
+    "title": "新的矿藏",
+    "description": "获得镍、铬、钛或钨矿石中的任意一种。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:nickel_ore",
+              "ic2newera:chromium_ore",
+              "ic2newera:titanium_ore",
+              "ic2newera:tungsten_ore"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

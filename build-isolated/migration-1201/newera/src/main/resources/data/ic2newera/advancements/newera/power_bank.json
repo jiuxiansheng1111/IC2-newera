@@ -1,0 +1,36 @@
+{
+  "parent": "ic2newera:newera/robot_battery",
+  "display": {
+    "icon": {
+      "item": "ic2newera:power_bank"
+    },
+    "title": "随行电源",
+    "description": "获得任意一款新纪元充电宝。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:power_bank",
+              "ic2newera:intermediate_power_bank",
+              "ic2newera:advanced_power_bank",
+              "ic2newera:nuclear_power_bank"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

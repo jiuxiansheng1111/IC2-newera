@@ -1,7 +1,6 @@
 package com.ic2newera.network;
 
 import com.ic2newera.menu.AssistantMenu;
-import com.ic2newera.technology.TechnologyService;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,7 +26,6 @@ public final class OpenAssistantPacket {
                         new SimpleMenuProvider((id, inventory, ignoredPlayer) -> new AssistantMenu(id, inventory),
                                 Component.translatable("screen.ic2newera.assistant")),
                         buffer -> {});
-                TechnologyService.refreshAndSend(player, true);
             }
         });
         context.setPacketHandled(true);

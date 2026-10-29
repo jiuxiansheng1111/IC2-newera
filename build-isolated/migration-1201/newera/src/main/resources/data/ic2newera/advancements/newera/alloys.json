@@ -1,0 +1,35 @@
+{
+  "parent": "ic2newera:newera/alloy_smelter",
+  "display": {
+    "icon": {
+      "item": "ic2newera:tempered_steel_ingot"
+    },
+    "title": "合金时代",
+    "description": "获得低碳钢、高碳钢或铝青铜锭。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:tempered_steel_ingot",
+              "ic2newera:tempered_high_carbon_steel_ingot",
+              "ic2newera:aluminium_bronze_ingot"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

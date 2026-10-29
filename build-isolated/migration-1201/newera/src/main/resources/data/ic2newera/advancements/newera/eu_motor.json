@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/alloys",
+  "display": {
+    "icon": {
+      "item": "ic2newera:eu_motor"
+    },
+    "title": "电力驱动",
+    "description": "获得一台新纪元 EU 电动机。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:eu_motor"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

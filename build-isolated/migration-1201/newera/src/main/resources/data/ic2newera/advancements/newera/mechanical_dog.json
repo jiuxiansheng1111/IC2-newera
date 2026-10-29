@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/robot_blueprint",
+  "display": {
+    "icon": {
+      "item": "ic2newera:mechanical_dog"
+    },
+    "title": "机械狗伙伴",
+    "description": "获得一只机械狗。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:mechanical_dog"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

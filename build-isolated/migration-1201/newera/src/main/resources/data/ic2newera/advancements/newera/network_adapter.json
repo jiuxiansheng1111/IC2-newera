@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/network_switch",
+  "display": {
+    "icon": {
+      "item": "ic2newera:machine_network_adapter"
+    },
+    "title": "让机器入网",
+    "description": "获得一个机器网络适配器。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:machine_network_adapter"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/non_metal_processor",
+  "display": {
+    "icon": {
+      "item": "ic2newera:silicon"
+    },
+    "title": "从石英到硅",
+    "description": "获得硅材料。具体工艺查看 JEI 或询问内置 AI。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:silicon"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

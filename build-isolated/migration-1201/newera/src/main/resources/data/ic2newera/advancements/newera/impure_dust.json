@@ -1,0 +1,36 @@
+{
+  "parent": "ic2newera:newera/minerals",
+  "display": {
+    "icon": {
+      "item": "ic2newera:impure_nickel_dust"
+    },
+    "title": "粉碎的第一步",
+    "description": "获得一种新纪元含杂质矿粉。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:impure_nickel_dust",
+              "ic2newera:impure_chromium_dust",
+              "ic2newera:impure_titanium_dust",
+              "ic2newera:impure_tungsten_dust"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

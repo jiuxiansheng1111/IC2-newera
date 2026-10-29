@@ -8,7 +8,7 @@ import java.util.Optional;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class NetworkHandler {
-    private static final String PROTOCOL_VERSION = "33";
+    private static final String PROTOCOL_VERSION = "34";
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(IC2NewEra.MOD_ID, "main"),
             () -> PROTOCOL_VERSION,
@@ -22,8 +22,5 @@ public final class NetworkHandler {
         CHANNEL.registerMessage(0, OpenAssistantPacket.class,
                 OpenAssistantPacket::encode, OpenAssistantPacket::decode, OpenAssistantPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_SERVER));
-        CHANNEL.registerMessage(3, TechnologyDataPacket.class,
-                TechnologyDataPacket::encode, TechnologyDataPacket::decode, TechnologyDataPacket::handle,
-                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 }

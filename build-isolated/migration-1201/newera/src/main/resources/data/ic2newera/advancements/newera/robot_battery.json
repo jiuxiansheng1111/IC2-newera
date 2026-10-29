@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/robot",
+  "display": {
+    "icon": {
+      "item": "ic2newera:robot_battery"
+    },
+    "title": "为伙伴供能",
+    "description": "获得一块机器人电池。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:robot_battery"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

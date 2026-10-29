@@ -1,0 +1,24 @@
+{
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "IC2：新纪元",
+    "description": "新纪元自己的材料、设备与伙伴。进度记录里程碑，不限制合成或使用。",
+    "background": "minecraft:textures/block/deepslate_tiles.png",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "join": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "requirements": [
+    [
+      "join"
+    ]
+  ]
+}
