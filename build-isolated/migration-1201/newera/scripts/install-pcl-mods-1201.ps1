@@ -209,6 +209,7 @@ $replacedVersions = @()
 $knownPreviousHashes = @{
     'create' = 'A18763BE04F6A7921D2E3BC5E9150B0BB5BC89B5EF45A607E93939972021F932'
     'ad_astra' = '62D1A8A23075A983526A8030A7F2DAAF118087048E514F3B34541572C03DFCDF'
+    'yes_steve_model' = '25B5E902B96F4C298690208F8B433CBC31737C23F87590354DBD86F00207BC8F'
 }
 if (Test-Path -LiteralPath $modsPath -PathType Container) {
     foreach ($existing in (Get-ChildItem -LiteralPath $modsPath -File -Filter '*.jar')) {
@@ -251,7 +252,7 @@ $runningJava = @(Get-Process -Name java, javaw -ErrorAction SilentlyContinue)
 if ($runningJava.Count -gt 0) {
     throw 'Java started before file copying. Close Minecraft and wait for Java builds to finish before installing.'
 }
-# Only exact recorded r41 dependency hashes may be replaced under a new filename.
+# Only exact recorded dependency hashes may be replaced under a new filename.
 # Move the originals into this project's deployment backup before any new JAR is copied.
 if ($replacedVersions.Count -gt 0) {
     New-Item -ItemType Directory -Path $backupPath -Force | Out-Null

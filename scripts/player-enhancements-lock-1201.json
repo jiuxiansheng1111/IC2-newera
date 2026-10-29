@@ -5,7 +5,7 @@
     "forge": "47.4.28",
     "java": 17
   },
-  "revision": "r51",
+  "revision": "r53",
   "runtimeVerification": "Metadata, official source hashes and API compatibility reviewed; full client/server and Linux play acceptance pending.",
   "mods": [
     {
@@ -174,13 +174,80 @@
       "releaseChannel": "release"
     },
     {
+      "modId": "searchonmcmod",
+      "version": "0.1.0",
+      "file": "searchonmcmod-forge-1.20.x-0.1.0.jar",
+      "source": "https://cdn.modrinth.com/data/cPF7RWdR/versions/DE5p2dLh/searchonmcmod-forge-1.20.x-0.1.0.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/cPF7RWdR/version/DE5p2dLh",
+      "sizeBytes": 26427,
+      "sha256": "EA19570963AA8BFFC23C64D374FBDAEA93ADC191D9D327A6CB07141324260F98",
+      "sha1": "1445b22a084e22cc09982f898d90ba86a6b94175",
+      "sha512": "0e3a29cdca48bb35666609271fa77d0454de13b0650e1d24c9edb3c0873982ca10d36e300e9f2c11a43bad1db63cac939e60d3c2ee1e7f606633ff696648e921",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
+      "modId": "freecam",
+      "version": "1.2.1+mc1.20.1",
+      "file": "freecam-forge-1.2.1+1.20.jar",
+      "source": "https://cdn.modrinth.com/data/XeEZ3fK2/versions/bvoDmWip/freecam-forge-1.2.1%2B1.20.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/XeEZ3fK2/version/bvoDmWip",
+      "sizeBytes": 75389,
+      "sha256": "8D7778CB5D181E981CB6D7C1015E3597CD5A88A18B2924386A6F8790ABB239B4",
+      "sha1": "e4224b56750a1fe3956ae73a65f4470be3e0df3b",
+      "sha512": "14d5194c02d6281094efdc857e608b412cdb84ffbf94a06401c8509daa74914273e18224f05d9fe9bcea23fa70d5350c6edaf8bf657e58787f08a4553169c0d2",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
       "modId": "yes_steve_model",
-      "version": "2.6.5-forge+mc1.20.1",
-      "file": "ysm-2.6.5-forge+mc1.20.1-release.jar",
-      "source": "https://cdn.modrinth.com/data/86xjpqqS/versions/Zqooxsd2/ysm-2.6.5-forge%2Bmc1.20.1-release.jar",
-      "sourceVersionUrl": "https://modrinth.com/mod/yes-steve-model/version/2.6.5-forge%2Bmc1.20.1",
-      "sizeBytes": 63269843,
-      "sha256": "25B5E902B96F4C298690208F8B433CBC31737C23F87590354DBD86F00207BC8F",
+      "version": "2.6.3-forge+mc1.20.1",
+      "file": "ysm-2.6.3-forge+mc1.20.1-release.jar",
+      "source": "https://cdn.modrinth.com/data/86xjpqqS/versions/dgamA1Ok/ysm-2.6.3-forge%2Bmc1.20.1-release.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/86xjpqqS/version/dgamA1Ok",
+      "sizeBytes": 58935833,
+      "sha256": "D0379088EE06188A49FC0ECDEA4E64705CF3341EA726D06C874F2393DD7584DD",
+      "sha1": "0e0da3a1d7829e0201aa87890c7ca35ff4a1f2eb",
+      "sha512": "32b137a94e0e4e22fac651062dbca9b565597c97c36d766ef893abc7c8390e75bad6f2fe5ad31ed48b772d610185c675a0b6f166599848b4659c6f63a57bba80",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
+      "modId": "imblocker",
+      "version": "5.6.2.1",
+      "file": "IMBlocker-5.6.2.1-forge+1.17-1.20.4.jar",
+      "source": "https://cdn.modrinth.com/data/WMDesFsZ/versions/nRLlzGpB/IMBlocker-5.6.2.1-forge%2B1.17-1.20.4.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/WMDesFsZ/version/nRLlzGpB",
+      "sizeBytes": 232400,
+      "sha256": "D429017D6AD053ACF6BCCBB77750C9DA398826A4782BDA91CC3E142CB9E33C2A",
+      "sha1": "475c6a77ffe748831392641e6db5d572eebe0777",
+      "sha512": "24fd910efb7836c46cf857a53f5804c1126d5d3c797df6c20eb4e6de9d14a2e5172e6dc430bd0f33ec48080cf409fe2c6e826d8bc06da476090a9b5e6049ed6d",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
+      "modId": "cloth_config",
+      "version": "11.1.136",
+      "file": "cloth-config-11.1.136-forge.jar",
+      "source": "https://cdn.modrinth.com/data/9s6osm5g/versions/t8TXrZvZ/cloth-config-11.1.136-forge.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/9s6osm5g/version/t8TXrZvZ",
+      "sizeBytes": 1181413,
+      "sha256": "1E895E85CF5B1E1905EF3178EC155C8BADFE22A1577B92C09143A5AA1F4CE0F2",
+      "sha1": "c65d07748acc57ceb45d53b3964368b84f34d54f",
+      "sha512": "137c4af99c53d77317cbfb1cc8c49fc2761708b49d1992f51fd846960df41dde3a83519c987e081508d4ed90c603566f3d5a6cb620ad9d85b8f4de59aa9115ef",
+      "environment": "client",
+      "releaseChannel": "release"
+    },
+    {
+      "modId": "xaerominimap",
+      "version": "26.6.0",
+      "file": "xaerominimap-forge-1.20.1-26.6.0.jar",
+      "source": "https://cdn.modrinth.com/data/1bokaNcj/versions/dB6E0CY9/xaerominimap-forge-1.20.1-26.6.0.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/xaeros-minimap/version/dB6E0CY9",
+      "sizeBytes": 2196194,
+      "sha256": "9B39CD06094D7631C8614D172D0BA8399C71C981530AF417F12A7909FCB855BD",
+      "sha1": "ee73886f2f5f27bf28cffa7cc8f2b9b4540df2aa",
+      "sha512": "9c566a2b9537c37b438a38a060cc251187e6643e96522466c50c90c7fa747a4e4edc3a5fff0f31fb042e1eeefd047df2a57d1bbe6a3d741837cef8cdb6426a25",
       "environment": "client",
       "releaseChannel": "release"
     }

@@ -16,6 +16,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 ROOT = Path(__file__).resolve().parents[1]
 BASE = ROOT / "dist/IC2-New-Era-Windows-1.20.1-r50-Visuals.mrpack"
+if not BASE.is_file():
+    BASE = ROOT / "build-isolated/player-packaging/20261029-r53-minimap/previous-clients/IC2-New-Era-Windows-1.20.1-r50-Visuals.mrpack"
 BASE_SHA = "D49AD74AE7644146F42359ABD1E0F22B0B9B1DFEE9566E1AED91E3277ED53014"
 OWN_JAR = "ic2newera-0.2.0-migration1201-all.jar"
 BASE_OWN_SHA = "62F360868F18BF738E0F5CBD30302F569CDDBA33FAD793CBB15566F6F3962EE9"
@@ -50,6 +52,10 @@ def build(vanilla: bool, own_sha: str) -> None:
         raise ValueError("The reviewed New Era build differs")
     lock = json.loads(LOCK.read_text(encoding="utf-8-sig"))
     ysm_rows = [x for x in lock["mods"] if x["modId"] == "yes_steve_model"]
+    if len(ysm_rows) == 1 and ysm_rows[0]["version"] != "2.6.5-forge+mc1.20.1":
+        previous = OUT.parent / "20261029-r52-clientmods/player-enhancements-lock-before.json"
+        lock = json.loads(previous.read_text(encoding="utf-8-sig"))
+        ysm_rows = [x for x in lock["mods"] if x["modId"] == "yes_steve_model"]
     if len(ysm_rows) != 1:
         raise ValueError("YSM must have one enhancement lock entry")
     ysm = ysm_rows[0]
