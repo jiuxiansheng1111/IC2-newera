@@ -22,14 +22,17 @@
 
 完整服务端仍含官方Forge核心、libraries、25个模组及根目录启动器。已有服务器只替换新纪元JAR，不将初始世界/配置覆盖到现场。新版归档回读和本地复制哈希通过后，dist旧r48完整服务端ZIP已移至回收站；固定语音仍是有效附件，保留。
 
-## 部署状态
+## 部署状态（已完成安装）
 
-- 服务器新JAR已上传/home/container/update-r49，下载回读SHA256与本地完全一致。
-- 服务器运行中，本机MC运行中；已请求用户正常退出MC，未执行停服、活动mods替换或本机安装。
-- 世界、API配置、固定语音agent及启动参数未改。
-- 新原生进度分页、触发和多人客户端兼容尚未实机验收，不以构建成功冒称玩法验收。
-- GitHub源码同步见检查点public-source-receipt.json；第三方JAR、声音、角色资产、密钥和存档不上传。
+- 用户确认正常退出MC；15:20:56用既有PCL安装脚本完成本机独立1.20.1更新。31个锁定JAR中仅新纪元需要复制，安装后SHA256与构建一致。旧JAR备份在newera/build/deployment/backups/20261029-152055-819，回执pcl-installation-1201.json已复制到本轮检查点。
+- 面板正常停止服务器，确认已关闭后，将旧新纪元JAR移至/home/container/backup-before-r49-20261029，再将update-r49中的新版移入活动mods。活动JAR再次下载回读，SHA256仍为62F360868F18BF738E0F5CBD30302F569CDDBA33FAD793CBB15566F6F3962EE9，与本机一致。
+- 重新开机通过：北京时间2026-10-29 15:25:47（服务端日志07:25:47）出现Done (9.579s)；共加载4403个advancements，未见ic2newera进度解析失败。15:28:47控制台list正常响应，在线0/20。
+- 固定语音仍使用现有本地9881协调服务，日志明确报告reusing the existing local coordinator。世界、API配置、固定语音agent及启动参数未改；本轮未做实际听音验收。
+- 根目录旧IC2-New-Era-Server-1.20.1-r48.tar.gz及确认已空的同名解压目录已移入面板回收站，面板标示保留24小时。回退JAR另存备份目录，不在活动mods内。
+- 日志含Valkyrien Skies可选兼容/mixin错误及启动后一次Can't keep up提示，但服务随后成功启动并响应命令。本轮不以启动通过宣称所有依赖功能均无缺陷。
+- 新原生进度分页、物品触发和实际客户端重新入服尚未实机验收；未新增或运行自动化测试。
+- GitHub源码及内置AI说明已同步；本次安装状态记录另作后续提交，见检查点public-source-receipt.json。第三方JAR、声音、角色资产、密钥和存档不上传。
 
 ## 回退与工作点
 
-工作点build-isolated/migration-1201/checkpoints/build49-native-advancements包含before/src、旧JAR、构建日志、产物与清理回执。安装应使用现有scripts/install-pcl-mods-1201.ps1；已将最终隔离构建JAR复制到该脚本使用的newera/build/libs。远端替换前先备份旧mods内新纪元JAR，停服后再替换并启动。禁止热替换活动JAR。
+工作点build-isolated/migration-1201/checkpoints/build49-native-advancements包含before/src、旧JAR、构建日志、产物与清理回执。已使用现有scripts/install-pcl-mods-1201.ps1安装。需要回退时先正常停服，使用远端backup-before-r49-20261029及本机部署备份恢复两端旧JAR。禁止热替换活动JAR。
