@@ -8,6 +8,10 @@
 
 `ic2newera-voice-runtime.json` 是独立、非秘密的实际配置，`ic2newera-voice-runtime.example.json` 是同结构示例。允许显式列出已有 Python 虚拟环境、GPT-SoVITS/RVC 根目录、权重、索引、参考录音及少量采样参数；未知字段会拒绝。不能填入 LLM/API Key/QQ 账号/.env。所有相对路径以该 JSON 所在目录为基准，绝对路径也支持；生成目录必须是配置所在目录内的专用子目录。
 
+`base_tts.speed_factor` 是独立的 TTS 语速参数，默认 `0.92`，允许范围 `0.7` 至 `1.2`；旧配置缺少该字段时自动使用默认值。GPT-SoVITS `TTS.run` 支持此字段。它只改变新生成语音的语速，不修改 LLM、参考录音、角色映射或 RVC 参数。较慢的语速是针对中文朗读辨字的保守调整，实际听感仍需在游戏内确认。
+
+可选 `singing` 块启用独立歌曲翻唱。它只接受显式路径、本地 `htdemucs` 单模型和有界混音参数；缺少这些字段的旧配置仍可用于普通语音。翻唱音源采用本机已有 Demucs 环境与本地 Torch Hub checkpoint，运行前核对文件名哈希，工作进程拒绝任何其它模型检查点并直接本地加载，不会自动下载权重。`htdemucs_ft` 需要额外的四个模型检查点，本配置不选择它。`singing.enabled` 默认关闭；确认环境路径与checkpoint在目标主机存在后才开启。
+
 已核实的外部环境为 `C:/Users/罗斌/Desktop/qq-chatrobot-all/qq-chatrobot-voice/GPT-SoVITS/.venv/Scripts/python.exe` 与 `RVC-upstream-20261012/.venv/Scripts/python.exe`。运行时调用这些现有第三方环境公开的 `TTS_Config` / `TTS.run`、`Config` / `VC.get_vc` / `VC.vc_single`，不复制第三方实现、不安装依赖或下载模型。模型不放入游戏 JAR。
 
 基础模型取自此前本项目 `build-isolated/robot-voice-20261017/tts_infer.yaml` 的非秘密验收快照：v2 GPT 基础检查点配丛雨 `murasame_voice_mixed_e13_s1430.pth`。参考录音使用已存在的 `murasame_0001.mp3`，转录从同一数据集 `murasame.list` 第一条逐字核对：`子供扱いするでない。吾輩の方がはるかに年上であるのに。`，参考语言日语。采样采用原代码可核实默认值：TTS seed 17、top_k 15、temperature 0.8、repetition_penalty 1.35，RVC seed 20261004、索引比例 0.75、speaker 0、移调 0。没有读取旧 `.env`，不能声称这些字段与旧私有配置逐项相同；这份独立配置还需实际语音质量验收。不会使用当前外部 YAML 中另一个角色 roka 来冒充丛雨。
@@ -78,6 +82,12 @@ X-IC2NE-Voice-Route: tts_then_rvc
 游戏必须核对协议、请求角色、长度和 PCM WAV 格式。失败为 JSON `{"protocol":1,"error":"voice_unavailable","message":"中文原因，文字回复已保留。"}`。非法请求为 400/413/415，超过队列上限或连接过多为 503，超时为 504。不会把失败音频替换成别的角色或清除原文字。客户端取消 HTTP 请求、切换回复或关闭语音时应中断连接；服务端检测断开后取消排队/当前任务、等待本次子进程树退出、清理作业目录。
 
 协调进程只绑定 `127.0.0.1`，再次检查真实 TCP 对端，拒绝浏览器 Origin 和 HTTP 分块请求，不提供跨域接口、远程认证或任意文件/URL 参数。采用一请求一连接，响应包含 `Connection: close`。同一运行时严格单线程式串行处理：最多1条运行、16条FIFO等待；等待队列满时返回503。整条请求从入队起最多600秒，包含排队、资源等待和生成；等待资源会每2秒异步重查，超时后保留文字回复。各工作阶段上限仍为TTS 110秒、RVC 100秒、PCM转换15秒，且受600秒整单时限约束。HTTP服务在610秒处兜底返回504；Minecraft Java HTTP调用超时应同步设为至少620秒，并在超时/断连时保留文字结果并中断连接。
+
+## 独立翻唱 HTTP 合约
+
+`GET /health` 额外返回 `cover.available`、缺失依赖和输入/输出上限。只有配置启用且 Demucs Python、ffprobe、本地模型checkpoint及 RVC Python均可用时，才接收翻唱。翻唱模型启动前复用与普通语音相同的FIFO、GPU锁和内存保护；一首歌曲处理顺序固定为本地FFmpeg解码 → Demucs 人声/伴奏分离 → 仅人声送角色RVC → 与伴奏按有界音量参数混合。不会将整曲送入RVC或用TTS生成歌词。
+
+`POST /v1/cover` 接受原始 `audio/mpeg` 或 `audio/wav` 正文，最多16MiB、360秒；不接受URL。请求必须带 `X-IC2NE-Protocol: 1`、八个小写角色ID之一的 `X-IC2NE-Character` 和 UUID `X-IC2NE-Request-ID`。文件按64KiB块写入运行时拥有的作业目录，至多两个来源作业同时暂存，FIFO队列只保存文件路径。成功返回202及不透明 `job_id`。`GET /v1/cover/<job_id>` 查询状态；追加 `?download=1` 时以分块方式传输最多80MiB的PCM16 WAV，并带协议、角色及任务响应头。`DELETE` 取消未完成任务并在其子进程退出后删除该任务文件，或清理已完成的成品；终态状态保留610秒。缺少依赖返回结构化 `cover_unavailable`，超时、队列满、无成品和未知任务也使用稳定错误码。所有接口拒绝非空 `Origin`，翻唱接口要求自家协议头，不暴露本地文件路径。
 
 ## 内存与取消
 

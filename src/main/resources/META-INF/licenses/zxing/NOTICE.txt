@@ -1,0 +1,6 @@
+ZXing core 3.5.4 (com.google.zxing:core:3.5.4)
+Project: https://github.com/zxing/zxing
+Source version: https://github.com/zxing/zxing/tree/zxing-3.5.4
+License: Apache License, Version 2.0; upstream LICENSE reproduced alongside this notice.
+Used unmodified for local QR-code generation. No external QR-image service is used.
+Official JAR SHA-256: 71DE5D89341B5FCF5DD89DA7F44E84D825D0E084CDF3EC77C9ABE26B0F0CEB13

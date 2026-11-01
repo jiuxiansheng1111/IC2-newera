@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "ic2newera:terminal"
+          "name": "minecraft:chest"
         }
       ],
       "conditions": [

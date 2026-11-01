@@ -23,11 +23,20 @@ public final class ProcessGraphClientState {
         if (incomingRevision < revision.get()) return;
         snapshot = incoming;
         revision.set(incomingRevision);
+        RecipeGuard.syncClientBlastRoutes(incoming);
+        syncJei(incoming);
     }
 
     public static void clear() {
         snapshot = new ProcessGraph.Snapshot(Map.of(), List.of());
         revision.set(-1);
+        RecipeGuard.syncClientBlastRoutes(snapshot);
+        syncJei(snapshot);
+    }
+
+    private static void syncJei(ProcessGraph.Snapshot incoming) {
+        if (net.minecraftforge.fml.ModList.get().isLoaded("jei"))
+            com.ic2newera.integration.jei.AdvancedFurnaceJeiSync.install(incoming);
     }
 
     @Mod.EventBusSubscriber(modid = IC2NewEra.MOD_ID, value = Dist.CLIENT)

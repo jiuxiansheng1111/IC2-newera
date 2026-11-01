@@ -6,7 +6,7 @@
       "modId": "ic2newera",
       "fileName": "ic2newera-0.1.0-dev.jar",
       "projectFile": "releases/ic2newera-0.1.0-dev.jar",
-      "sha256": "0CEB7B30161CA4668B34B02C97728380C2C8AA6DDF3A06C80205BE59DE8C5770"
+      "sha256": "5E85EE021723ED9621228DB344090FAF513E3B25D99D785ED2DD894F5E88C5ED"
     },
     {
       "modId": "ic2",
@@ -56,6 +56,37 @@
       "cacheDirectory": "curse.maven/projecte-226410/4860858",
       "cacheFileName": "projecte-226410-4860858.jar",
       "sha256": "8DCBB2F30E6350E31A5B14B902A9C4B0E5D47F0E82EB99E374B333CE1A2CCEC5"
+    },
+    {
+      "modId": "farmersdelight",
+      "fileName": "FarmersDelight-1.19.2-1.2.4.jar",
+      "cacheDirectory": "curse.maven/farmers-delight-398521/5051241",
+      "cacheFileName": "farmers-delight-398521-5051241.jar",
+      "sha256": "A766849A5F61B9520C1C2ABA86A9652A392C9E276FAF5BB388B989BD65477F5F"
+    },
+    {
+      "modId": "ad_astra",
+      "fileName": "ad_astra-forge-1.19.2-1.12.7.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/ad_astra-forge-1.19.2-1.12.7.jar",
+      "sha256": "24EF7A80501FA146AB588738E3333185353E7B09A36BAB785912FD3D61713A81"
+    },
+    {
+      "modId": "botarium",
+      "fileName": "botarium-forge-1.19.2-1.8.2.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/botarium-forge-1.19.2-1.8.2.jar",
+      "sha256": "FB08BEBB1BA81B9035294AAE3CD4E1F7FBAE6A0073E7A7AE1D4530304672493A"
+    },
+    {
+      "modId": "resourcefullib",
+      "fileName": "resourcefullib-forge-1.19.2-1.1.24.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/resourcefullib-forge-1.19.2-1.1.24.jar",
+      "sha256": "4F83A8DFA91AD381F2708293ECDA6C705039A0DABB774ED429C84C86EB158E56"
+    },
+    {
+      "modId": "resourcefulconfig",
+      "fileName": "resourcefulconfig-forge-1.19.2-1.0.20.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/resourcefulconfig-forge-1.19.2-1.0.20.jar",
+      "sha256": "FD0EA4D97F7D0C6A10A5325F6FDD148C2C634E5D77A25A2DE5D7AC6AFCF49F5A"
     }
   ]
 }

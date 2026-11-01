@@ -59,6 +59,10 @@ public final class IC2NewEra {
         com.ic2newera.robot.RobotRegistry.ENTITIES.register(modBus);
         com.ic2newera.robot.RobotRegistry.MENUS.register(modBus);
         modBus.addListener(com.ic2newera.robot.RobotRegistry::attributes);
+        com.ic2newera.industrialhostile.IndustrialHostiles.register(modBus);
+        com.ic2newera.frontier.FrontierContent.register(modBus);
+        com.ic2newera.arsenal.ArsenalMaterials.register(modBus);
+        com.ic2newera.compat.RetiredItemCompatibility.register(modBus);
         modBus.addListener(ResearchEvents::registerCapabilities);
         modBus.addListener(IC2NewEra::loadComplete);
 

@@ -1,0 +1,31 @@
+{
+  "asset": "assets/ic2newera/sounds/pet/dog_call.ogg",
+  "source": {
+    "providedBy": "user",
+    "filename": "audio.mp3",
+    "sha256": "4B8D88DA9F95586945FD1C1F4A56B4EB6EA450EADE53397635E03FDD7C235604",
+    "containerDetectedByFfprobe": "MP4-family audio-only container",
+    "codec": "AAC-LC",
+    "durationSeconds": 622.713968,
+    "sampleRateHz": 44100,
+    "channels": 2,
+    "license": "Unknown; no redistribution license was provided."
+  },
+  "conversion": {
+    "tool": "FFmpeg 9.0.2 essentials build (gyan.dev Windows build linked from ffmpeg.org)",
+    "toolArchiveSha256": "60F467265B1E312373DBCD92200C2618A74850F98D3D078E94296BB3FA2047BA",
+    "options": ["-map 0:a:0", "-map_metadata -1", "-vn", "-ac 1", "-ar 44100", "-c:a libvorbis", "-q:a 4"],
+    "trimmed": false
+  },
+  "output": {
+    "codec": "Vorbis",
+    "container": "Ogg",
+    "sampleRateHz": 44100,
+    "channels": 1,
+    "durationSeconds": 622.713968,
+    "durationTicksRoundedUp": 12455,
+    "sizeBytes": 5742920,
+    "sha256": "6A9E9CB3A2F57E7D383D3131D980A79F390D975116119A7760ABCC0DF3D381B9",
+    "redistribution": "Unknown; keep local and do not upload or publish until the user confirms usage rights."
+  }
+}

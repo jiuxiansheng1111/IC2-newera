@@ -143,10 +143,11 @@ def atlas(document, key):
     return images, offsets, width, height, facts, target
 
 
-def export_character(key):
-    source = ROOT / f"art/robot-models/current/{key}.bbmodel"
+def export_character(key, source=None, expected_sha256=None):
+    source = Path(source) if source is not None else ROOT / f"art/robot-models/current/{key}.bbmodel"
     original = source.read_bytes(); document = json.loads(original)
-    if digest(original) != APPROVED_SHA256[key]: raise ValueError(f"Approved {key} R16 hash changed")
+    expected_sha256 = expected_sha256 or APPROVED_SHA256[key]
+    if digest(original) != expected_sha256: raise ValueError(f"Expected {key} source hash changed")
     if document["meta"]["model_format"] != "free" or document.get("animations"):
         raise ValueError("Expected a static Generic/free R16 project")
     groups, chain = hierarchy(document)

@@ -52,7 +52,7 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
     private long lastRefresh = Long.MIN_VALUE;
     private List<ServerDeviceView> devices = List.of();
     private Map<UUID, DeviceTarget> deviceTargets = new LinkedHashMap<>();
-    private int machineCount, runningCount, problemCount, unknownCount, terminalCount, idleCount, pausedCount;
+    private int machineCount, runningCount, problemCount, unknownCount, idleCount, pausedCount;
     private int nextDeviceNumber = 1;
     record DeviceTarget(BlockEntity entity, IndustrialMachineInspector.MachineReport report, ServerDeviceView view) { }
 
@@ -75,7 +75,6 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
     public int getRunningCount() { return runningCount; }
     public int getProblemCount() { return problemCount; }
     public int getUnknownCount() { return unknownCount; }
-    public int getTerminalCount() { return terminalCount; }
     public int getIdleCount() { return idleCount; }
     public int getPausedCount() { return pausedCount; }
 
@@ -161,6 +160,18 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         refreshServer(server); markSynced(); return true;
     }
 
+    public boolean setMotorSpeedFromMobile(net.minecraft.server.level.ServerPlayer player, BlockPos target, int rpm) {
+        if (!(level instanceof ServerLevel server) || player.level != level || !canManage(player) || !isControlAvailable()
+                || !IndustrialMobileAccess.canReachEndpoint(player, worldPosition) || !server.hasChunkAt(target)) return false;
+        var attachment = IndustrialNetworkTopology.attach(server, worldPosition);
+        if (attachment == null) return false;
+        var component = IndustrialNetworkTopology.component(server, attachment.networkSwitch());
+        var machine = IndustrialNetworkTopology.machinesFor(server, component).stream()
+                .filter(row -> row.report().pos().equals(target)).map(IndustrialNetworkTopology.ConnectedMachine::entity).findFirst().orElse(null);
+        if (!(machine instanceof com.ic2newera.motor.EUMotorBlockEntity motor) || !motor.setTargetRpmFromController(rpm)) return false;
+        refreshServer(server); markSynced(); return true;
+    }
+
     public boolean setServerControlEnabled(Player player, boolean enabled) {
         if (!canManage(player) || (enabled && !hasAiCore())) return false;
         if (serverControlEnabled != enabled) {
@@ -210,7 +221,6 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         connectedAdapters = Math.min(128, adapters.size());
 
         var connectedMachines = IndustrialNetworkTopology.machinesFor(level, component);
-        terminalCount = IndustrialNetworkTopology.endpointsFor(level, component, TerminalBlockEntity.class, 32).size();
         Set<BlockPos> currentControlTargets = new HashSet<>();
         connectedMachines.forEach(machine -> currentControlTargets.add(machine.entity().getBlockPos()));
         if (runAutomation) runController(level, currentControlTargets);
@@ -245,8 +255,7 @@ public final class IndustrialControlServerBlockEntity extends OwnedIndustrialBlo
         }
         machineCount = nextDevices.size();
         List<String> nextLines = List.of("网络：" + (networkName.isBlank() ? "未连接" : networkName),
-                "设备总数（已发现）：" + (machineCount + terminalCount) + " 台",
-                "机器：" + machineCount + " 台；终端机：" + terminalCount + " 台",
+                "设备总数（已发现）：" + machineCount + " 台",
                 "运行：" + runningCount + " 台；异常：" + problemCount + " 台",
                 "可控制：" + controllableCount + " 台；状态未知：" + unknownCount + " 台",
                 "网络控制：" + (!hasAiCore() ? "未安装AI核心" : isControlAvailable() ? "已启用" : "已关闭"));

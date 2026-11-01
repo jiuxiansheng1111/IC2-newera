@@ -1,0 +1,28 @@
+{
+  "scope": [
+    "anon"
+  ],
+  "revision": "A6",
+  "body_limb_parts_identical_to_preserved_a4": true,
+  "central_face_piece_count": 1,
+  "jaw_edge_angles_degrees": [
+    4.5,
+    -4.5
+  ],
+  "face_to_lower_support_overlap_xyz": [
+    4.76,
+    0.635,
+    0.07
+  ],
+  "lower_support_to_neck_overlap_xyz": [
+    1.72,
+    0.145,
+    1.67
+  ],
+  "static_overlap_note": "These three solids have zero rotation; positive XYZ overlap confirms actual material continuity, not just a camera mask.",
+  "camera": "North camera at -Z looking +Z; screen-right=-X; world-X negative hair clips at viewer right",
+  "known_a4_error": "Old A4 image camera/UV handedness was mirrored; editor agreement claim missed this. New A4 comparison re-renders actual old resource with corrected convention.",
+  "resource_views_personally_inspected_by": "GPT-6.1 Sol",
+  "blockbench_import": "pending root actual UI inspection",
+  "user_animation_game_acceptance": "not performed"
+}

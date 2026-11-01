@@ -196,10 +196,6 @@ processor('industrial_phone',[
     item(own('robot_control_core')), item(own('industrial_ssd'),2), item(own('gpu')),
     item('ic2:uesc'), item('ic2:complex_circuit',2), item(own('advanced_power_bank'))],
     ticks=2400,eu=256)
-route('terminal', own('terminal'), [item('minecraft:chest'),item(own('pcb')),item(own('integrated_circuit')),
-      item(own('cpu')),item(own('gpu')),item(own('industrial_ssd')),item(own('industrial_fiber')),
-      item('create:brass_casing'),item('projecte:dark_matter')],
-      'crafting',['minecraft:crafting_table'],ticks=0,eu=0,required_mods=['projecte'])
 route('advanced_circuit', 'ic2:advanced_circuit',[item(own('pcb')),item(own('integrated_circuit')),item('ic2:circuit'),item('minecraft:redstone',2)],
       'crafting',['minecraft:crafting_table'],ticks=0,eu=0)
 route('complex_circuit', 'ic2:complex_circuit',[item('ic2:advanced_circuit'),item(own('integrated_circuit'),2),item(own('high_purity_silicon')),item(own('pcb'))],

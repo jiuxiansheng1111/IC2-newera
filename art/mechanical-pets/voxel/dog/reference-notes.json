@@ -1,0 +1,105 @@
+{
+  "reference": "Minecraft Java Edition 1.20.1 vanilla WolfModel calibration; source class net.minecraft.client.model.WolfModel# createBodyLayer()",
+  "source_artifact": {
+    "client_jar": "C:/Users/罗斌/.gradle/caches/forge_gradle/minecraft_repo/versions/1.20.1/client.jar",
+    "client_jar_sha256": "56b71336d2b4fdffd197f56595b0da93e32a946f78f382a299b8f4b92758bb0f",
+    "mapped_forge_jar": "C:/Users/罗斌/.gradle/caches/forge_gradle/minecraft_user_repo/net/minecraftforge/forge/1.20.1-47.4.28_mapped_official_1.20.1/forge-1.20.1-47.4.28_mapped_official_1.20.1.jar",
+    "mapped_forge_jar_sha256": "0aea3be780e5a28d94dbacec5072d8854a9fdd434b0e808f38054a5b60b9626e",
+    "wolf_model_class_sha256": "36e848e5ea880273776590ec7973e47ac4ff6bfc55158cbe1afd438615f6c119"
+  },
+  "vanilla_proportions": {
+    "head_pivot": [
+      -1,
+      13.5,
+      -7
+    ],
+    "body_pivot": [
+      0,
+      14,
+      2
+    ],
+    "body_box_size": [
+      6,
+      9,
+      6
+    ],
+    "upper_body_pivot": [
+      -1,
+      14,
+      -3
+    ],
+    "upper_body_box_size": [
+      8,
+      6,
+      7
+    ],
+    "front_leg_pivots": [
+      [
+        -2.5,
+        16,
+        -4
+      ],
+      [
+        0.5,
+        16,
+        -4
+      ]
+    ],
+    "hind_leg_pivots": [
+      [
+        -2.5,
+        16,
+        7
+      ],
+      [
+        0.5,
+        16,
+        7
+      ]
+    ],
+    "leg_box_size": [
+      2,
+      8,
+      2
+    ],
+    "tail_pivot": [
+      -1,
+      12,
+      8
+    ],
+    "tail_rotation_x_radians": 0.62831855,
+    "face_direction": "-Z",
+    "vanilla_texture_size": [
+      64,
+      32
+    ],
+    "vanilla_texture_sha256_not_copied": "57ff1ffbc07f5c202d8e0668cd255154b01c862976e8292bb1fdd04afa8e8faa"
+  },
+  "design_translation": {
+    "model": "柴犬机械狗，使用紧凑的 6×5×10 躯干、6×6×5 方头和短方吻；四肢使用粗方柱与独立方爪，尾部用两块阶梯方块。比例按本任务的低重心、约 13 格高硬约束压缩，而非直接复制 WolfModel 的长度和旋转。",
+    "bounds": {
+      "min": [
+        -4,
+        0,
+        -9
+      ],
+      "max": [
+        4,
+        13,
+        7
+      ],
+      "size": [
+        8,
+        13,
+        16
+      ]
+    },
+    "grid": "所有 cube from/to/origin、group pivot、UV端点均为整数；所有基础旋转为零；正厚度 cuboid only；无曲面、mesh、plane、倒角或斜切。",
+    "texture": "原创 64×64 硬像素贴图，限用奶油白、浅棕、深棕、黑、少量淡粉与黄铜色；未复制原版狼贴图。"
+  },
+  "style_reference": {
+    "url": "https://xingduansuzhao.com/model",
+    "section": "149–171",
+    "applied_guidance": "采用方块/长方体和阶梯几何表达动物，不用球体、圆柱、平滑曲线或密集网格；材质使用有限色板和清晰像素边界，避免渐变、模糊和噪点。"
+  }
+}

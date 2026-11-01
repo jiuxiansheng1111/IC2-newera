@@ -12,6 +12,12 @@
     "ic2newera:industrial_network_switch",
     "ic2newera:industrial_control_server",
     "ic2newera:terminal",
-    "ic2newera:eu_motor"
+    "ic2newera:eu_motor",
+    "ic2newera:vanadium_ore",
+    "ic2newera:niobium_ore",
+    "ic2newera:cobalt_ore",
+    "ic2newera:molybdenum_ore",
+    "ic2newera:tantalum_ore",
+    "ic2newera:resonance_cluster"
   ]
 }

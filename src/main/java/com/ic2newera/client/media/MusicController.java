@@ -2,6 +2,7 @@ package com.ic2newera.client.media;
 
 import com.google.gson.*;
 import com.ic2newera.media.*;
+import com.ic2newera.robot.RobotCharacter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.sounds.SoundSource;
 import java.util.*;
@@ -10,49 +11,89 @@ import java.util.concurrent.CompletableFuture;
 /** A personal queue per game connection, with favorites persisted by the server's player UUID. */
 public final class MusicController {
     private static final MediaAudioPlayer AUDIO = new MediaAudioPlayer();
-    private static List<MusicTrack> playlist = List.of(), candidates = List.of(), queue = List.of();
+    private static List<MusicTrack> playlist = List.of(), candidates = List.of(), likedTracks = List.of(), queue = List.of();
+    private static int likedOffset, likedTotal, likedGeneration;
+    private static boolean likedHasMore, likedReady;
     private static MusicTrack current;
     private static int index = -1, revision;
     private static volatile int generation;
     private static CompletableFuture<MediaClient.Result> metadata, preparing;
-    private static String status = "输入想听的歌，或打开网易云歌单填写链接或 ID。";
+    private static String status = "选择音乐来源并搜索歌曲，或导入公开歌单。";
     private MusicController() { }
     public static List<MusicTrack> playlist() { return playlist; }
     public static List<MusicTrack> candidates() { return candidates; }
+    public static List<MusicTrack> likedTracks() { return likedTracks; }
+    public static int likedOffset() { return likedOffset; }
+    public static int likedTotal() { return likedTotal; }
+    public static boolean likedHasMore() { return likedHasMore; }
+    public static boolean likedReady() { return likedReady; }
+    /** Account changes invalidate only the cloud browser, never the game playlist or current audio queue. */
+    public static void clearLiked() {
+        likedGeneration++; likedTracks = List.of(); likedOffset = likedTotal = 0; likedHasMore = likedReady = false; revision++;
+    }
     public static MusicTrack current() { return current; }
     public static String status() { String transfer = MediaClient.transferStatus(); return transfer.isBlank() ? status : transfer; }
     public static int revision() { return revision; }
     public static boolean busy() { return metadata != null || preparing != null; }
     public static boolean paused() { return AUDIO.paused(); }
     public static double seconds() { return AUDIO.positionSeconds(); }
-    public static void load() { metadata(MediaPackets.PLAYLIST, "", false); }
-    public static void search(String query) { if (!query.isBlank()) metadata(MediaPackets.SEARCH, query.trim(), true); }
-    public static void smartSearch(String query) { if (!query.isBlank()) metadata(MediaPackets.SMART_SEARCH, query.trim(), true); }
-    public static void importList(String value) {
-        if (value.isBlank() || value.length() > 16384) { status = "歌单内容为空或超过 16384 字符，请缩小歌单后导入。"; revision++; return; }
-        metadata(MediaPackets.IMPORT, value, false);
+    public static void load() { metadata(MediaPackets.PLAYLIST, ""); }
+    public static void search(String query, boolean audius) {
+        if (query.isBlank()) return;
+        candidates = List.of();
+        metadata(audius ? MediaPackets.SEARCH_AUDIUS : MediaPackets.SMART_SEARCH, query.trim());
     }
-    public static void favorite(String id) { metadata(MediaPackets.ADD, id, false); }
-    public static void remove(String id) { metadata(MediaPackets.REMOVE, id, false); }
-    private static void metadata(int operation, String value, boolean autoPlay) {
+    public static void smartSearch(String query) { search(query, false); }
+    public static void loadLiked(int offset) {
+        if (offset < 0 || offset % 100 != 0) return;
+        likedReady = false;
+        metadata(MediaPackets.NETEASE_LIKED, Integer.toString(offset));
+    }
+    public static void importList(String value, boolean audius) {
+        if (value.isBlank() || value.length() > 16384) { status = "歌单内容为空或超过 16384 字符，请缩小歌单后导入。"; revision++; return; }
+        metadata(audius ? MediaPackets.IMPORT_AUDIUS : MediaPackets.IMPORT, value);
+    }
+    public static void favorite(String id) { metadata(MediaPackets.ADD, id); }
+    public static void remove(String id) { metadata(MediaPackets.REMOVE, id); }
+    private static void metadata(int operation, String value) {
         if (metadata != null) metadata.cancel(true);
-        status = operation == MediaPackets.SEARCH ? "正在搜索网易云歌曲……" : operation == MediaPackets.SMART_SEARCH ? "AI 正在理解点歌并搜索网易云……"
-                : operation == MediaPackets.IMPORT ? "正在导入网易云歌单或手工歌单……" : "正在读取歌单……";
+        status = operation == MediaPackets.SEARCH ? "正在搜索网易云公开曲库……" : operation == MediaPackets.SEARCH_AUDIUS ? "正在搜索 Audius 公开曲库……"
+                : operation == MediaPackets.SMART_SEARCH ? "AI 正在理解点歌并搜索网易云……"
+                : operation == MediaPackets.IMPORT ? "正在导入网易云歌单或手工歌单……"
+                : operation == MediaPackets.IMPORT_AUDIUS ? "正在导入 Audius 公开歌单……"
+                : operation == MediaPackets.NETEASE_LIKED ? "正在读取房主网易云账号的红心歌单……" : "正在读取歌单……";
+        int cloudGeneration = likedGeneration;
         var request = MediaClient.request(operation, value); metadata = request; revision++;
         request.whenComplete((result, failure) -> Minecraft.getInstance().execute(() -> {
             if (metadata != request) return;
             metadata = null;
-            if (failure != null) { status = message(failure); revision++; return; }
+            if (operation == MediaPackets.NETEASE_LIKED && cloudGeneration != likedGeneration) {
+                status = "网易云登录状态已变化，请重新读取云端歌单。"; revision++; return;
+            }
+            if (failure != null) { if (operation == MediaPackets.NETEASE_LIKED) clearLiked(); status = message(failure); revision++; return; }
             try {
                 JsonObject body = result.json();
-                if (body.has("playlist")) { playlist = tracks(body.getAsJsonArray("playlist")); status = body.get("message").getAsString(); }
-                if (body.has("candidates")) {
+                if (operation == MediaPackets.NETEASE_LIKED) {
+                    List<MusicTrack> loaded = tracks(body.getAsJsonArray("liked_tracks"));
+                    int offset = body.get("liked_offset").getAsInt();
+                    int total = body.get("liked_total").getAsInt();
+                    boolean hasMore = body.get("liked_has_more").getAsBoolean();
+                    String cloudMessage = body.get("message").getAsString();
+                    if (offset != Integer.parseInt(value) || total < 0 || loaded.stream().anyMatch(track -> !track.id().startsWith("netease:")))
+                        throw new IllegalArgumentException();
+                    // The cloud page is read-only and separate from the player's persistent game playlist.
+                    likedTracks = loaded; likedOffset = offset; likedTotal = total; likedHasMore = hasMore; likedReady = true;
+                    status = cloudMessage;
+                } else if (body.has("playlist")) { playlist = tracks(body.getAsJsonArray("playlist")); status = body.get("message").getAsString(); }
+                else if (body.has("candidates")) {
                     candidates = tracks(body.getAsJsonArray("candidates")); status = body.get("interpretation").getAsString();
-                    String suggested = body.get("suggested_id").getAsString();
-                    if (autoPlay && !suggested.isBlank()) candidates.stream().filter(t -> t.id().equals(suggested)).findFirst().ifPresent(t -> play(t, candidates));
-                    else if (candidates.isEmpty()) status = "没有找到匹配歌曲，请补充歌名或歌手。";
+                    // Model suggestions are explanatory only; the player explicitly chooses a real catalog result.
+                    if (candidates.isEmpty()) status = "没有找到匹配歌曲，请补充歌名或歌手。";
                 }
-            } catch (RuntimeException invalid) { status = "歌曲列表格式无效，请确认客户端和服务端模组版本一致。"; }
+            } catch (RuntimeException invalid) {
+                if (operation == MediaPackets.NETEASE_LIKED) clearLiked();
+                status = "歌曲列表格式无效，请确认客户端和服务端模组版本一致。";
+            }
             revision++;
         }));
     }
@@ -64,14 +105,14 @@ public final class MusicController {
         cancelPreparation(); AUDIO.stop();
         queue = List.copyOf(source); index = queue.indexOf(track); current = track;
         final int ticket = ++generation;
-        status = "正在准备「" + track.title() + "」……"; revision++;
+        status = track.needsCatalogVerification() ? "正在按准确歌名/歌手核实旧版导入内容，确认后才会播放……" : "正在准备「" + track.title() + "」……"; revision++;
         var request = MediaClient.request(MediaPackets.PREPARE, track.id()); preparing = request;
         request.whenComplete((result, failure) -> Minecraft.getInstance().execute(() -> {
             if (generation != ticket || preparing != request) { if (result != null) MediaClient.delete(result.audio()); return; }
             preparing = null;
             if (failure != null) { status = message(failure); revision++; return; }
             if (result.audio() == null || !(result.mime().equals("audio/ogg") || result.mime().equals("audio/mpeg"))) { MediaClient.delete(result.audio()); status = "歌曲音频格式无效。"; revision++; return; }
-            status = "正在播放：" + track.title() + " — " + track.artist(); revision++;
+            status = track.needsCatalogVerification() ? "旧版导入已通过歌曲目录核实，正在播放。" : "正在播放：" + track.title() + " — " + track.artist(); revision++;
             var client = Minecraft.getInstance();
             AUDIO.setVolume(client.options.getSoundSourceVolume(SoundSource.MASTER) * client.options.getSoundSourceVolume(SoundSource.MUSIC));
             AUDIO.play(result.audio(), result.mime(), () -> generation == ticket).whenComplete((done, error) -> client.execute(() -> {
@@ -82,8 +123,38 @@ public final class MusicController {
             }));
         }));
     }
+    public static void cover(MusicTrack track, List<MusicTrack> source, UUID robot, String character) {
+        if (track != null && track.needsCatalogVerification()) {
+            status = "旧版手工条目需重新导入并核实为真实歌曲，才能生成翻唱。"; revision++; return;
+        }
+        if (track == null || robot == null || robot.equals(MediaPackets.NONE)
+                || Arrays.stream(RobotCharacter.values()).noneMatch(value -> value.id.equals(character))) {
+            status = "请选择一首公开曲目和你有权限使用的机器人。"; revision++; return;
+        }
+        cancelPreparation(); AUDIO.stop(); queue = List.copyOf(source); index = queue.indexOf(track); current = track;
+        final int ticket = ++generation;
+        status = "正在验证公开音源并排队生成翻唱……"; revision++;
+        var request = MediaClient.request(MediaPackets.COVER, robot, track.id(), List.of()); preparing = request;
+        request.whenComplete((result, failure) -> Minecraft.getInstance().execute(() -> {
+            if (generation != ticket || preparing != request) { if (result != null) MediaClient.delete(result.audio()); return; }
+            preparing = null;
+            if (failure != null) { status = message(failure); revision++; return; }
+            if (result.audio() == null || !"audio/wav".equals(result.mime())) {
+                MediaClient.delete(result.audio()); status = "翻唱服务返回的音频格式无效。"; revision++; return;
+            }
+            current = track; status = "已生成「" + track.title() + "」的角色翻唱，正在播放。"; revision++;
+            var client = Minecraft.getInstance();
+            AUDIO.setVolume(client.options.getSoundSourceVolume(SoundSource.MASTER) * client.options.getSoundSourceVolume(SoundSource.MUSIC));
+            AUDIO.play(result.audio(), result.mime(), () -> generation == ticket).whenComplete((done, error) -> client.execute(() -> {
+                if (generation != ticket) return;
+                if (error != null) { status = message(error); revision++; }
+                else { status = "翻唱播放完毕。"; revision++; }
+            }));
+        }));
+    }
     public static void next(int direction) {
-        if (queue.isEmpty()) { status = "先选择一首歌曲。"; revision++; return; }
+        generation++; cancelPreparation(); AUDIO.stop();
+        if (queue.isEmpty()) { status = "当前音源已停止；先选择一首歌曲。"; revision++; return; }
         int next = Math.max(0, Math.min(queue.size() - 1, index + direction)); play(queue.get(next), queue);
     }
     public static void pause() {
@@ -93,7 +164,7 @@ public final class MusicController {
     private static void cancelPreparation() { if (preparing != null) { preparing.cancel(true); preparing = null; } }
     public static void stop() { generation++; cancelPreparation(); AUDIO.stop(); status = "已停止播放。"; revision++; }
     public static void cancel() { if (metadata != null) { metadata.cancel(true); metadata = null; } stop(); }
-    public static void reset() { cancel(); playlist = candidates = queue = List.of(); current = null; index = -1; revision++; }
+    public static void reset() { cancel(); playlist = candidates = likedTracks = queue = List.of(); likedOffset = likedTotal = 0; likedHasMore = likedReady = false; current = null; index = -1; revision++; }
     public static void tick() {
         var client = Minecraft.getInstance();
         if (client.player == null || client.level == null) return;

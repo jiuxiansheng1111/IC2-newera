@@ -115,13 +115,25 @@ public final class EUMotorBlockEntity extends GeneratingKineticBlockEntity imple
         return true;
     }
 
+    /** The controller authenticates remote callers; changing speed never clears a manual or automation stop. */
+    public boolean setTargetRpmFromController(int rpm) {
+        if (level == null || level.isClientSide
+                || !(rpm == 32 || rpm == -32 || rpm == 64 || rpm == -64 || rpm == 128 || rpm == -128)) return false;
+        powered = false;
+        updateGeneratedRotation();
+        targetRpm = rpm;
+        setChanged(); sendData();
+        return true;
+    }
+
     @Override public int getSinkTier() { return 1; }
     @Override public int getRequestedEnergy() { return BUFFER - energy; }
     @Override public boolean canAcceptEnergy(IEnergyEmitter emitter, Direction direction) {
         return direction == outputFace().getOpposite();
     }
     @Override public int acceptEnergy(Direction direction, int amount, int voltage) {
-        if (level == null || level.isClientSide || amount <= 0 || direction != outputFace().getOpposite()
+        // IC2 filters input faces in canAcceptEnergy; its delivery direction is reversed.
+        if (level == null || level.isClientSide || amount <= 0
                 || EnergyNet.INSTANCE == null || voltage > EnergyNet.INSTANCE.getPowerFromTier(1)) return amount;
         int accepted = Math.min(amount, BUFFER - energy);
         energy += accepted;

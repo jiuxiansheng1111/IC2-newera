@@ -1,0 +1,46 @@
+{
+  "minecraft": "1.20.1",
+  "loader": "Forge",
+  "purpose": "Client-side shader rendering candidates; files are not installed into an active mods directory.",
+  "mods": [
+    {
+      "mod_id": "embeddium",
+      "name": "Embeddium",
+      "version": "0.3.31+mc1.20.1",
+      "environment": "client",
+      "channel": "release",
+      "modrinth_project_id": "sk9rgfiA",
+      "modrinth_version_id": "UTbfe5d1",
+      "file": "embeddium-0.3.31+mc1.20.1.jar",
+      "download_url": "https://cdn.modrinth.com/data/sk9rgfiA/versions/UTbfe5d1/embeddium-0.3.31%2Bmc1.20.1.jar",
+      "size_bytes": 1320675,
+      "sha256": "eed3d1325f2acc2fd4e69bb495e5ccb91d962126ac5330f0582ebc2a3daf47fb"
+    },
+    {
+      "mod_id": "oculus",
+      "name": "Oculus",
+      "version": "1.20.1-1.8.0",
+      "environment": "client",
+      "channel": "release",
+      "modrinth_project_id": "GchcoXML",
+      "modrinth_version_id": "iQ1SwGc3",
+      "file": "oculus-mc1.20.1-1.8.0.jar",
+      "download_url": "https://cdn.modrinth.com/data/GchcoXML/versions/iQ1SwGc3/oculus-mc1.20.1-1.8.0.jar",
+      "size_bytes": 2851119,
+      "sha256": "0945df0cba0f62b3901dd80c3268e5311b770ece78c78037a45db12ac0425fef"
+    },
+    {
+      "mod_id": "irisflw",
+      "name": "Iris & Oculus Flywheel Compat",
+      "version": "2.0.3",
+      "environment": "client",
+      "channel": "beta",
+      "modrinth_project_id": "ndHYMY2K",
+      "modrinth_version_id": "dE1A45cG",
+      "file": "oculus-flywheel-compat-Forge-2.0.3.jar",
+      "download_url": "https://cdn.modrinth.com/data/ndHYMY2K/versions/dE1A45cG/oculus-flywheel-compat-Forge-2.0.3.jar",
+      "size_bytes": 117226,
+      "sha256": "f66f523553a14b07965f007c11dcb8624d4117025e4ce1ffd470171c6fda340e"
+    }
+  ]
+}

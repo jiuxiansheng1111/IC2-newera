@@ -14,20 +14,40 @@ import java.util.function.Supplier;
 /** Every action, including each chat grant, rechecks owner, loaded entity and distance on the server. */
 public final class RobotPackets {
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "5", "5"::equals, "5"::equals);
+            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "11", "11"::equals, "11"::equals);
     private static final java.util.Map<ServerPlayer, Long> PHONE_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> PHONE_READ_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> LOCAL_REQUESTS = new java.util.WeakHashMap<>();
     private record CollectionReceipt(CollectionAction action, boolean accepted, String message, long expires) { }
     private static final java.util.Map<ServerPlayer, java.util.LinkedHashMap<UUID, CollectionReceipt>> COLLECTION_RECEIPTS = new java.util.WeakHashMap<>();
+    private record CookingReceipt(CookingAction action, boolean accepted, String message, long expires) { }
+    private static final java.util.Map<ServerPlayer, java.util.LinkedHashMap<UUID, CookingReceipt>> COOKING_RECEIPTS = new java.util.WeakHashMap<>();
     private RobotPackets() { }
     public static void register() {
+        com.ic2newera.robot.building.RobotBuildPackets.register();
         CHANNEL.registerMessage(0, Action.class, Action::encode, Action::decode, Action::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(1, View.class, View::encode, View::decode, View::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(2, PhoneAction.class, PhoneAction::encode, PhoneAction::decode, PhoneAction::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(3, PhoneView.class, PhoneView::encode, PhoneView::decode, PhoneView::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         CHANNEL.registerMessage(4, CollectionAction.class, CollectionAction::encode, CollectionAction::decode, CollectionAction::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(5, CollectionReply.class, CollectionReply::encode, CollectionReply::decode, CollectionReply::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(6, HomeGreeting.class, HomeGreeting::encode, HomeGreeting::decode, HomeGreeting::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(7, CookingAction.class, CookingAction::encode, CookingAction::decode, CookingAction::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(8, CookingReply.class, CookingReply::encode, CookingReply::decode, CookingReply::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+    }
+    public record HomeGreeting(UUID robot, String character, UUID reply, boolean departure) {
+        static void encode(HomeGreeting value, FriendlyByteBuf buf) {
+            buf.writeUUID(value.robot); buf.writeUtf(value.character, 16); buf.writeUUID(value.reply); buf.writeBoolean(value.departure);
+        }
+        static HomeGreeting decode(FriendlyByteBuf buf) {
+            return new HomeGreeting(buf.readUUID(), buf.readUtf(16), buf.readUUID(), buf.readBoolean());
+        }
+        static void handle(HomeGreeting value, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get();
+            context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () ->
+                    com.ic2newera.client.robot.RobotHomeGreetingClient.receive(value)));
+            context.setPacketHandled(true);
+        }
     }
     public static void open(ServerPlayer player, RobotEntity robot, int request) {
         CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new View(robot.getId(), robot.getUUID(), robot.character().id,
@@ -57,6 +77,10 @@ public final class RobotPackets {
                     }
                     case 5 -> robot.setMode(RobotEntity.LOGGING);
                     case 6 -> robot.setMode(RobotEntity.MINING);
+                    case 10 -> robot.setMode(RobotEntity.COOKING);
+                    case 11 -> robot.cancelCooking();
+                    case 12 -> robot.setMode(RobotEntity.SMELTING);
+                    case 13 -> robot.setMode(RobotEntity.FARMING);
                     case 7 -> robot.setCombatEnabled(!robot.combatEnabled());
                     case 8 -> {
                         NetworkHooks.openScreen(player, new net.minecraft.world.SimpleMenuProvider(
@@ -104,7 +128,8 @@ public final class RobotPackets {
                 if (player == null || !com.ic2newera.industrial.IndustrialMobileAccess.hasPhone(player)) return;
                 if (packet.action != 0 && packet.action != 1 && packet.action != 2 && packet.action != 5
                         && packet.action != 6 && packet.action != 7 && packet.action != 8 && packet.action != 10
-                        && packet.action != 11 && packet.action != 12) return;
+                        && packet.action != 11 && packet.action != 12 && packet.action != 13 && packet.action != 14
+                        && packet.action != 15 && packet.action != 16 && packet.action != 20) return;
                 long time = player.level.getGameTime();
                 // Periodic status reads must not swallow a manual command sent in the same five ticks.
                 var limits = packet.action == 0 ? PHONE_READ_REQUESTS : PHONE_REQUESTS;
@@ -187,6 +212,61 @@ public final class RobotPackets {
                     () -> () -> com.ic2newera.client.robot.RobotCollectionScreen.receive(p))); c.setPacketHandled(true);
         }
     }
+    public record CookingAction(UUID ticket, UUID robot, boolean remote, int action, String item, int amount) {
+        static void encode(CookingAction p, FriendlyByteBuf b) {
+            b.writeUUID(p.ticket); b.writeUUID(p.robot); b.writeBoolean(p.remote);
+            b.writeVarInt(p.action); b.writeUtf(p.item, 128); b.writeVarInt(p.amount);
+        }
+        static CookingAction decode(FriendlyByteBuf b) { return new CookingAction(b.readUUID(), b.readUUID(), b.readBoolean(), b.readVarInt(), b.readUtf(128), b.readVarInt()); }
+        private static void reply(ServerPlayer player, CookingAction p, boolean accepted, String message) {
+            var receipts = COOKING_RECEIPTS.computeIfAbsent(player, ignored -> new java.util.LinkedHashMap<>());
+            while (receipts.size() >= 16) receipts.remove(receipts.keySet().iterator().next());
+            receipts.put(p.ticket, new CookingReceipt(p, accepted, message, player.level.getGameTime() + 1200));
+            CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new CookingReply(p.ticket, p.robot, accepted, message));
+        }
+        static void handle(CookingAction p, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get(); context.enqueueWork(() -> {
+                ServerPlayer player = context.getSender();
+                if (player == null || player.hasDisconnected() || !player.isAlive() || p.action < 0 || p.action > 1) return;
+                RobotEntity robot = p.remote ? RobotContacts.resolve(player.server, p.robot)
+                        : player.getLevel().getEntity(p.robot) instanceof RobotEntity found ? found : null;
+                if (robot == null || (p.remote ? !com.ic2newera.industrial.IndustrialMobileAccess.canReachRobot(player, robot) : !robot.canManage(player))) {
+                    reply(player, p, false, "机器人未加载、离线或权限不符；近身派任务需在八格内。"); return;
+                }
+                var receipts = COOKING_RECEIPTS.computeIfAbsent(player, ignored -> new java.util.LinkedHashMap<>());
+                receipts.entrySet().removeIf(entry -> entry.getValue().expires < player.level.getGameTime());
+                CookingReceipt prior = receipts.get(p.ticket);
+                if (prior != null) {
+                    if (prior.action.equals(p)) CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new CookingReply(p.ticket, p.robot, prior.accepted, prior.message));
+                    return;
+                }
+                var limits = p.remote ? PHONE_REQUESTS : LOCAL_REQUESTS;
+                long now = player.level.getGameTime();
+                if (now < limits.getOrDefault(player, Long.MIN_VALUE)) { reply(player, p, false, "操作过快，请稍后重试。"); return; }
+                limits.put(player, now + 5);
+                RobotCollectionTask.Result result;
+                if (p.action == 1) {
+                    if (robot.cookingOrder() == null && robot.cookingState() == null)
+                        result = new RobotCollectionTask.Result(false, "当前没有烹饪订单或原锅批次。");
+                    else result = robot.cancelCooking()
+                            ? new RobotCollectionTask.Result(true, "烹饪已安全取消；待投原料退回，原锅物料保留。")
+                            : new RobotCollectionTask.Result(false, "原锅或待投原料无法安全核对，任务与实物保留，请检查状态。");
+                } else result = RobotCookingOrders.assign(player, robot, p.remote, false, p.item, p.amount);
+                reply(player, p, result.accepted(), result.message());
+                if (p.remote) openPhone(player, false, result.message()); else open(player, robot, -1);
+            }); context.setPacketHandled(true);
+        }
+    }
+    public record CookingReply(UUID ticket, UUID robot, boolean accepted, String message) {
+        static void encode(CookingReply p, FriendlyByteBuf b) {
+            b.writeUUID(p.ticket); b.writeUUID(p.robot); b.writeBoolean(p.accepted); b.writeUtf(p.message.substring(0, Math.min(240, p.message.length())), 240);
+        }
+        static CookingReply decode(FriendlyByteBuf b) { return new CookingReply(b.readUUID(), b.readUUID(), b.readBoolean(), b.readUtf(240)); }
+        static void handle(CookingReply p, Supplier<NetworkEvent.Context> supplier) {
+            var context = supplier.get(); context.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT,
+                    () -> () -> com.ic2newera.client.robot.RobotCookingScreen.receive(p))); context.setPacketHandled(true);
+        }
+    }
     public record PhoneView(boolean open, com.ic2newera.industrial.IndustrialMobileAccess.Snapshot snapshot) {
         private static String bound(String value, int max) { return value.substring(0, Math.min(max, value.length())); }
         static void encode(PhoneView packet, FriendlyByteBuf buf) {
@@ -198,6 +278,7 @@ public final class RobotPackets {
                 buf.writeVarInt(row.kind()); buf.writeBoolean(row.controllable()); buf.writeVarInt(row.energy()); buf.writeVarInt(row.lives());
                 buf.writeUtf(bound(row.character(), 16), 16);
                 buf.writeUtf(bound(row.dimension(), 128), 128);
+                buf.writeUtf(bound(row.attention(), 384), 384); buf.writeVarInt(row.motorRpm());
             }
         }
         static PhoneView decode(FriendlyByteBuf buf) {
@@ -205,7 +286,8 @@ public final class RobotPackets {
             if (count < 0 || count > 224) throw new IllegalArgumentException("Invalid phone device count");
             java.util.List<com.ic2newera.industrial.IndustrialMobileAccess.Device> rows = new java.util.ArrayList<>();
             for (int i = 0; i < count; i++) rows.add(new com.ic2newera.industrial.IndustrialMobileAccess.Device(buf.readUUID(), buf.readBlockPos(),
-                    buf.readUtf(96), buf.readUtf(128), buf.readUtf(1024), buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt(), buf.readUtf(16), buf.readUtf(128)));
+                    buf.readUtf(96), buf.readUtf(128), buf.readUtf(1024), buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readVarInt(), buf.readUtf(16), buf.readUtf(128),
+                    buf.readUtf(384), buf.readVarInt()));
             return new PhoneView(open, new com.ic2newera.industrial.IndustrialMobileAccess.Snapshot(network, notice, java.util.List.copyOf(rows)));
         }
         static void handle(PhoneView value, Supplier<NetworkEvent.Context> supplier) {

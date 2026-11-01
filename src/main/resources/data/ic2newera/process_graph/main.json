@@ -5971,63 +5971,6 @@
       "kind": "electronic"
     },
     {
-      "id": "ic2newera:terminal",
-      "material": "",
-      "classification": "APPROVED_INDUSTRIAL_PROCESS",
-      "machines": [
-        "minecraft:crafting_table"
-      ],
-      "inputs": [
-        {
-          "item": "minecraft:chest",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:pcb",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:integrated_circuit",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:cpu",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:gpu",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:industrial_ssd",
-          "count": 1
-        },
-        {
-          "item": "ic2newera:industrial_fiber",
-          "count": 1
-        },
-        {
-          "item": "create:brass_casing",
-          "count": 1
-        },
-        {
-          "item": "projecte:dark_matter",
-          "count": 1
-        }
-      ],
-      "output": {
-        "item": "ic2newera:terminal",
-        "count": 1
-      },
-      "duration_ticks": 0,
-      "eu_per_tick": 0,
-      "priority": 10,
-      "format": "crafting",
-      "required_mods": [
-        "projecte"
-      ]
-    },
-    {
       "id": "ic2newera:advanced_circuit",
       "material": "",
       "classification": "APPROVED_INDUSTRIAL_PROCESS",

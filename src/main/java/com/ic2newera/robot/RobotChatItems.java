@@ -183,23 +183,33 @@ public final class RobotChatItems {
 
     private static LanguageData readChineseLanguage(String namespace, int byteLimit) {
         if (namespace == null || namespace.isBlank() || byteLimit <= 0) return new LanguageData(Map.of(), 0);
+        Map<String, String> values = new LinkedHashMap<>();
+        int bytesRead = 0;
         try {
             var modFile = ModList.get().getModFileById(namespace);
             if (modFile == null) return new LanguageData(Map.of(), 0);
-            var resource = modFile.getFile().findResource("assets", namespace, "lang", "zh_cn.json");
-            try (InputStream input = Files.newInputStream(resource)) {
-                byte[] bytes = input.readNBytes(byteLimit + 1);
-                if (bytes.length > byteLimit) return new LanguageData(Map.of(), byteLimit);
-                JsonObject object = JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8)).getAsJsonObject();
-                Map<String, String> values = new LinkedHashMap<>();
-                for (var entry : object.entrySet()) {
-                    JsonElement value = entry.getValue();
-                    if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString())
-                        values.put(entry.getKey(), value.getAsString());
+            // IC2 Classic stores block/item translations in separate native language resources.
+            List<String> files = namespace.equals("ic2")
+                    ? List.of("zh_cn.json", "blocks_zh_cn.json", "items_zh_cn.json") : List.of("zh_cn.json");
+            for (String file : files) {
+                int remaining = byteLimit - bytesRead;
+                if (remaining <= 0) break;
+                var resource = modFile.getFile().findResource("assets", namespace, "lang", file);
+                if (!Files.isRegularFile(resource)) continue;
+                try (InputStream input = Files.newInputStream(resource)) {
+                    byte[] bytes = input.readNBytes(remaining + 1);
+                    bytesRead += Math.min(bytes.length, remaining);
+                    if (bytes.length > remaining) break;
+                    JsonObject object = JsonParser.parseString(new String(bytes, StandardCharsets.UTF_8)).getAsJsonObject();
+                    for (var entry : object.entrySet()) {
+                        JsonElement value = entry.getValue();
+                        if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString())
+                            values.put(entry.getKey(), value.getAsString());
+                    }
                 }
-                return new LanguageData(Map.copyOf(values), bytes.length);
             }
-        } catch (Exception ignored) { return new LanguageData(Map.of(), 0); }
+        } catch (Exception ignored) { /* Keep names read before a missing or invalid resource. */ }
+        return new LanguageData(Map.copyOf(values), bytesRead);
     }
 
     private static Map<String, String> fallbackAliases() {
@@ -237,6 +247,23 @@ public final class RobotChatItems {
         alias(values, "minecraft:gold_ingot", "金锭");
         alias(values, "minecraft:copper_ingot", "铜锭");
         alias(values, "minecraft:cobblestone", "圆石");
+        alias(values, "minecraft:stone_bricks", "石砖");
+        alias(values, "minecraft:oak_planks", "橡木木板");
+        alias(values, "minecraft:oak_door", "橡木门");
+        alias(values, "minecraft:birch_door", "白桦木门");
+        alias(values, "minecraft:glass_pane", "玻璃板");
+        alias(values, "minecraft:bricks", "红砖块");
+        alias(values, "minecraft:white_concrete", "白色混凝土");
+        alias(values, "minecraft:light_gray_concrete", "淡灰色混凝土");
+        alias(values, "minecraft:quartz_block", "石英块");
+        alias(values, "minecraft:crafting_table", "工作台");
+        alias(values, "minecraft:chest", "箱子");
+        alias(values, "minecraft:furnace", "熔炉");
+        alias(values, "minecraft:blast_furnace", "高炉");
+        alias(values, "minecraft:torch", "火把");
+        alias(values, "minecraft:lantern", "灯笼");
+        alias(values, "minecraft:water_bucket", "水桶");
+        alias(values, "minecraft:bucket", "桶");
         alias(values, "minecraft:stone", "石头|石块");
         alias(values, "minecraft:dirt", "泥土");
         alias(values, "minecraft:stick", "木棍");

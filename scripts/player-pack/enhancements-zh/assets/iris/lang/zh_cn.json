@@ -1,0 +1,7 @@
+{
+  "iris.load.failure.shader": "光影包加载失败！请向光影开发者报告此错误。",
+  "iris.load.failure.generic": "Oculus 加载光影时遇到问题。请向 Oculus 开发者报告。",
+  "iris.keybind.wireframe": "线框模式（仅单人游戏）",
+  "options.iris.colorSpace": "色彩空间",
+  "options.iris.colorSpace.sodium_tooltip": "设置应用于屏幕的色彩空间转换，且会叠加在光影包效果之上。不确定时请选择 SRGB。"
+}

@@ -1,0 +1,89 @@
+{
+  "scope": [
+    "anon",
+    "sakiko"
+  ],
+  "uniform_design_revision": true,
+  "design_export_author": "GPT-6.1 Sol",
+  "root_role": "guidance, architecture and review",
+  "revisions": [
+    "A4"
+  ],
+  "characters": [
+    {
+      "id": "anon",
+      "design_revision": "A4",
+      "coordinates": "x-right_y-up_z-back; front north; copied unchanged",
+      "bounds": {
+        "from": [
+          -5.38,
+          0.0,
+          -3.28
+        ],
+        "to": [
+          5.38,
+          31.38,
+          3.58
+        ]
+      },
+      "cube_count": 134,
+      "mesh_count": 0,
+      "bone_count": 11,
+      "source_coordinates_and_uv_preserved": true,
+      "face_section_count": 42,
+      "face_uv_chart_continuous": true,
+      "static_pass": true,
+      "errors": [],
+      "transparent_uv_faces": [],
+      "embedded_png_matches": true,
+      "appearance_acceptance": "pending root visual review and user acceptance",
+      "blockbench_import": "pending local UI inspection",
+      "animation_game_build_install": "not performed; paused",
+      "design_source_sha256": "789fb20a73971b8c98b6280152315b9096c6ebcdf5e495a587edfbf1bf8a9063",
+      "pipeline_source_sha256": "9e50fc7b425f2a8976e183482da33821341f32bbe48abbdb1c83e3b16a1ef697",
+      "sha256": {
+        "models\\anon.json": "27ed8cdb8533f0f4ccb84899350e0f5cced1e728d8ecc88c618ef54c6b498b65",
+        "editable\\anon.bbmodel": "55c7acb6cc183a9026e96ac83134408953f80bcb0ec17c2abc8282a0765bd3ce",
+        "textures\\anon.png": "8666afd8b031491284bc8a2d4e90c48c178f11e03b0265a2599159b362b695bc"
+      }
+    },
+    {
+      "id": "sakiko",
+      "design_revision": "A4",
+      "coordinates": "x-right_y-up_z-back; front north; copied unchanged",
+      "bounds": {
+        "from": [
+          -5.3,
+          0.0,
+          -3.18
+        ],
+        "to": [
+          5.3,
+          31.38,
+          3.35
+        ]
+      },
+      "cube_count": 133,
+      "mesh_count": 0,
+      "bone_count": 11,
+      "source_coordinates_and_uv_preserved": true,
+      "face_section_count": 42,
+      "face_uv_chart_continuous": true,
+      "static_pass": true,
+      "errors": [],
+      "transparent_uv_faces": [],
+      "embedded_png_matches": true,
+      "appearance_acceptance": "pending root visual review and user acceptance",
+      "blockbench_import": "pending local UI inspection",
+      "animation_game_build_install": "not performed; paused",
+      "design_source_sha256": "789fb20a73971b8c98b6280152315b9096c6ebcdf5e495a587edfbf1bf8a9063",
+      "pipeline_source_sha256": "9e50fc7b425f2a8976e183482da33821341f32bbe48abbdb1c83e3b16a1ef697",
+      "sha256": {
+        "models\\sakiko.json": "e2db1d1f1d798a7b4516fbfb5e2b2edb69707e6e6939dc26792e2a5d9d4ae956",
+        "editable\\sakiko.bbmodel": "8f821f2cf4bf10661d8cb200e2e4dec1687c0e072199fe1d4c22240eaad82658",
+        "textures\\sakiko.png": "3f0358f1348d80e26e16414fa613500dd47083920160c07a89d057b005829af1"
+      }
+    }
+  ],
+  "scope_note": "Only listed characters exported; never implies eight-character completion"
+}

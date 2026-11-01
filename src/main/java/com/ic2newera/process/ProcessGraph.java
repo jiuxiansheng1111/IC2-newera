@@ -122,9 +122,9 @@ public final class ProcessGraph {
                     }
                 }
                 if (routes.stream().map(Route::id).distinct().count() != routes.size()) throw new IllegalArgumentException("Duplicate route ID");
-                if (materials.size()>16 || routes.size()>256) throw new IllegalArgumentException("ProcessGraph exceeds network bounds");
+                if (materials.size()>24 || routes.size()>512) throw new IllegalArgumentException("ProcessGraph exceeds network bounds");
                 for (var route : routes) {
-                    if (route.machines.size()>8 || !java.util.Set.of("smelting","blasting","crafting","crushing","splashing","mixing","processor","macerator","blast_furnace","mixing_furnace").contains(route.format))
+                    if (route.machines.size()>8 || !java.util.Set.of("smelting","blasting","crafting","crafting_shaped","crushing","splashing","mixing","pressing","processor","macerator","blast_furnace","mixing_furnace").contains(route.format))
                         throw new IllegalArgumentException("Unsupported route format " + route.id);
                     requireItem(route.output);
                     for (var input : route.inputs) if (!input.item.isEmpty()) requireItem(id(input.item));

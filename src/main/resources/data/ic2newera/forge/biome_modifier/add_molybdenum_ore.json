@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#ic2newera:moon_frontier_ores",
+  "features": "ic2newera:molybdenum_ore",
+  "step": "underground_ores"
+}

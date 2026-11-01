@@ -36,6 +36,13 @@ public final class VoiceRuntimeAutostart {
     private static volatile Process owned;
     private VoiceRuntimeAutostart() { }
 
+    /** Configuration presence is a hint, not proof that synthesis or playback is ready. */
+    public static boolean localConfigurationPresent() {
+        Path folder = FMLPaths.GAMEDIR.get().resolve("tools/robot_voice");
+        return Files.isRegularFile(folder.resolve("ic2newera-voice-runtime.json"))
+                && Files.isRegularFile(folder.resolve("server.py"));
+    }
+
     @SubscribeEvent
     public static void serverStarted(ServerStartedEvent event) {
         if (event.getServer().isDedicatedServer()) ensureStarted();

@@ -1,0 +1,13 @@
+Java 17（可选安装说明）
+
+你的服务器已有 Java 17，直接使用现有环境即可；本服务端主包不内置或重新安装 Java。
+可运行 java -version 查看当前版本，启动脚本也会检查实际选择的 Java 是否为 17。
+
+仅当以后换到没有 Java 17 的机器时，才需要另行安装。
+Eclipse Temurin 官方下载页：https://adoptium.net/temurin/releases/
+选择 Java 17、Linux，并按服务器 CPU 选择 x64（Intel/AMD）或 aarch64（ARM64）。
+运行服务端可用 JRE 17，也可用 JDK 17。此次飞行依赖面向 glibc Linux，不选 Alpine/musl。
+
+如果系统同时装有多个 Java，可将 JAVA17_HOME 设为 Java 17 安装目录，再启动 Start.sh。
+例如：export JAVA17_HOME=/opt/java17
+这不是必须安装的新依赖附件，不会自动下载或改变你已有的系统 Java。

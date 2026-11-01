@@ -25,17 +25,17 @@ for en,zh in {
 }.items(): names['item.ic2newera.'+en]=zh
 for en,zh in {'non_metal_processor':'非金属处理机','electronic_fabricator':'电子材料加工机',
     'machine_network_adapter':'机器网络适配器','industrial_fiber':'工业光纤',
-    'industrial_network_switch':'工业网络交换机','industrial_control_server':'工业控制服务器','terminal':'终端机'}.items():
+    'industrial_network_switch':'工业网络交换机','industrial_control_server':'工业控制服务器','terminal':'已停用终端（仅取回物品）'}.items():
     names['block.ic2newera.'+en]=zh; blocks.append(en)
     write(Path('data/ic2newera/loot_tables/blocks')/(en+'.json'),{
-      'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':'ic2newera:'+en}],
+      'type':'minecraft:block','pools':[{'rolls':1,'entries':[{'type':'minecraft:item','name':('minecraft:chest' if en=='terminal' else 'ic2newera:'+en)}],
       'conditions':[{'condition':'minecraft:survives_explosion'}]}]})
 for lang in ['zh_cn','en_us']:
     path=ROOT/'assets/ic2newera/lang'/(lang+'.json')
     data=json.loads(path.read_text(encoding='utf-8-sig'))
     for retired in ('carbon_steel_billet','high_carbon_steel_billet'):
         data.pop('item.ic2newera.'+retired,None)
-    for k,v in names.items(): data[k]=v if lang=='zh_cn' else k.split('.')[-1].replace('_',' ').title()
+    for k,v in names.items(): data[k]=v if lang=='zh_cn' else ('Retired Terminal (Item Recovery Only)' if k=='block.ic2newera.terminal' else k.split('.')[-1].replace('_',' ').title())
     write(path.relative_to(ROOT),data)
 write(Path('data/minecraft/tags/blocks/mineable/pickaxe.json'),{'replace':False,'values':['ic2newera:'+s for s in blocks]})
 write(Path('data/minecraft/tags/blocks/needs_iron_tool.json'),{'replace':False,'values':['ic2newera:'+s for s in blocks if s.endswith('_ore')]})

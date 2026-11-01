@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
 
 /** Reads the bundled Chinese Markdown and selects the most relevant process notes locally. */
 public final class LLMKnowledgeBase {
-    private static final String DOCUMENT = readDocument("gameplay_energy_zh.md") + "\n\n"
+    private static final String DOCUMENT = readDocument("robot_capabilities_zh.md") + "\n\n"
+            + readDocument("gameplay_energy_zh.md") + "\n\n"
             + readDocument("ic2_create_guide_zh.md") + "\n\n"
             + readDocument("industrial_stage_guide_zh.md") + "\n\n"
             + readDocument("knowledge_zh.md");

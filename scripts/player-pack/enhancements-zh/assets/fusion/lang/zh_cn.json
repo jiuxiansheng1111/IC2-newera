@@ -1,0 +1,10 @@
+{
+  "fusion.resource_packs.requires_newer_version": "（此资源包是为较新版本的 Fusion 制作的）",
+  "fusion.resource_packs.warning_screen.title": "Fusion 版本警告",
+  "fusion.resource_packs.warning_screen.message": "此资源包是为较新版本的 Fusion 制作的，在当前安装的 Fusion 版本中可能无法正常工作。",
+  "fusion.resource_packs.warning_screen.confirmation": "仍要启用此资源包吗？",
+  "fusion.resource_packs.warning_screen.current_version": "已安装版本：",
+  "fusion.resource_packs.warning_screen.required_version": "所需版本：",
+  "fusion.resource_packs.warning_screen.cancel": "否",
+  "fusion.resource_packs.warning_screen.confirm": "是"
+}

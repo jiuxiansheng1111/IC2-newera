@@ -1,0 +1,41 @@
+{
+  "id": "anon",
+  "design_revision": "A6",
+  "coordinates": "Y-up, north camera at -Z, screen-right=-X; source copied unchanged",
+  "euler_order": "ZYX",
+  "euler_order_source": "https://raw.githubusercontent.com/JannisX11/blockbench/master/js/io/format.ts",
+  "rotated_cube_count": 28,
+  "bounds": {
+    "from": [
+      -5.38,
+      0.0,
+      -3.1599999999999997
+    ],
+    "to": [
+      5.38,
+      31.225,
+      3.951428033808387
+    ]
+  },
+  "cube_count": 87,
+  "mesh_count": 0,
+  "bone_count": 16,
+  "source_coordinates_and_uv_preserved": true,
+  "source_rotations_and_origins_preserved": true,
+  "face_section_count": 1,
+  "face_uv_chart_continuous": true,
+  "static_pass": true,
+  "errors": [],
+  "transparent_uv_faces": [],
+  "embedded_png_matches": true,
+  "appearance_acceptance": "pending root visual review and user acceptance",
+  "blockbench_import": "pending local UI inspection",
+  "animation_game_build_install": "not performed; paused",
+  "design_source_sha256": "fece4408016828f5849923ffe3d1956e8dbaa6eea66cff8a58ce24a9d29ebea3",
+  "pipeline_source_sha256": "ceef3962f6cdb8016955f5ac50e28652b789bcebfa8ba2c7d9aea3826f3b8ad9",
+  "sha256": {
+    "models\\anon.json": "d3d0199164111d8faecd133cc5ca1143666179122da480709c0ac0667d4a1e8c",
+    "editable\\anon.bbmodel": "292609fdb940b1e6ad1579bce51f8e4472e1ca66ab68b4ba5d6f3f8f3defa539",
+    "textures\\anon.png": "229bbad3561a8d98958895930d484c3b19e325dd71a0aa54d381afa338827816"
+  }
+}

@@ -61,6 +61,10 @@
 
 IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki 和 Create Ponder。静态指南、旧版本教程或旧安装包不能覆盖当前服务器工艺图。PCL2 历史安装记录对应先前交付版本，不代表本次新工业阶段已安装或实机验收。
 
+## 终端移除与网络保留
+
+终端机已移除，不能新合成、远程托管或作为生产中转。旧存档只保留取回原库存的兼容入口。机器人生产使用进料箱、周转箱和成品箱；交换机、光纤、适配器、控制服务器与手机继续使用，工业数据网不输送物品或EU。手机机器人联系不限距离，但目标须已加载、有电且属于当前玩家；机器控制与音乐仍需有权限的工业WiFi。工厂AI只能解读状态，不能执行终端提案。
+
 ## 本模组注册物品与方块索引
 - 下列名称由当前简体中文语言文件自动生成；精确配方步骤和数量见当前服务器同步 ProcessGraph 与 JEI。
 - 铬矿石（方块，`ic2newera:chromium_ore`）
@@ -72,7 +76,6 @@ IC2 Classic 与 Create 的具体操作查目标实例 JEI、IC2 游戏内 Wiki �
 - 机器网络适配器（方块，`ic2newera:machine_network_adapter`）
 - 镍矿石（方块，`ic2newera:nickel_ore`）
 - 非金属处理机（方块，`ic2newera:non_metal_processor`）
-- 终端机（方块，`ic2newera:terminal`）
 - 钛矿石（方块，`ic2newera:titanium_ore`）
 - 钨矿石（方块，`ic2newera:tungsten_ore`）
 - 铝青铜斧（物品，`ic2newera:aluminium_bronze_axe`）

@@ -64,7 +64,7 @@ public final class RobotCollectionScreen extends Screen {
         amount = addRenderableWidget(new EditBox(font, left + 30, height - 50, 50, 20, Component.literal("数量1至256")));
         amount.setMaxLength(3); amount.setFilter(s -> s.matches("[0-9]*")); amount.setValue(amountDraft);
         addRenderableWidget(new UiButton(left + 88, height - 50, panelWidth - 88, 20,
-                Component.literal(kind == 0 ? "方式：自动采矿/伐木及拾取" : "方式：仅拾取现成物品"), b -> { kind = 1 - kind; rebuildWidgets(); }));
+                Component.literal(kind == 0 ? "方式：按掉落物自动采集" : "方式：仅拾取现成物品"), b -> { kind = 1 - kind; rebuildWidgets(); }));
         int bw = (panelWidth - 8) / 3;
         submit = addRenderableWidget(new UiButton(left, height - 26, bw, 20, Component.literal("派发任务"), b -> dispatch(false)));
         addRenderableWidget(new UiButton(left + bw + 4, height - 26, bw, 20, Component.literal("取消采集"), b -> dispatch(true)));

@@ -9,7 +9,7 @@ import java.net.URI;
 public final class NativeMediaConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     private static final ForgeConfigSpec.BooleanValue ENABLED;
-    private static final ForgeConfigSpec.ConfigValue<String> BASE_URL, API_KEY, MODEL, VOICE_URL;
+    private static final ForgeConfigSpec.ConfigValue<String> BASE_URL, API_KEY, MODEL, VOICE_URL, MUSIC_LOGIN_OWNER_UUID;
     private static final ForgeConfigSpec.IntValue TIMEOUT, MAX_TOKENS;
     public static final ForgeConfigSpec SPEC;
     static {
@@ -23,6 +23,9 @@ public final class NativeMediaConfig {
         BUILDER.pop().push("voice");
         VOICE_URL = BUILDER.comment("Optional standalone model worker. Only loopback HTTP is allowed; not an AstrBot endpoint.")
                 .define("workerUrl", "http://127.0.0.1:9881");
+        BUILDER.pop().push("music_login");
+        MUSIC_LOGIN_OWNER_UUID = BUILDER.comment("Only this UUID may use NetEase QR login on a dedicated server; blank disables login.")
+                .define("ownerUuid", "");
         BUILDER.pop();
         SPEC = BUILDER.build();
     }
@@ -41,5 +44,20 @@ public final class NativeMediaConfig {
                 || !(base.getPath() == null || base.getPath().isEmpty() || base.getPath().equals("/")))
             throw new IllegalStateException("语音工作进程地址必须是本机回环 HTTP 地址。");
         return base.resolve("/voice");
+    }
+    public static boolean musicLoginOwner(net.minecraft.server.level.ServerPlayer player) {
+        java.util.UUID configured = musicLoginOwnerUuid(player);
+        return configured != null && configured.equals(player.getUUID());
+    }
+    public static java.util.UUID musicLoginOwnerUuid(net.minecraft.server.level.ServerPlayer player) {
+        if (!player.server.isDedicatedServer()) {
+            for (net.minecraft.server.level.ServerPlayer candidate : player.server.getPlayerList().getPlayers())
+                if (player.server.isSingleplayerOwner(candidate.getGameProfile())) return candidate.getUUID();
+            return null;
+        }
+        String configured = MUSIC_LOGIN_OWNER_UUID.get().trim();
+        if (configured.isEmpty()) return null;
+        try { return java.util.UUID.fromString(configured); }
+        catch (IllegalArgumentException invalid) { return null; }
     }
 }

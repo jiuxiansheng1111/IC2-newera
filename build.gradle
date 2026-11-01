@@ -16,6 +16,15 @@ if (project.hasProperty('isolatedBuild')) {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
+// Explicit opt-in: native integration fixtures never enter normal release builds.
+if (project.hasProperty('robotGameTests')) {
+    sourceSets.main.java.srcDir('src/gametest/java')
+    sourceSets.main.resources.srcDir('src/gametest/resources')
+    if (project.hasProperty('robotWorkTestsOnly')) {
+        sourceSets.main.java.exclude('**/gametest/RobotIndustrialGameTests.java')
+    }
+}
+
 jarJar.enable()
 configurations {
     library
@@ -44,11 +53,24 @@ minecraft {
         }
         client {}
         server {}
+        if (project.hasProperty('robotGameTests')) {
+            gameTestServer {
+                // Never let entities from an interrupted integration run claim the next
+                // run's machines. Every invocation uses its own disposable world.
+                def runId = project.findProperty('robotGameTestRun') ?: new Date().format('yyyyMMdd-HHmmss-SSS')
+                if (!(runId ==~ /[A-Za-z0-9_-]{1,64}/)) throw new GradleException('Invalid robotGameTestRun')
+                def runtime = project.file("build-isolated/robot-advanced-lines-20261022/runs/${runId}")
+                if (new File(runtime, 'world').exists()) throw new GradleException('GameTest runtime already has a world; choose a new run ID')
+                workingDirectory runtime
+                property 'forge.enabledGameTestNamespaces', 'ic2newera'
+                property 'forge.gameTestServer', 'true'
+            }
+        }
     }
 }
 
 repositories {
-    mavenCentral { content { includeGroup 'javazoom' } }
+    mavenCentral { content { includeGroup 'javazoom'; includeGroup 'com.google.zxing' } }
     maven {
         url = 'https://www.cursemaven.com'
         content { includeGroup 'curse.maven' }
@@ -57,8 +79,13 @@ repositories {
 
 dependencies {
     library 'javazoom:jlayer:1.0.1'
+    library 'com.google.zxing:core:3.5.4'
     jarJar(group: 'javazoom', name: 'jlayer', version: '1.0.1') {
         jarJar.ranged(it, '[1.0.1,1.0.2)')
+        transitive = false
+    }
+    jarJar(group: 'com.google.zxing', name: 'core', version: '3.5.4') {
+        jarJar.ranged(it, '[3.5.4,3.5.5)')
         transitive = false
     }
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
@@ -68,6 +95,12 @@ dependencies {
     implementation fg.deobf("curse.maven:curios-309927:${curios_file_id}")
     implementation fg.deobf("curse.maven:the-one-probe-245211:${the_one_probe_file_id}")
     compileOnly fg.deobf("curse.maven:jei-238222:${jei_file_id}")
+    compileOnly fg.deobf("curse.maven:farmers-delight-398521:5051241")
+    // Planet exploration only; NPC campaigns and extra overworld dungeons are retired.
+    runtimeOnly fg.deobf('curse.maven:ad-astra-635042:4643668')
+    runtimeOnly fg.deobf('curse.maven:botarium-704113:4306551')
+    runtimeOnly fg.deobf('curse.maven:resourceful-lib-570073:4477753')
+    runtimeOnly fg.deobf('curse.maven:resourceful-config-714059:4444198')
     if (enable_jei.toBoolean()) {
         runtimeOnly fg.deobf("curse.maven:jei-238222:${jei_file_id}")
     }

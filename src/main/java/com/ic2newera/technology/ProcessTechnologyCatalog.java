@@ -47,7 +47,7 @@ public final class ProcessTechnologyCatalog {
                 steps.add(net.minecraft.network.chat.Component.literal("本节点取得目标数量：" + count + "；数量取自工艺图输入/产出记录。"));
                 TechnologyNode node = new TechnologyNode(id, net.minecraft.network.chat.Component.literal(materialTitle(materialId, stage)),
                         net.minecraft.network.chat.Component.literal("沿当前工艺图确认" + materialTitle(materialId, stage) + "的加工节点。"),
-                        "核心矿物加工", item, parents,
+                        Set.of("vanadium","niobium","cobalt","molybdenum","tantalum").contains(materialId)?"异星矿物加工":"核心矿物加工", item, parents,
                         List.of(new TechnologyNode.Objective("item", item, count)), List.copyOf(steps),
                         stage.ordinal(), materialRow++);
                 result.put(id, node);
@@ -108,7 +108,7 @@ public final class ProcessTechnologyCatalog {
                     .map(input->allIds.get(ResourceLocation.tryParse(input.item()))).filter(java.util.Objects::nonNull)
                     .filter(id->!id.equals(entry.getValue())).distinct().toList();
             Item item=ForgeRegistries.ITEMS.getValue(entry.getKey());
-            String branch=entry.getKey().getPath().endsWith("_ingot")?"工业合金":"硅基电子与网络";
+            String branch=productBranch(entry.getKey());
             result.put(entry.getValue(),new TechnologyNode(entry.getValue(),net.minecraft.network.chat.Component.translatable(item.getDescriptionId()),
                     net.minecraft.network.chat.Component.literal("生产、组装与用途说明来自当前批准流程；详细配方可在JEI核对。"),branch,
                     entry.getKey(),parents,List.of(new TechnologyNode.Objective("item",entry.getKey(),route.outputCount())),
@@ -155,12 +155,23 @@ public final class ProcessTechnologyCatalog {
     private static boolean registeredItem(ResourceLocation id) {
         return id != null && ForgeRegistries.ITEMS.getValue(id) != null;
     }
+    private static String productBranch(ResourceLocation item) {
+        if(item.getPath().startsWith("magnetic_armor_")||item.getPath().startsWith("resonance_armor_"))return "后期科技护甲";
+        if(Set.of("magnetic_coil","heat_resistant_plate","pulse_capacitor","resonance_core","blade_stabilizer","servo_armor_joint").contains(item.getPath()))return "科技武装中间件";
+        if(item.getNamespace().equals("ad_astra"))return "航天工程";
+        String path=item.getPath();
+        if(path.startsWith("vanadium_steel_")||path.startsWith("niobium_titanium_"))
+            return path.endsWith("_dust")||path.endsWith("_ingot")?"异星材料与合金":"后期工业装备";
+        return path.endsWith("_ingot")?"工业合金":"硅基电子与网络";
+    }
     private static String materialTitle(String id, ProcessGraph.Stage stage) {
         String name = switch (id) {
             case "nickel" -> "镍"; case "chromium" -> "铬"; case "titanium" -> "钛"; case "tungsten" -> "钨";
             case "iron" -> "铁"; case "gold" -> "金"; case "copper" -> "铜"; case "coal" -> "煤";
             case "diamond" -> "钻石"; case "quartz" -> "石英"; case "tin" -> "锡";
-            case "silver" -> "银"; case "aluminium" -> "铝"; case "zinc" -> "锌"; default -> id;
+            case "silver" -> "银"; case "aluminium" -> "铝"; case "zinc" -> "锌";
+            case "vanadium" -> "钒"; case "niobium" -> "铌";
+            case "cobalt" -> "钴"; case "molybdenum" -> "钼"; case "tantalum" -> "钽"; default -> id;
         };
         return switch (stage) { case RAW -> name+"矿石"; case IMPURE_DUST -> "含杂质的"+name+"粉";
             case CLEAN_DUST -> name+"粉"; case FINAL_METAL -> name+"锭"; };

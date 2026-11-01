@@ -46,6 +46,6 @@ public final class RobotCollectionTask {
     }
     public String summary() {
         return net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(target.getItem()).toString() + " " + collected + "/" + requested + "（"
-                + (kind == PICKUP_ONLY ? "仅拾取" : "自动采矿/伐木并拾取") + "）";
+                + (kind == PICKUP_ONLY ? "仅拾取" : "按掉落物自动采集") + "）";
     }
 }

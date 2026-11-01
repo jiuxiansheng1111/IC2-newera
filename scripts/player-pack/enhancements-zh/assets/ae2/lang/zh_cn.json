@@ -1,0 +1,23 @@
+{
+  "ae2.emi_integration.category_charger": "充电器",
+  "ae2.emi_integration.category_condenser": "凝聚器",
+  "ae2.emi_integration.category_entropy_manipulator": "熵变操纵器",
+  "ae2.emi_integration.category_inscriber": "压印器",
+  "block.ae2.crystal_resonance_generator": "晶体共振发生器",
+  "chat.ae2.TestWorldNotInSuperflat": "测试世界只能在超平坦世界中创建！",
+  "dimension.ae2.spatial_storage": "空间存储维度",
+  "entity.minecraft.villager.ae2.fluix_researcher": "福鲁伊克斯研究员",
+  "gui.ae2.CantFitInsideStorageCell": "此物品无法放入其他存储元件",
+  "gui.ae2.EnergyGenerationCapacity": "发电容量：%s",
+  "gui.ae2.NoChannel": "缺少频道",
+  "gui.ae2.SearchTooltipToolTips": "使用 # 搜索提示文本（例如 #looting）",
+  "gui.ae2.TransformTypeExplode": "爆炸转化",
+  "gui.ae2.TransformTypeThrowInFluid": "投入%s中转化",
+  "gui.ae2.units.fe": "FE",
+  "gui.ae2.units.rf": "RF",
+  "gui.tooltips.ae2.InscriberBufferHigh": "堆叠至 64 个",
+  "gui.tooltips.ae2.InscriberBufferLow": "堆叠至 4 个",
+  "gui.tooltips.ae2.InscriberBufferSize": "输入槽堆叠上限",
+  "key.ae2.guide": "打开物品指南",
+  "waila.ae2.Suppressed": "已抑制"
+}

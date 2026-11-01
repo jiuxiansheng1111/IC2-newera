@@ -7,6 +7,8 @@ import com.ic2newera.integration.llm.LLMConfig;
 import com.ic2newera.integration.llm.LLMTransport;
 import com.ic2newera.integration.llm.VoiceText;
 import com.ic2newera.media.music.NetEaseMusicProvider;
+import com.ic2newera.media.music.NetEaseLoginService;
+import com.ic2newera.media.music.AudiusMusicProvider;
 import com.ic2newera.media.music.PreparedAudio;
 import com.ic2newera.robot.*;
 import net.minecraft.nbt.*;
@@ -17,6 +19,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.network.PacketDistributor;
 import java.io.*;
 import java.net.*;
@@ -54,6 +57,9 @@ public final class MediaServer {
         final Map<UUID, Job> jobs = new HashMap<>();
         final Map<UUID, Transfer> transfers = new HashMap<>();
         List<MusicTrack> candidates = List.of();
+        final LinkedHashMap<Integer, List<MusicTrack>> likedPages = new LinkedHashMap<>();
+        List<MusicTrack> pinnedLikedPage = List.of();
+        long likedRevision = Long.MIN_VALUE;
         final LinkedHashMap<UUID, SpokenReply> spokenReplies = new LinkedHashMap<>();
         final LinkedHashMap<UUID, ChatReceipt> chatReceipts = new LinkedHashMap<>();
         long replyRevision;
@@ -68,23 +74,32 @@ public final class MediaServer {
         final long replyRevision;
         final LLMConfig model;
         final boolean dedicated;
+        final boolean ownerMusicSession;
+        final long musicSessionRevision;
+        final long likedAuthorizationRevision;
         final UUID target;
         final String character;
         volatile boolean canceled;
         volatile InputStream input;
         volatile Future<?> future;
         volatile CompletableFuture<String> modelFuture;
+        volatile String remoteCoverId;
         private Audio stagedAudio;
-        Job(int operation, long replyRevision, ServerPlayer player, UUID target, String character) {
+        Job(int operation, long replyRevision, ServerPlayer player, UUID target, String character, long likedAuthorizationRevision) {
             this.operation = operation; this.replyRevision = replyRevision;
             this.target = target; this.character = character;
             dedicated = player.server.isDedicatedServer();
+            ownerMusicSession = NativeMediaConfig.musicLoginOwner(player);
+            musicSessionRevision = NetEaseLoginService.sessionRevision(player);
+            this.likedAuthorizationRevision = likedAuthorizationRevision;
             model = MediaPackets.isChat(operation) || operation == MediaPackets.SMART_SEARCH ? NativeMediaConfig.modelFor(player.server) : null;
         }
         void cancel() {
             Audio staged;
             synchronized (this) { canceled = true; staged = stagedAudio; stagedAudio = null; }
             discard(staged); close(input); if (modelFuture != null) modelFuture.cancel(true); if (future != null) future.cancel(true);
+            String remote = remoteCoverId;
+            if (remote != null) { Thread cleanup = new Thread(() -> deleteCover(remote), "IC2-NewEra-Cover-Cleanup"); cleanup.setDaemon(true); cleanup.start(); }
         }
         synchronized boolean stage(Audio audio) { if (canceled) return false; stagedAudio = audio; return true; }
         synchronized Audio takeAudio() { Audio result = stagedAudio; stagedAudio = null; return result; }
@@ -99,7 +114,9 @@ public final class MediaServer {
         Transfer(Path path, long size, int operation) { this.path = path; this.size = size; this.operation = operation; }
         void close() { delete(path); RESERVED.addAndGet(-size); }
     }
-    private record Audio(Path path, long size, String sha, String mime) { }
+    private record Audio(Path path, long size, String sha, String mime, double durationSeconds) {
+        Audio(Path path, long size, String sha, String mime) { this(path, size, sha, mime, 0); }
+    }
     private static void send(ServerPlayer player, MediaPackets.Reply reply) {
         if (!player.hasDisconnected()) MediaPackets.CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), reply);
     }
@@ -110,12 +127,47 @@ public final class MediaServer {
         JsonObject value = new JsonObject(); value.addProperty("message", MusicTrack.bound(message, 240));
         send(player, new MediaPackets.Reply(ticket, MediaPackets.ERROR, value.toString(), 0, true, new byte[0]));
     }
-    public static void request(ServerPlayer player, MediaPackets.Request request) {
-        if (player.hasDisconnected() || !player.isAlive()) return;
-        int operation = request.operation();
-        if (operation < 0 || operation > MediaPackets.PHONE_CHAT || operation == 6 || (!MediaPackets.isChat(operation) && !request.messages().isEmpty())) return;
+    /** Fixed Japanese greeting only; no model prompt or client-provided text is involved. Server thread only. */
+    public static UUID authorizeHomeSpeech(ServerPlayer player, RobotEntity robot, boolean departure) {
+        if (player.hasDisconnected() || !player.isAlive() || player.isSpectator()
+                || player.level != robot.level || !robot.isAlive() || !robot.isOwnedBy(player)
+                || robot.distanceToSqr(player) > (departure ? 1024 : 64)
+                || !robot.powered() || robot.getTarget() != null || (!departure && !robot.hasLineOfSight(player))
+                || !com.ic2newera.robot.RobotHomeGreeting.atHome(robot)) return null;
         Session session = SESSIONS.computeIfAbsent(player.getUUID(), id -> new Session(player));
         if (session.player != player) { clear(session); session = new Session(player); SESSIONS.put(player.getUUID(), session); }
+        long now = System.nanoTime();
+        session.spokenReplies.entrySet().removeIf(entry -> entry.getValue().expires < now);
+        while (session.spokenReplies.size() >= 16) session.spokenReplies.remove(session.spokenReplies.keySet().iterator().next());
+        UUID reply = UUID.randomUUID();
+        session.spokenReplies.put(reply, new SpokenReply(robot.getUUID(), robot.character().id,
+                List.of(departure ? com.ic2newera.robot.RobotHomeGreeting.FAREWELL_JAPANESE
+                        : com.ic2newera.robot.RobotHomeGreeting.JAPANESE), now + 3_600_000_000_000L));
+        return reply;
+    }
+
+    public static void request(ServerPlayer player, MediaPackets.Request request) {
+        if (player.hasDisconnected() || !player.isAlive()) return;
+        NetEaseLoginService.observeOwner(player.server, NativeMediaConfig.musicLoginOwnerUuid(player));
+        int operation = request.operation();
+        if (operation < 0 || operation > MediaPackets.NETEASE_LIKED || operation == 6 || (!MediaPackets.isChat(operation) && !request.messages().isEmpty())) return;
+        Session session = SESSIONS.computeIfAbsent(player.getUUID(), id -> new Session(player));
+        if (session.player != player) { clear(session); session = new Session(player); SESSIONS.put(player.getUUID(), session); }
+        refreshLikedSession(session);
+        if (operation == MediaPackets.NETEASE_LIKED) {
+            if (!NativeMediaConfig.musicLoginOwner(player)) { error(player, request.ticket(), "只有指定服主可以查看网易云我喜欢的音乐。"); return; }
+            if (!request.target().equals(MediaPackets.NONE) || !request.value().matches("(?:0|[1-9][0-9]{0,4})")) {
+                error(player, request.ticket(), "我喜欢的音乐分页参数无效。"); return;
+            }
+            int offset = Integer.parseInt(request.value());
+            if (offset > 50_000 || offset % 100 != 0) { error(player, request.ticket(), "分页须从0开始，每页100首。"); return; }
+        }
+        if (operation >= MediaPackets.NETEASE_LOGIN_BEGIN && operation <= MediaPackets.NETEASE_LOGIN_FORGET) {
+            if (!NativeMediaConfig.musicLoginOwner(player)) { error(player, request.ticket(), "只有指定服主可以管理网易云登录。"); return; }
+            if (!NetEaseLoginService.allowRequest(player.getUUID(), operation)) { error(player, request.ticket(), "网易云登录操作过快，请稍后重试。"); return; }
+            handleNetEaseLogin(player, request);
+            return;
+        }
         long now = System.nanoTime();
         session.chatReceipts.entrySet().removeIf(entry -> entry.getValue().expires < now);
         ChatReceipt receipt = session.chatReceipts.get(request.ticket());
@@ -131,7 +183,7 @@ public final class MediaServer {
             error(player, request.ticket(), "同类请求正在处理，请先等待或取消。"); return;
         }
         // All submissions run on the server thread. Refuse a full queue before charging either device.
-        ThreadPoolExecutor executor = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE ? VOICE_WORK : WORK;
+        ThreadPoolExecutor executor = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE || operation == MediaPackets.COVER ? VOICE_WORK : WORK;
         executor.purge();
         if (executor.isShutdown() || executor.getQueue().remainingCapacity() == 0) {
             error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。"); return;
@@ -186,8 +238,15 @@ public final class MediaServer {
                 }
                 body.add("messages", history);
                 JsonObject context = new JsonObject(); context.addProperty("dimension", robot.level.dimension().location().toString());
-                context.addProperty("mode", robot.following() ? "FOLLOW" : "STAY"); context.addProperty("health", robot.getHealth());
-                context.addProperty("cooking_available", false); body.add("context", context);
+                context.addProperty("mode", robot.modeName()); context.addProperty("work_status", robot.status()); context.addProperty("health", robot.getHealth());
+                context.addProperty("cooking_available", ModList.get().isLoaded("farmersdelight"));
+                context.addProperty("smelting_available", true);
+                context.addProperty("farming_available", true);
+                context.addProperty("construction_available", true);
+                if (robot.buildTask() != null) context.addProperty("construction_status", robot.buildTask().plan().title()
+                        + "；方块" + robot.buildTask().finished() + "/" + robot.buildTask().plan().parts().size() + "；" + robot.status());
+                context.addProperty("voice_capability", "optional_tts_rvc");
+                context.addProperty("voice_runtime_configuration_present", VoiceRuntimeAutostart.localConfigurationPresent()); body.add("context", context);
                 context.addProperty("当前采集任务", robot.collectionSummary());
                 String latest = request.messages().get(request.messages().size() - 1).content();
                 if (RobotChatCommands.mayRequest(latest)) context.addProperty("本轮采集物品候选", RobotChatItems.promptHints(latest));
@@ -197,8 +256,18 @@ public final class MediaServer {
             if (!musicAccess(player, operation)) {
                 error(player, request.ticket(), "请手持手机，并连接你有权限使用的交换机 Wi-Fi。"); return;
             }
-            if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SMART_SEARCH) && (request.value().isBlank() || request.value().length() > 240)) return;
-            if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SMART_SEARCH || operation == MediaPackets.IMPORT) && now < session.nextSearch) {
+            if (operation == MediaPackets.COVER) {
+                RobotEntity target = chatRobot(player, request.target(), MediaPackets.PHONE_CHAT);
+                if (target == null || !phoneChatAccess(player, target) || !target.isOwnedBy(player)
+                        || RobotCharacter.byId(target.character().id) != target.character()) {
+                    error(player, request.ticket(), "请选择你有权限使用且当前在线的机器人。翻唱不会使用其他玩家的角色。"); return;
+                }
+                robot = target;
+            }
+            if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SEARCH_AUDIUS || operation == MediaPackets.SMART_SEARCH)
+                    && (request.value().isBlank() || request.value().length() > 240)) return;
+            if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SEARCH_AUDIUS || operation == MediaPackets.SMART_SEARCH || operation == MediaPackets.NETEASE_LIKED
+                    || operation == MediaPackets.IMPORT || operation == MediaPackets.IMPORT_AUDIUS) && now < session.nextSearch) {
                 error(player, request.ticket(), "检索或导入过快，请稍后重试。"); return;
             }
             int cost = operation == MediaPackets.PLAYLIST ? IndustrialPhoneItem.READ_COST : IndustrialPhoneItem.COMMAND_COST;
@@ -218,15 +287,23 @@ public final class MediaServer {
                 } else edited.removeIf(t -> t.id().equals(request.value()));
                 savePlaylist(player, edited); json(player, request.ticket(), playlistJson(edited, "歌单已保存。")); return;
             }
-            if (operation == MediaPackets.SEARCH || operation == MediaPackets.SMART_SEARCH) {
+            if (operation == MediaPackets.SEARCH || operation == MediaPackets.SEARCH_AUDIUS || operation == MediaPackets.SMART_SEARCH) {
                 session.nextSearch = now + 3_000_000_000L;
                 body.addProperty("query", request.value().trim()); body.add("playlist", tracks(playlist));
-            } else if (operation == MediaPackets.IMPORT) {
+            } else if (operation == MediaPackets.NETEASE_LIKED) {
+                session.nextSearch = now + 3_000_000_000L;
+                body.addProperty("offset", Integer.parseInt(request.value()));
+            } else if (operation == MediaPackets.IMPORT || operation == MediaPackets.IMPORT_AUDIUS) {
                 session.nextSearch = now + 3_000_000_000L;
                 body.addProperty("value", request.value());
             } else {
                 MusicTrack track = find(session, playlist, request.value());
-                if (track == null) { error(player, request.ticket(), "歌曲已不在候选或歌单中，请重新选择。"); return; }
+                if (track == null) { error(player, request.ticket(), "歌曲已不在当前目录缓存或歌单中，请重新加载对应页面。"); return; }
+                if (authorizeLikedSelection(session, playlist, track))
+                    body.addProperty("liked_revision", session.likedRevision);
+                if (operation == MediaPackets.COVER && !track.id().startsWith("audius:") && !track.id().startsWith("netease:")) {
+                    error(player, request.ticket(), "该条目没有已验证的公开音源，不能提交翻唱。"); return;
+                }
                 body.add("track", track.json());
                 // A new track invalidates a previous unfinished transfer, never another player's stream.
                 var iterator = session.transfers.values().iterator();
@@ -235,7 +312,8 @@ public final class MediaServer {
         }
         final Session active = session;
         final String character = robot == null ? text(body, "character", 32) : robot.character().id;
-        Job job = new Job(operation, session.replyRevision, player, request.target(), character); session.jobs.put(request.ticket(), job);
+        Job job = new Job(operation, session.replyRevision, player, request.target(), character,
+                body.has("liked_revision") ? body.get("liked_revision").getAsLong() : Long.MIN_VALUE); session.jobs.put(request.ticket(), job);
         try {
             job.future = executor.submit(() -> perform(active, request, body, character, job));
         } catch (RejectedExecutionException full) {
@@ -243,7 +321,26 @@ public final class MediaServer {
         }
     }
     private static MusicTrack find(Session session, List<MusicTrack> playlist, String id) {
-        return java.util.stream.Stream.concat(playlist.stream(), session.candidates.stream()).filter(t -> t.id().equals(id)).findFirst().orElse(null);
+        refreshLikedSession(session);
+        return java.util.stream.Stream.concat(java.util.stream.Stream.concat(playlist.stream(), session.candidates.stream()),
+                java.util.stream.Stream.concat(session.pinnedLikedPage.stream(), session.likedPages.values().stream().flatMap(List::stream)))
+                .filter(t -> t.id().equals(id)).findFirst().orElse(null);
+    }
+    private static boolean authorizeLikedSelection(Session session, List<MusicTrack> playlist, MusicTrack track) {
+        // Pin the visible liked page even when this first song also has independent local/search authorization.
+        for (List<MusicTrack> page : session.likedPages.values()) {
+            if (page.stream().anyMatch(t -> t.id().equals(track.id()))) {
+                session.pinnedLikedPage = page;
+                break;
+            }
+        }
+        if (java.util.stream.Stream.concat(playlist.stream(), session.candidates.stream()).anyMatch(t -> t.id().equals(track.id()))) return false;
+        return session.pinnedLikedPage.stream().anyMatch(t -> t.id().equals(track.id()));
+    }
+    private static void refreshLikedSession(Session session) {
+        if (!NativeMediaConfig.musicLoginOwner(session.player) || !NetEaseLoginService.sessionCurrent(session.player, session.likedRevision)) {
+            session.likedPages.clear(); session.pinnedLikedPage = List.of(); session.likedRevision = Long.MIN_VALUE;
+        }
     }
     private static boolean musicAccess(ServerPlayer player, int operation) {
         return operation == MediaPackets.PREPARE ? IndustrialMobileAccess.musicOnline(player) : IndustrialMobileAccess.phoneOnline(player);
@@ -272,12 +369,55 @@ public final class MediaServer {
                 Audio completed = audio; audio = null;
                 completeAudio(session, request, job, completed); return;
             }
-            NetEaseMusicProvider provider = new NetEaseMusicProvider(input -> {
+            NetEaseMusicProvider provider = new NetEaseMusicProvider(() -> NetEaseLoginService.cookieFor(session.player, job.ownerMusicSession), input -> {
                 job.input = input;
                 if (job.canceled) close(input);
             });
+            AudiusMusicProvider audius = new AudiusMusicProvider(input -> {
+                job.input = input;
+                if (job.canceled) close(input);
+            });
+            if (op == MediaPackets.NETEASE_LIKED) {
+                NetEaseLoginService.OwnerAccount account = NetEaseLoginService.verifiedAccount(session.player, input -> {
+                    job.input = input;
+                    if (job.canceled) close(input);
+                });
+                if (account.revision() != job.musicSessionRevision) throw new IOException("网易云会话已改变，请重新加载我喜欢的音乐。");
+                var page = provider.likedTracks(account, body.get("offset").getAsInt(),
+                        () -> !job.canceled && NetEaseLoginService.sessionCurrent(session.player, account.revision()));
+                session.player.server.execute(() -> {
+                    if (!valid(session, request, job)) return;
+                    boolean sent = NetEaseLoginService.withSession(session.player, account.revision(), () -> {
+                        session.jobs.remove(request.ticket());
+                        if (session.likedRevision != account.revision()) { session.likedPages.clear(); session.pinnedLikedPage = List.of(); }
+                        session.likedRevision = account.revision();
+                        session.likedPages.remove(page.offset());
+                        while (session.likedPages.size() >= 2) session.likedPages.remove(session.likedPages.keySet().iterator().next());
+                        session.likedPages.put(page.offset(), page.tracks());
+                        JsonObject clean = new JsonObject(); clean.add("liked_tracks", tracks(page.tracks()));
+                        clean.addProperty("liked_offset", page.offset()); clean.addProperty("liked_has_more", page.hasMore());
+                        clean.addProperty("liked_total", page.total()); clean.addProperty("liked_skipped", page.skipped());
+                        clean.addProperty("message", page.message());
+                        json(session.player, request.ticket(), clean);
+                    });
+                    if (!sent) {
+                        session.jobs.remove(request.ticket()); refreshLikedSession(session);
+                        error(session.player, request.ticket(), "网易云会话已改变，请重新加载目录。");
+                    }
+                });
+                return;
+            }
+            if (op == MediaPackets.COVER) {
+                MusicTrack track = MusicTrack.from(body.getAsJsonObject("track"));
+                Audio source = prepareMusic(provider, audius, track, job);
+                try { audio = createCover(session, request, source, character, job); }
+                finally { discard(source); }
+                Audio completed = audio; audio = null;
+                completeAudio(session, request, job, completed); return;
+            }
             if (op == MediaPackets.PREPARE) {
-                audio = prepareMusic(provider, MusicTrack.from(body.getAsJsonObject("track")), job);
+                MusicTrack track = MusicTrack.from(body.getAsJsonObject("track"));
+                audio = prepareMusic(provider, audius, track, job);
                 Audio completed = audio; audio = null;
                 completeAudio(session, request, job, completed); return;
             }
@@ -285,22 +425,37 @@ public final class MediaServer {
             final String reply;
             final NativeMediaLlm.ChatReply chat;
             final NativeMediaLlm.Search found;
-            final NetEaseMusicProvider.PlaylistResult imported;
+            final List<MusicTrack> importedTracks;
+            final String importedMessage;
+            final boolean importedTruncated;
             if (MediaPackets.isChat(op)) {
                 chat = NativeMediaLlm.chat(completion, character, request.messages(), body.getAsJsonObject("context")); reply = chat.text();
-                found = null; imported = null;
+                found = null; importedTracks = null; importedMessage = ""; importedTruncated = false;
             } else if (op == MediaPackets.SMART_SEARCH) {
-                reply = ""; chat = null; imported = null;
+                reply = ""; chat = null; importedTracks = null; importedMessage = ""; importedTruncated = false;
                 found = NativeMediaLlm.search(completion, provider, request.value(), readTracks(body, "playlist", 100));
+            } else if (op == MediaPackets.SEARCH_AUDIUS) {
+                reply = ""; chat = null; importedTracks = null; importedMessage = ""; importedTruncated = false;
+                var matches = audius.searchCandidates(request.value(), readTracks(body, "playlist", 100));
+                LinkedHashMap<String, MusicTrack> selected = new LinkedHashMap<>();
+                java.util.stream.Stream.concat(matches.playlistMatches().stream(), matches.candidates().stream())
+                        .limit(20).forEach(track -> { if (selected.size() < 10) selected.putIfAbsent(track.id(), track); });
+                found = new NativeMediaLlm.Search(List.copyOf(selected.values()), "Audius 公开曲库搜索结果；播放前可查看来源、作者和许可。", "");
             } else if (op == MediaPackets.SEARCH) {
-                reply = ""; chat = null; imported = null;
+                reply = ""; chat = null; importedTracks = null; importedMessage = ""; importedTruncated = false;
                 var matches = provider.searchCandidates(request.value(), readTracks(body, "playlist", 100));
                 LinkedHashMap<String, MusicTrack> selected = new LinkedHashMap<>();
                 java.util.stream.Stream.concat(matches.playlistMatches().stream(), matches.candidates().stream())
                         .limit(20).forEach(track -> { if (selected.size() < 10) selected.putIfAbsent(track.id(), track); });
-                found = new NativeMediaLlm.Search(List.copyOf(selected.values()), "网易云搜索结果；选择歌曲后播放或收藏。", "");
+                found = new NativeMediaLlm.Search(List.copyOf(selected.values()), "网易云公开曲库搜索结果；选择歌曲后播放或收藏。", "");
+            } else if (op == MediaPackets.IMPORT_AUDIUS) {
+                reply = ""; chat = null; found = null;
+                var result = audius.importPlaylist(request.value());
+                importedTracks = result.tracks(); importedMessage = result.message(); importedTruncated = result.truncated();
             } else {
-                reply = ""; chat = null; found = null; imported = provider.importPlaylist(request.value(), "auto");
+                reply = ""; chat = null; found = null;
+                var result = provider.importPlaylist(request.value(), "auto", progress -> sendStatus(session, request, job, progress));
+                importedTracks = result.tracks(); importedMessage = result.message(); importedTruncated = result.truncated();
             }
             session.player.server.execute(() -> {
                 if (!valid(session, request, job)) return;
@@ -308,9 +463,33 @@ public final class MediaServer {
                 JsonObject clean;
                 if (MediaPackets.isChat(op)) {
                     String spoken = reply;
-                    if (chat.collection() != null) {
-                        var parsed = chat.collection();
-                        if (parsed.intent() == null) spoken = "未派发采集任务。" + parsed.clarification();
+                    String latest = request.messages().get(request.messages().size() - 1).content();
+                    boolean buildCommand = com.ic2newera.robot.building.RobotBuildService.isCommand(latest);
+                    if (buildCommand) {
+                        RobotEntity target = chatRobot(session.player, request.target(), op);
+                        spoken = com.ic2newera.robot.building.RobotBuildService.chat(session.player, target, op == MediaPackets.PHONE_CHAT, latest);
+                        if (op == MediaPackets.CHAT && target != null) RobotPackets.open(session.player, target, -1);
+                    } else if (RobotChatCommands.parseCooking(latest) != null) {
+                        var order = RobotChatCommands.parseCooking(latest);
+                        RobotEntity target = chatRobot(session.player, request.target(), op);
+                        var food = com.ic2newera.robot.RobotChatItems.resolve(order.itemQuery());
+                        if (food.item() == null) spoken = "未派发烹饪任务。" + food.message();
+                        else {
+                            var outcome = com.ic2newera.robot.RobotCookingOrders.assign(session.player, target,
+                                    op == MediaPackets.PHONE_CHAT, true,
+                                    net.minecraftforge.registries.ForgeRegistries.ITEMS.getKey(food.item()).toString(), order.amount());
+                            spoken = outcome.message();
+                            if (outcome.accepted() && op == MediaPackets.CHAT) RobotPackets.open(session.player, target, -1);
+                        }
+                    } else if (chat.order() != null) {
+                        var parsed = chat.order();
+                        if (parsed.work() != null) {
+                            RobotEntity target = chatRobot(session.player, request.target(), op);
+                            var outcome = RobotCollectionOrders.setMode(session.player, target,
+                                    op == MediaPackets.PHONE_CHAT, true, parsed.work());
+                            spoken = outcome.accepted() ? outcome.message() : "未执行工作命令。" + outcome.message();
+                            if (outcome.accepted() && op == MediaPackets.CHAT) RobotPackets.open(session.player, target, -1);
+                        } else if (parsed.intent() == null) spoken = "未派发采集任务。" + parsed.clarification();
                         else {
                             RobotEntity target = chatRobot(session.player, request.target(), op);
                             var outcome = RobotChatCommands.execute(session.player, target, op == MediaPackets.PHONE_CHAT, parsed.intent());
@@ -319,7 +498,9 @@ public final class MediaServer {
                         }
                     }
                     UUID replyId = UUID.randomUUID();
-                    List<String> segments = VoiceText.split(spoken);
+                    String voiced = buildCommand && spoken.contains("\n")
+                            ? spoken.substring(0, spoken.indexOf('\n')) + "。完整方案和材料清单请查看建造与生产线页面。" : spoken;
+                    List<String> segments = VoiceText.split(voiced);
                     session.spokenReplies.entrySet().removeIf(entry -> entry.getValue().expires < System.nanoTime());
                     while (session.spokenReplies.size() >= 16) session.spokenReplies.remove(session.spokenReplies.keySet().iterator().next());
                     session.spokenReplies.put(replyId, new SpokenReply(request.target(), character, segments, System.nanoTime() + 3_600_000_000_000L));
@@ -328,13 +509,13 @@ public final class MediaServer {
                     clean.addProperty("voice_reply_id", replyId.toString()); clean.addProperty("voice_segments", segments.size());
                     while (session.chatReceipts.size() >= 16) session.chatReceipts.remove(session.chatReceipts.keySet().iterator().next());
                     session.chatReceipts.put(request.ticket(), new ChatReceipt(request, clean, System.nanoTime() + 600_000_000_000L));
-                } else if (op == MediaPackets.SEARCH || op == MediaPackets.SMART_SEARCH) {
+                } else if (op == MediaPackets.SEARCH || op == MediaPackets.SEARCH_AUDIUS || op == MediaPackets.SMART_SEARCH) {
                     session.candidates = found.candidates(); clean = new JsonObject(); clean.add("candidates", tracks(found.candidates()));
                     clean.addProperty("interpretation", found.interpretation()); clean.addProperty("suggested_id", found.suggestedId());
                 } else {
-                    savePlaylist(session.player, imported.tracks());
-                    clean = playlistJson(imported.tracks(), "已导入 " + imported.tracks().size() + " 首。" + imported.message()
-                            + (imported.truncated() ? " 歌单已按上限截断。" : ""));
+                    savePlaylist(session.player, importedTracks);
+                    clean = playlistJson(importedTracks, "已导入 " + importedTracks.size() + " 首。" + importedMessage
+                            + (importedTruncated ? " 歌单已按上限截断。" : ""));
                 }
                 json(session.player, request.ticket(), clean);
             });
@@ -346,7 +527,11 @@ public final class MediaServer {
                             : failure instanceof IOException || failure instanceof IllegalStateException ? MusicTrack.bound(failure.getMessage(), 240)
                             : "媒体请求未完成，请检查模型设置和网络连接。");
             });
-        } finally { close(job.input); job.input = null; }
+        } finally {
+            close(job.input); job.input = null;
+            String remote = job.remoteCoverId;
+            if (remote != null) { deleteCover(remote); job.remoteCoverId = null; }
+        }
     }
     private static String completeModel(Job job, String prompt, List<LLMTransport.Message> history) throws Exception {
         if (job.canceled || Thread.currentThread().isInterrupted()) throw new InterruptedException();
@@ -365,14 +550,24 @@ public final class MediaServer {
             throw new IOException("模型请求超时，请重试。", timeout);
         } finally { if (!future.isDone()) future.cancel(true); job.modelFuture = null; }
     }
+    @FunctionalInterface private interface MusicPreparer { PreparedAudio prepare(MusicTrack track, java.util.function.BooleanSupplier canceled) throws Exception; }
     private static Audio prepareMusic(NetEaseMusicProvider provider, MusicTrack track, Job job) throws Exception {
+        return prepareMusic(provider::prepare, track, job);
+    }
+    private static Audio prepareMusic(AudiusMusicProvider provider, MusicTrack track, Job job) throws Exception {
+        return prepareMusic(provider::prepare, track, job);
+    }
+    private static Audio prepareMusic(NetEaseMusicProvider netease, AudiusMusicProvider audius, MusicTrack track, Job job) throws Exception {
+        return track.id().startsWith("audius:") ? prepareMusic(audius, track, job) : prepareMusic(netease, track, job);
+    }
+    private static Audio prepareMusic(MusicPreparer provider, MusicTrack track, Job job) throws Exception {
         long reservation = MAX_AUDIO;
         if (RESERVED.addAndGet(reservation) > DISK_LIMIT) { RESERVED.addAndGet(-reservation); throw new IOException("服务器音频缓存已满，请稍后重试。"); }
         PreparedAudio prepared = null;
         try {
             prepared = provider.prepare(track, () -> job.canceled || Thread.currentThread().isInterrupted());
             RESERVED.addAndGet(prepared.sizeBytes() - reservation);
-            return new Audio(prepared.path(), prepared.sizeBytes(), prepared.sha256(), prepared.mime());
+            return new Audio(prepared.path(), prepared.sizeBytes(), prepared.sha256(), prepared.mime(), prepared.durationSeconds());
         } catch (Exception failure) {
             if (prepared != null) delete(prepared.path());
             RESERVED.addAndGet(-reservation); throw failure;
@@ -381,14 +576,25 @@ public final class MediaServer {
     private static boolean valid(Session session, MediaPackets.Request request, Job job) {
         if (job.canceled || SESSIONS.get(session.player.getUUID()) != session || session.player.hasDisconnected()
                 || session.jobs.get(request.ticket()) != job) return false;
+        if ((job.operation == MediaPackets.NETEASE_LIKED || job.likedAuthorizationRevision != Long.MIN_VALUE)
+                && (!NativeMediaConfig.musicLoginOwner(session.player)
+                || !NetEaseLoginService.sessionCurrent(session.player, job.operation == MediaPackets.NETEASE_LIKED
+                ? job.musicSessionRevision : job.likedAuthorizationRevision))) {
+            session.jobs.remove(request.ticket()); job.cancel(); refreshLikedSession(session);
+            error(session.player, request.ticket(), "网易云会话或服主权限已改变，请重新加载我喜欢的音乐。"); return false;
+        }
         if (MediaPackets.isChat(job.operation) && job.replyRevision != session.replyRevision) {
             session.jobs.remove(request.ticket()); job.cancel(); error(session.player, request.ticket(), "已开始新对话，旧回复已取消。"); return false;
         }
         RobotEntity currentRobot = MediaPackets.isChat(request.operation()) ? chatRobot(session.player, request.target(), request.operation()) : null;
+        RobotEntity coverRobot = request.operation() == MediaPackets.COVER ? chatRobot(session.player, request.target(), MediaPackets.PHONE_CHAT) : null;
         boolean authorized = request.operation() == MediaPackets.ASSISTANT_VOICE || request.operation() == MediaPackets.VOICE ? session.player.isAlive()
                 : MediaPackets.isChat(request.operation())
                 ? session.player.isAlive() && currentRobot != null && currentRobot.character().id.equals(job.character)
                     && (request.operation() == MediaPackets.PHONE_CHAT ? phoneChatAccess(session.player, currentRobot) : currentRobot.canManage(session.player))
+                : request.operation() == MediaPackets.COVER
+                ? session.player.isAlive() && coverRobot != null && coverRobot.character().id.equals(job.character)
+                    && coverRobot.isOwnedBy(session.player) && phoneChatAccess(session.player, coverRobot) && musicAccess(session.player, request.operation())
                 : session.player.isAlive() && musicAccess(session.player, request.operation());
         if (!authorized) { session.jobs.remove(request.ticket()); job.cancel(); error(session.player, request.ticket(), "连接或权限已经改变，请重新操作。"); }
         return authorized;
@@ -401,6 +607,118 @@ public final class MediaServer {
         job.input = response.body();
         if (job.canceled) { close(job.input); throw new InterruptedException(); }
         return response;
+    }
+    private static Audio createCover(Session session, MediaPackets.Request request, Audio source, String character, Job job) throws Exception {
+        if (source.size < 44 || source.size > MAX_AUDIO || source.durationSeconds <= 0 || source.durationSeconds > 360
+                || !("audio/mpeg".equals(source.mime) || "audio/wav".equals(source.mime)))
+            throw new IOException("翻唱仅支持不超过 360 秒、16 MiB 的已验证公开完整曲目。");
+        VoiceRuntimeAutostart.ensureStarted().get(20, TimeUnit.SECONDS);
+        URI endpoint = coverEndpoint("");
+        String requestId = UUID.randomUUID().toString();
+        HttpRequest upload = HttpRequest.newBuilder(endpoint).timeout(Duration.ofSeconds(620))
+                .header("Content-Type", source.mime)
+                .header("X-IC2NE-Protocol", "1").header("X-IC2NE-Character", character)
+                .header("X-IC2NE-Request-ID", requestId)
+                .POST(HttpRequest.BodyPublishers.ofFile(source.path)).build();
+        HttpResponse<InputStream> response = HTTP.send(upload, HttpResponse.BodyHandlers.ofInputStream());
+        job.input = response.body();
+        JsonObject queued;
+        try {
+            if (response.statusCode() != 202) throw coverFailure(response.statusCode(), readJson(response.body(), 8192));
+            queued = readJson(response.body(), 8192);
+        } finally {
+            close(job.input); job.input = null;
+        }
+        if (queued.get("protocol").getAsInt() != 1 || !"queued".equals(queued.get("state").getAsString()))
+            throw new IOException("翻唱服务返回了无效的排队响应。");
+        String remoteId = queued.get("job_id").getAsString();
+        if (!remoteId.matches("[A-Za-z0-9_-]{12,128}")) throw new IOException("翻唱服务返回了无效任务编号。");
+        job.remoteCoverId = remoteId;
+        int queuePosition = queued.has("position") && queued.get("position").isJsonPrimitive()
+                ? Math.max(0, Math.min(100, queued.get("position").getAsInt())) : 0;
+        sendStatus(session, request, job, queuePosition > 0 ? "翻唱已排队，前方还有 " + queuePosition + " 项。" : "翻唱任务已排队。正在等待角色音源模型。");
+        long deadline = System.nanoTime() + Duration.ofSeconds(620).toNanos();
+        long delay = 1000;
+        while (true) {
+            if (job.canceled || Thread.currentThread().isInterrupted()) throw new InterruptedException();
+            if (System.nanoTime() >= deadline) throw new IOException("翻唱生成超时，任务已取消。");
+            Thread.sleep(delay);
+            if (job.canceled || Thread.currentThread().isInterrupted()) throw new InterruptedException();
+            HttpRequest poll = HttpRequest.newBuilder(coverEndpoint(remoteId)).timeout(Duration.ofSeconds(10))
+                    .header("X-IC2NE-Protocol", "1").GET().build();
+            response = HTTP.send(poll, HttpResponse.BodyHandlers.ofInputStream()); job.input = response.body();
+            JsonObject state;
+            try {
+                if (response.statusCode() != 200) throw coverFailure(response.statusCode(), readJson(response.body(), 8192));
+                state = readJson(response.body(), 8192);
+            } finally { close(job.input); job.input = null; }
+            if (state.get("protocol").getAsInt() != 1 || !remoteId.equals(state.get("job_id").getAsString()))
+                throw new IOException("翻唱服务返回了不匹配的任务状态。");
+            switch (state.get("state").getAsString()) {
+                case "queued" -> {
+                    int position = state.has("position") && state.get("position").isJsonPrimitive()
+                            ? Math.max(0, Math.min(100, state.get("position").getAsInt())) : 0;
+                    sendStatus(session, request, job, position > 0 ? "翻唱排队中，前方还有 " + position + " 项。" : "翻唱正在排队。");
+                    delay = Math.min(3000, delay + 500);
+                }
+                case "running" -> { sendStatus(session, request, job, "角色翻唱生成中，请稍候；可随时取消。"); delay = Math.min(3000, delay + 500); }
+                case "succeeded" -> { sendStatus(session, request, job, "翻唱已生成，正在安全接收音频。"); return downloadCover(endpoint, remoteId, character, job); }
+                case "failed", "cancelled" -> throw new IOException(state.has("message") ? text(state, "message", 240) : "翻唱生成失败。");
+                default -> throw new IOException("翻唱服务返回了未知任务状态。");
+            }
+        }
+    }
+    private static void sendStatus(Session session, MediaPackets.Request request, Job job, String message) {
+        session.player.server.execute(() -> {
+            if (!valid(session, request, job)) return;
+            JsonObject status = new JsonObject(); status.addProperty("message", MusicTrack.bound(message, 240));
+            send(session.player, new MediaPackets.Reply(request.ticket(), MediaPackets.STATUS, status.toString(), 0, false, new byte[0]));
+        });
+    }
+    private static Audio downloadCover(URI endpoint, String remoteId, String character, Job job) throws Exception {
+        HttpRequest download = HttpRequest.newBuilder(coverEndpoint(remoteId + "?download=1"))
+                .timeout(Duration.ofSeconds(620)).header("X-IC2NE-Protocol", "1").GET().build();
+        HttpResponse<InputStream> response = HTTP.send(download, HttpResponse.BodyHandlers.ofInputStream()); job.input = response.body();
+        if (response.statusCode() != 200) {
+            try { throw coverFailure(response.statusCode(), readJson(response.body(), 8192)); }
+            finally { close(job.input); job.input = null; }
+        }
+        if (!"1".equals(response.headers().firstValue("X-IC2NE-Protocol").orElse("") )
+                || !character.equals(response.headers().firstValue("X-IC2NE-Character").orElse(""))
+                || !remoteId.equals(response.headers().firstValue("X-IC2NE-Job-ID").orElse(""))
+                || !response.headers().firstValue("Content-Type").orElse("").startsWith("audio/wav")) {
+            close(job.input); job.input = null; throw new IOException("翻唱输出与所选角色或音频格式不匹配。");
+        }
+        Audio output = download(response, job, 80 * 1024 * 1024, "audio/wav");
+        job.input = null;
+        deleteCover(remoteId); job.remoteCoverId = null;
+        return output;
+    }
+    private static IOException coverFailure(int status, JsonObject body) {
+        String message = text(body, "message", 240);
+        if (!message.isBlank()) return new IOException(message);
+        return new IOException(switch (status) {
+            case 404 -> "翻唱任务不存在或已过期。"; case 409 -> "翻唱尚未生成完成。";
+            case 413 -> "歌曲超过翻唱时长或文件限制。"; case 429, 503 -> "翻唱服务缺少可选依赖或正忙，请稍后重试。";
+            case 504 -> "翻唱生成超时。"; default -> "翻唱服务未能完成请求。";
+        });
+    }
+    private static JsonObject readJson(InputStream input, int limit) throws IOException {
+        byte[] data = input.readNBytes(limit + 1);
+        if (data.length > limit) throw new IOException("翻唱服务响应超过大小限制。");
+        try { return JsonParser.parseString(new String(data, StandardCharsets.UTF_8)).getAsJsonObject(); }
+        catch (RuntimeException invalid) { throw new IOException("翻唱服务返回了无效响应。"); }
+    }
+    private static void deleteCover(String remoteId) {
+        try {
+            URI endpoint = coverEndpoint(remoteId);
+            HttpRequest delete = HttpRequest.newBuilder(endpoint).timeout(Duration.ofSeconds(4))
+                    .header("X-IC2NE-Protocol", "1").DELETE().build();
+            HTTP.send(delete, HttpResponse.BodyHandlers.discarding());
+        } catch (Exception ignored) { }
+    }
+    private static URI coverEndpoint(String suffix) {
+        return NativeMediaConfig.voiceEndpoint().resolve(suffix == null || suffix.isBlank() ? "/v1/cover" : "/v1/cover/" + suffix);
     }
     private static void requireOk(HttpResponse<InputStream> response, Job job) throws IOException {
         if (response.statusCode() == 200) return;
@@ -515,23 +833,66 @@ public final class MediaServer {
     private static void delete(Path path) { if (path != null) try { Files.deleteIfExists(path); } catch (IOException ignored) { } }
     private static void clear(Session session) {
         session.jobs.values().forEach(Job::cancel); session.jobs.clear(); session.transfers.values().forEach(Transfer::close); session.transfers.clear();
-        session.spokenReplies.clear(); session.chatReceipts.clear();
+        session.spokenReplies.clear(); session.chatReceipts.clear(); session.likedPages.clear(); session.pinnedLikedPage = List.of(); session.likedRevision = Long.MIN_VALUE;
     }
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { Session session = SESSIONS.remove(event.getEntity().getUUID()); if (session != null) clear(session); }
-    @SubscribeEvent public static void stop(ServerStoppingEvent event) { SESSIONS.values().forEach(MediaServer::clear); SESSIONS.clear(); WORK.purge(); VOICE_WORK.purge(); }
+    @SubscribeEvent public static void stop(ServerStoppingEvent event) { SESSIONS.values().forEach(MediaServer::clear); SESSIONS.clear(); NetEaseLoginService.clearAll(); WORK.purge(); VOICE_WORK.purge(); }
+
+    private static void handleNetEaseLogin(ServerPlayer player, MediaPackets.Request request) {
+        int operation = request.operation();
+        if (operation == MediaPackets.NETEASE_LOGIN_BEGIN && !Set.of("remember", "session").contains(request.value())) {
+            error(player, request.ticket(), "登录选项无效。"); return;
+        }
+        Runnable action = () -> {
+            try {
+                JsonObject result = switch (operation) {
+                    case MediaPackets.NETEASE_LOGIN_BEGIN -> NetEaseLoginService.begin(player, request.value().equals("remember"));
+                    case MediaPackets.NETEASE_LOGIN_POLL -> NetEaseLoginService.poll(player);
+                    case MediaPackets.NETEASE_LOGIN_LOGOUT -> NetEaseLoginService.logout(player);
+                    case MediaPackets.NETEASE_LOGIN_FORGET -> NetEaseLoginService.forgetStored(player);
+                    default -> throw new IOException("网易云登录操作无效。");
+                };
+                player.server.execute(() -> {
+                    if (!player.hasDisconnected() && NativeMediaConfig.musicLoginOwner(player)) json(player, request.ticket(), result);
+                });
+            } catch (Exception failure) {
+                player.server.execute(() -> {
+                    if (!player.hasDisconnected() && NativeMediaConfig.musicLoginOwner(player))
+                        error(player, request.ticket(), failure instanceof IOException ? MusicTrack.bound(failure.getMessage(), 240) : "网易云扫码请求失败，请检查网络后重试。");
+                });
+            }
+        };
+        try { WORK.execute(action); }
+        catch (RejectedExecutionException full) { error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。"); }
+    }
     @SubscribeEvent public static void tick(TickEvent.ServerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         long now = System.nanoTime();
         for (Session session : SESSIONS.values()) {
+            NetEaseLoginService.observeOwner(session.player.server, NativeMediaConfig.musicLoginOwnerUuid(session.player));
+            refreshLikedSession(session);
             var jobs = session.jobs.entrySet().iterator();
             while (jobs.hasNext()) { var item = jobs.next();
                 Job job = item.getValue();
+                if ((job.operation == MediaPackets.NETEASE_LIKED || job.likedAuthorizationRevision != Long.MIN_VALUE)
+                        && (!NativeMediaConfig.musicLoginOwner(session.player)
+                        || !NetEaseLoginService.sessionCurrent(session.player, job.operation == MediaPackets.NETEASE_LIKED
+                        ? job.musicSessionRevision : job.likedAuthorizationRevision))) {
+                    jobs.remove(); job.cancel(); error(session.player, item.getKey(), "网易云会话或服主权限已改变，请重新加载目录。"); continue;
+                }
                 RobotEntity currentRobot = job.operation == MediaPackets.PHONE_CHAT ? RobotContacts.resolve(session.player.server, job.target) : null;
                 if (job.operation == MediaPackets.PHONE_CHAT && session.player.level.getGameTime() % 20 == 0
                         && (currentRobot == null || !currentRobot.character().id.equals(job.character) || !phoneChatAccess(session.player, currentRobot))) {
                     jobs.remove(); job.cancel(); error(session.player, item.getKey(), "手机、目标或权限已改变，本次远程聊天已取消。"); continue;
                 }
-                long timeout = job.operation == MediaPackets.VOICE || job.operation == MediaPackets.ASSISTANT_VOICE ? 650_000_000_000L : 200_000_000_000L;
+                RobotEntity coverRobot = job.operation == MediaPackets.COVER ? RobotContacts.resolve(session.player.server, job.target) : null;
+                if (job.operation == MediaPackets.COVER && session.player.level.getGameTime() % 20 == 0
+                        && (coverRobot == null || !coverRobot.character().id.equals(job.character)
+                        || !coverRobot.isOwnedBy(session.player) || !phoneChatAccess(session.player, coverRobot)
+                        || !musicAccess(session.player, job.operation))) {
+                    jobs.remove(); job.cancel(); error(session.player, item.getKey(), "手机、目标或权限已改变，本次翻唱已取消。"); continue;
+                }
+        long timeout = job.operation == MediaPackets.VOICE || job.operation == MediaPackets.ASSISTANT_VOICE || job.operation == MediaPackets.COVER ? 650_000_000_000L : 200_000_000_000L;
                 if (now - item.getValue().started > timeout) { item.getValue().cancel(); jobs.remove(); error(session.player, item.getKey(), "媒体请求超时，已取消。"); } }
             var transfers = session.transfers.entrySet().iterator();
             while (transfers.hasNext()) { var item = transfers.next(); if (now - item.getValue().lastAccess > 60_000_000_000L) { item.getValue().close(); transfers.remove(); error(session.player, item.getKey(), "音频传输空闲超时。"); } }

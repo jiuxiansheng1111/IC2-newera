@@ -1,0 +1,1129 @@
+{
+  "name": "patrol_drone",
+  "texture_size": [
+    256,
+    256
+  ],
+  "bones": [
+    {
+      "name": "body",
+      "pivot": [
+        0,
+        12,
+        0
+      ],
+      "parent": null
+    },
+    {
+      "name": "scanner",
+      "pivot": [
+        0,
+        13,
+        -4
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "rotor_left_front",
+      "pivot": [
+        -7,
+        14,
+        -6
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "rotor_left_rear",
+      "pivot": [
+        -7,
+        14,
+        6
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "rotor_right_front",
+      "pivot": [
+        7,
+        14,
+        -6
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "rotor_right_rear",
+      "pivot": [
+        7,
+        14,
+        6
+      ],
+      "parent": "body"
+    }
+  ],
+  "cubes": [
+    {
+      "name": "lower_beveled_core",
+      "bone": "body",
+      "from": [
+        -4,
+        9,
+        -4
+      ],
+      "to": [
+        4,
+        12,
+        4
+      ],
+      "material": "shell",
+      "uv": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "armored_deck",
+      "bone": "body",
+      "from": [
+        -5,
+        12,
+        -4
+      ],
+      "to": [
+        5,
+        15,
+        4
+      ],
+      "material": "plate",
+      "uv": [
+        34,
+        0
+      ]
+    },
+    {
+      "name": "battery_spine",
+      "bone": "body",
+      "from": [
+        -3,
+        15,
+        -2
+      ],
+      "to": [
+        3,
+        17,
+        3
+      ],
+      "material": "shell",
+      "uv": [
+        72,
+        0
+      ]
+    },
+    {
+      "name": "top_service_panel",
+      "bone": "body",
+      "from": [
+        -2,
+        17,
+        -1
+      ],
+      "to": [
+        2,
+        18,
+        2
+      ],
+      "material": "edge",
+      "uv": [
+        96,
+        0
+      ]
+    },
+    {
+      "name": "underside_pulse_coil",
+      "bone": "body",
+      "from": [
+        -3,
+        7,
+        -3
+      ],
+      "to": [
+        3,
+        9,
+        3
+      ],
+      "material": "cable",
+      "uv": [
+        112,
+        0
+      ]
+    },
+    {
+      "name": "coil_central_housing",
+      "bone": "body",
+      "from": [
+        -2,
+        6,
+        -2
+      ],
+      "to": [
+        2,
+        7,
+        2
+      ],
+      "material": "vent",
+      "uv": [
+        138,
+        0
+      ]
+    },
+    {
+      "name": "scanner_outer_frame",
+      "bone": "scanner",
+      "from": [
+        -4,
+        11,
+        -6
+      ],
+      "to": [
+        4,
+        15,
+        -4
+      ],
+      "material": "tread",
+      "uv": [
+        156,
+        0
+      ]
+    },
+    {
+      "name": "amber_scanning_lens",
+      "bone": "scanner",
+      "from": [
+        -3,
+        12,
+        -7
+      ],
+      "to": [
+        3,
+        14,
+        -6
+      ],
+      "material": "eye",
+      "uv": [
+        178,
+        0
+      ]
+    },
+    {
+      "name": "center_lens",
+      "bone": "scanner",
+      "from": [
+        -1,
+        11,
+        -8
+      ],
+      "to": [
+        1,
+        15,
+        -7
+      ],
+      "material": "hazard",
+      "uv": [
+        194,
+        0
+      ]
+    },
+    {
+      "name": "side_warning_-1",
+      "bone": "body",
+      "from": [
+        -6,
+        11,
+        -3
+      ],
+      "to": [
+        -4,
+        13,
+        3
+      ],
+      "material": "hazard",
+      "uv": [
+        202,
+        0
+      ]
+    },
+    {
+      "name": "support_left_front",
+      "bone": "body",
+      "from": [
+        -7,
+        12,
+        -6
+      ],
+      "to": [
+        -2,
+        14,
+        -2.0
+      ],
+      "material": "piston",
+      "uv": [
+        220,
+        0
+      ]
+    },
+    {
+      "name": "rotor_hub_left_front",
+      "bone": "rotor_left_front",
+      "from": [
+        -8,
+        13,
+        -7
+      ],
+      "to": [
+        -6,
+        17,
+        -5
+      ],
+      "material": "edge",
+      "uv": [
+        240,
+        0
+      ]
+    },
+    {
+      "name": "rotor_blade_left_front_west",
+      "bone": "rotor_left_front",
+      "from": [
+        -10,
+        15,
+        -7
+      ],
+      "to": [
+        -8,
+        16,
+        -6
+      ],
+      "material": "tread",
+      "uv": [
+        0,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_front_east",
+      "bone": "rotor_left_front",
+      "from": [
+        -6,
+        15,
+        -7
+      ],
+      "to": [
+        -4,
+        16,
+        -6
+      ],
+      "material": "tread",
+      "uv": [
+        8,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_front_front",
+      "bone": "rotor_left_front",
+      "from": [
+        -7,
+        15,
+        -9
+      ],
+      "to": [
+        -6,
+        16,
+        -7
+      ],
+      "material": "tread",
+      "uv": [
+        16,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_front_rear",
+      "bone": "rotor_left_front",
+      "from": [
+        -7,
+        15,
+        -5
+      ],
+      "to": [
+        -6,
+        16,
+        -3
+      ],
+      "material": "tread",
+      "uv": [
+        24,
+        13
+      ]
+    },
+    {
+      "name": "guard_x_left_front_-3",
+      "bone": "body",
+      "from": [
+        -10,
+        13,
+        -9
+      ],
+      "to": [
+        -9,
+        14,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        32,
+        13
+      ]
+    },
+    {
+      "name": "guard_x_left_front_3",
+      "bone": "body",
+      "from": [
+        -4,
+        13,
+        -9
+      ],
+      "to": [
+        -3,
+        14,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        50,
+        13
+      ]
+    },
+    {
+      "name": "guard_z_left_front_-3",
+      "bone": "body",
+      "from": [
+        -9,
+        13,
+        -9
+      ],
+      "to": [
+        -4,
+        14,
+        -8
+      ],
+      "material": "shell",
+      "uv": [
+        68,
+        13
+      ]
+    },
+    {
+      "name": "guard_z_left_front_3",
+      "bone": "body",
+      "from": [
+        -9,
+        13,
+        -3
+      ],
+      "to": [
+        -4,
+        14,
+        -2
+      ],
+      "material": "shell",
+      "uv": [
+        82,
+        13
+      ]
+    },
+    {
+      "name": "support_left_rear",
+      "bone": "body",
+      "from": [
+        -7,
+        12,
+        3.0
+      ],
+      "to": [
+        -2,
+        14,
+        7
+      ],
+      "material": "piston",
+      "uv": [
+        96,
+        13
+      ]
+    },
+    {
+      "name": "rotor_hub_left_rear",
+      "bone": "rotor_left_rear",
+      "from": [
+        -8,
+        13,
+        5
+      ],
+      "to": [
+        -6,
+        17,
+        7
+      ],
+      "material": "edge",
+      "uv": [
+        116,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_rear_west",
+      "bone": "rotor_left_rear",
+      "from": [
+        -10,
+        15,
+        5
+      ],
+      "to": [
+        -8,
+        16,
+        6
+      ],
+      "material": "tread",
+      "uv": [
+        126,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_rear_east",
+      "bone": "rotor_left_rear",
+      "from": [
+        -6,
+        15,
+        5
+      ],
+      "to": [
+        -4,
+        16,
+        6
+      ],
+      "material": "tread",
+      "uv": [
+        134,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_rear_front",
+      "bone": "rotor_left_rear",
+      "from": [
+        -7,
+        15,
+        3
+      ],
+      "to": [
+        -6,
+        16,
+        5
+      ],
+      "material": "tread",
+      "uv": [
+        142,
+        13
+      ]
+    },
+    {
+      "name": "rotor_blade_left_rear_rear",
+      "bone": "rotor_left_rear",
+      "from": [
+        -7,
+        15,
+        7
+      ],
+      "to": [
+        -6,
+        16,
+        9
+      ],
+      "material": "tread",
+      "uv": [
+        150,
+        13
+      ]
+    },
+    {
+      "name": "guard_x_left_rear_-3",
+      "bone": "body",
+      "from": [
+        -10,
+        13,
+        3
+      ],
+      "to": [
+        -9,
+        14,
+        10
+      ],
+      "material": "hazard",
+      "uv": [
+        158,
+        13
+      ]
+    },
+    {
+      "name": "guard_x_left_rear_3",
+      "bone": "body",
+      "from": [
+        -4,
+        13,
+        3
+      ],
+      "to": [
+        -3,
+        14,
+        10
+      ],
+      "material": "hazard",
+      "uv": [
+        176,
+        13
+      ]
+    },
+    {
+      "name": "guard_z_left_rear_-3",
+      "bone": "body",
+      "from": [
+        -9,
+        13,
+        3
+      ],
+      "to": [
+        -4,
+        14,
+        4
+      ],
+      "material": "shell",
+      "uv": [
+        194,
+        13
+      ]
+    },
+    {
+      "name": "guard_z_left_rear_3",
+      "bone": "body",
+      "from": [
+        -9,
+        13,
+        9
+      ],
+      "to": [
+        -4,
+        14,
+        10
+      ],
+      "material": "shell",
+      "uv": [
+        208,
+        13
+      ]
+    },
+    {
+      "name": "side_warning_1",
+      "bone": "body",
+      "from": [
+        4,
+        11,
+        -3
+      ],
+      "to": [
+        6,
+        13,
+        3
+      ],
+      "material": "hazard",
+      "uv": [
+        222,
+        13
+      ]
+    },
+    {
+      "name": "support_right_front",
+      "bone": "body",
+      "from": [
+        3,
+        12,
+        -6
+      ],
+      "to": [
+        8,
+        14,
+        -2.0
+      ],
+      "material": "piston",
+      "uv": [
+        0,
+        23
+      ]
+    },
+    {
+      "name": "rotor_hub_right_front",
+      "bone": "rotor_right_front",
+      "from": [
+        6,
+        13,
+        -7
+      ],
+      "to": [
+        8,
+        17,
+        -5
+      ],
+      "material": "edge",
+      "uv": [
+        20,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_front_west",
+      "bone": "rotor_right_front",
+      "from": [
+        4,
+        15,
+        -7
+      ],
+      "to": [
+        6,
+        16,
+        -6
+      ],
+      "material": "tread",
+      "uv": [
+        30,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_front_east",
+      "bone": "rotor_right_front",
+      "from": [
+        8,
+        15,
+        -7
+      ],
+      "to": [
+        10,
+        16,
+        -6
+      ],
+      "material": "tread",
+      "uv": [
+        38,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_front_front",
+      "bone": "rotor_right_front",
+      "from": [
+        7,
+        15,
+        -9
+      ],
+      "to": [
+        8,
+        16,
+        -7
+      ],
+      "material": "tread",
+      "uv": [
+        46,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_front_rear",
+      "bone": "rotor_right_front",
+      "from": [
+        7,
+        15,
+        -5
+      ],
+      "to": [
+        8,
+        16,
+        -3
+      ],
+      "material": "tread",
+      "uv": [
+        54,
+        23
+      ]
+    },
+    {
+      "name": "guard_x_right_front_-3",
+      "bone": "body",
+      "from": [
+        4,
+        13,
+        -9
+      ],
+      "to": [
+        5,
+        14,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        62,
+        23
+      ]
+    },
+    {
+      "name": "guard_x_right_front_3",
+      "bone": "body",
+      "from": [
+        10,
+        13,
+        -9
+      ],
+      "to": [
+        11,
+        14,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        80,
+        23
+      ]
+    },
+    {
+      "name": "guard_z_right_front_-3",
+      "bone": "body",
+      "from": [
+        5,
+        13,
+        -9
+      ],
+      "to": [
+        10,
+        14,
+        -8
+      ],
+      "material": "shell",
+      "uv": [
+        98,
+        23
+      ]
+    },
+    {
+      "name": "guard_z_right_front_3",
+      "bone": "body",
+      "from": [
+        5,
+        13,
+        -3
+      ],
+      "to": [
+        10,
+        14,
+        -2
+      ],
+      "material": "shell",
+      "uv": [
+        112,
+        23
+      ]
+    },
+    {
+      "name": "support_right_rear",
+      "bone": "body",
+      "from": [
+        3,
+        12,
+        3.0
+      ],
+      "to": [
+        8,
+        14,
+        7
+      ],
+      "material": "piston",
+      "uv": [
+        126,
+        23
+      ]
+    },
+    {
+      "name": "rotor_hub_right_rear",
+      "bone": "rotor_right_rear",
+      "from": [
+        6,
+        13,
+        5
+      ],
+      "to": [
+        8,
+        17,
+        7
+      ],
+      "material": "edge",
+      "uv": [
+        146,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_rear_west",
+      "bone": "rotor_right_rear",
+      "from": [
+        4,
+        15,
+        5
+      ],
+      "to": [
+        6,
+        16,
+        6
+      ],
+      "material": "tread",
+      "uv": [
+        156,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_rear_east",
+      "bone": "rotor_right_rear",
+      "from": [
+        8,
+        15,
+        5
+      ],
+      "to": [
+        10,
+        16,
+        6
+      ],
+      "material": "tread",
+      "uv": [
+        164,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_rear_front",
+      "bone": "rotor_right_rear",
+      "from": [
+        7,
+        15,
+        3
+      ],
+      "to": [
+        8,
+        16,
+        5
+      ],
+      "material": "tread",
+      "uv": [
+        172,
+        23
+      ]
+    },
+    {
+      "name": "rotor_blade_right_rear_rear",
+      "bone": "rotor_right_rear",
+      "from": [
+        7,
+        15,
+        7
+      ],
+      "to": [
+        8,
+        16,
+        9
+      ],
+      "material": "tread",
+      "uv": [
+        180,
+        23
+      ]
+    },
+    {
+      "name": "guard_x_right_rear_-3",
+      "bone": "body",
+      "from": [
+        4,
+        13,
+        3
+      ],
+      "to": [
+        5,
+        14,
+        10
+      ],
+      "material": "hazard",
+      "uv": [
+        188,
+        23
+      ]
+    },
+    {
+      "name": "guard_x_right_rear_3",
+      "bone": "body",
+      "from": [
+        10,
+        13,
+        3
+      ],
+      "to": [
+        11,
+        14,
+        10
+      ],
+      "material": "hazard",
+      "uv": [
+        206,
+        23
+      ]
+    },
+    {
+      "name": "guard_z_right_rear_-3",
+      "bone": "body",
+      "from": [
+        5,
+        13,
+        3
+      ],
+      "to": [
+        10,
+        14,
+        4
+      ],
+      "material": "shell",
+      "uv": [
+        224,
+        23
+      ]
+    },
+    {
+      "name": "guard_z_right_rear_3",
+      "bone": "body",
+      "from": [
+        5,
+        13,
+        9
+      ],
+      "to": [
+        10,
+        14,
+        10
+      ],
+      "material": "shell",
+      "uv": [
+        238,
+        23
+      ]
+    },
+    {
+      "name": "rear_vent_-3",
+      "bone": "body",
+      "from": [
+        -3,
+        12,
+        4
+      ],
+      "to": [
+        -2,
+        15,
+        5
+      ],
+      "material": "vent",
+      "uv": [
+        0,
+        33
+      ]
+    },
+    {
+      "name": "landing_prong_-3",
+      "bone": "body",
+      "from": [
+        -3,
+        4,
+        1
+      ],
+      "to": [
+        -2,
+        8,
+        3
+      ],
+      "material": "piston",
+      "uv": [
+        6,
+        33
+      ]
+    },
+    {
+      "name": "rear_vent_2",
+      "bone": "body",
+      "from": [
+        2,
+        12,
+        4
+      ],
+      "to": [
+        3,
+        15,
+        5
+      ],
+      "material": "vent",
+      "uv": [
+        14,
+        33
+      ]
+    },
+    {
+      "name": "landing_prong_2",
+      "bone": "body",
+      "from": [
+        2,
+        4,
+        1
+      ],
+      "to": [
+        3,
+        8,
+        3
+      ],
+      "material": "piston",
+      "uv": [
+        20,
+        33
+      ]
+    },
+    {
+      "name": "rear_status_strip",
+      "bone": "body",
+      "from": [
+        -1,
+        13,
+        4
+      ],
+      "to": [
+        1,
+        14,
+        5
+      ],
+      "material": "red",
+      "uv": [
+        28,
+        33
+      ]
+    }
+  ]
+}

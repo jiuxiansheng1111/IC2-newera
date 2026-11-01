@@ -37,6 +37,9 @@ final class RobotMesh {
                     throw new IOException("Invalid R16 model bounds");
                 }
             }
+            float sourceFloorY = bounds[4];
+            float sourceHeight = bounds[4] - bounds[1];
+            float sizeScale = RobotModelDimensions.modelScale(sourceHeight);
             Part[] parts = new Part[PART_COUNT];
             int total = 0;
             for (int part = 0; part < PART_COUNT; part++) {
@@ -56,12 +59,17 @@ final class RobotMesh {
                             throw new IOException("R16 vertex outside declared bounds");
                         }
                     }
+                    vertices[i] = RobotModelDimensions.scaleHorizontal(vertices[i], sizeScale);
+                    vertices[i + 1] = RobotModelDimensions.scaleVertical(vertices[i + 1], sourceFloorY, sizeScale);
+                    vertices[i + 2] = RobotModelDimensions.scaleHorizontal(vertices[i + 2], sizeScale);
                     float nx = vertices[i + 5], ny = vertices[i + 6], nz = vertices[i + 7];
                     if (Math.abs(nx * nx + ny * ny + nz * nz - 1.0F) > 0.01F) {
                         throw new IOException("R16 vertex has invalid normal");
                     }
                 }
-                parts[part] = new Part(x, y, z, vertices);
+                parts[part] = new Part(RobotModelDimensions.scaleHorizontal(x, sizeScale),
+                        RobotModelDimensions.scaleVertical(y, sourceFloorY, sizeScale),
+                        RobotModelDimensions.scaleHorizontal(z, sizeScale), vertices, sizeScale);
             }
             if (total == 0 || input.read() != -1) throw new IOException("Empty mesh or trailing R16 mesh data");
             return new RobotMesh(texture, parts);
@@ -98,14 +106,19 @@ final class RobotMesh {
     record Part(float pivotX, float pivotY, float pivotZ, float[] vertices,
                 float gripX, float gripY, float gripZ) {
         Part(float x, float y, float z, float[] vertices) {
-            this(x, y, z, vertices, grip(vertices, 0, x), grip(vertices, 1, y), grip(vertices, 2, z));
+            this(x, y, z, vertices, 1.0F);
         }
 
-        private static float grip(float[] vertices, int axis, float fallback) {
+        Part(float x, float y, float z, float[] vertices, float sizeScale) {
+            this(x, y, z, vertices, grip(vertices, 0, x, sizeScale), grip(vertices, 1, y, sizeScale),
+                    grip(vertices, 2, z, sizeScale));
+        }
+
+        private static float grip(float[] vertices, int axis, float fallback, float sizeScale) {
             if (vertices.length == 0) return fallback;
             float bottom = -Float.MAX_VALUE;
             for (int i = 1; i < vertices.length; i += STRIDE) bottom = Math.max(bottom, vertices[i]);
-            if (axis == 1) return bottom - 0.045F;
+            if (axis == 1) return bottom - 0.045F * sizeScale;
             float min = Float.MAX_VALUE, max = -Float.MAX_VALUE;
             for (int i = 0; i < vertices.length; i += STRIDE) {
                 if (vertices[i + 1] >= bottom - 0.09F) {

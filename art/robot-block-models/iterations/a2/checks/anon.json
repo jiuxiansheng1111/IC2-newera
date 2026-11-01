@@ -1,0 +1,35 @@
+{
+  "id": "anon",
+  "design_revision": "A2",
+  "coordinates": "x-right_y-up_z-back; front north; copied unchanged",
+  "bounds": {
+    "from": [
+      -5.3,
+      0.0,
+      -3.28
+    ],
+    "to": [
+      5.3,
+      31.35,
+      3.58
+    ]
+  },
+  "cube_count": 66,
+  "mesh_count": 0,
+  "bone_count": 11,
+  "source_coordinates_and_uv_preserved": true,
+  "static_pass": true,
+  "errors": [],
+  "transparent_uv_faces": [],
+  "embedded_png_matches": true,
+  "appearance_acceptance": "pending Astra visual review and user acceptance",
+  "blockbench_import": "pending local UI inspection",
+  "animation_game_build_install": "not performed; paused",
+  "design_source_sha256": "c8f4c7b4af148406eebca97b32360c926a6254f09b1e4c0391400b62fe2341f4",
+  "pipeline_source_sha256": "5262d4b1bb4a014b2d9596a8a39fe90e39ff061a26d05ef5b5a71b7d464eb69c",
+  "sha256": {
+    "models\\anon.json": "bc59054012b55f32b19f6c804652f86ce57fd17e0e73d216d204220fe04ae075",
+    "editable\\anon.bbmodel": "c245d240f6801be045c3b21861311b4862e4c9b0d93ebd0510480b14fdce85f8",
+    "textures\\anon.png": "56125997a2370cd131695bbda2e9adc5141b79454720c12fa9e8ff8e1b557c85"
+  }
+}

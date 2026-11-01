@@ -1,0 +1,35 @@
+{
+  "id": "sakiko",
+  "design_revision": "A4",
+  "coordinates": "x-right_y-up_z-back; front north; copied unchanged",
+  "bounds": {
+    "from": [
+      -5.3,
+      0.0,
+      -3.18
+    ],
+    "to": [
+      5.3,
+      31.38,
+      3.35
+    ]
+  },
+  "cube_count": 147,
+  "mesh_count": 0,
+  "bone_count": 11,
+  "source_coordinates_and_uv_preserved": true,
+  "static_pass": true,
+  "errors": [],
+  "transparent_uv_faces": [],
+  "embedded_png_matches": true,
+  "appearance_acceptance": "pending Astra visual review and user acceptance",
+  "blockbench_import": "pending local UI inspection",
+  "animation_game_build_install": "not performed; paused",
+  "design_source_sha256": "42d8cdc3f7f0deb681fd422ddd543ff15b7f0ba3b83db954f85bf566cce8f3b3",
+  "pipeline_source_sha256": "5262d4b1bb4a014b2d9596a8a39fe90e39ff061a26d05ef5b5a71b7d464eb69c",
+  "sha256": {
+    "models\\sakiko.json": "9899960202245603b001868254bcae1ec38b03a4daac31af4b1a4d71d6ea0567",
+    "editable\\sakiko.bbmodel": "a1a5249ec1742a8d45c9cd75b6f7da67dfaf2d551f10360bbaa4310721e57516",
+    "textures\\sakiko.png": "7cc092b785808ff7df9594feaa6a30c3e06c8293517071b1fbe432707233c1b2"
+  }
+}

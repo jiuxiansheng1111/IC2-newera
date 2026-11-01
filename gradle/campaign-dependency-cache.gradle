@@ -1,0 +1,11 @@
+// Dependency resolution only; explicitly does not compile, test or launch Minecraft.
+allprojects {
+    afterEvaluate {
+        tasks.register('resolveCampaignRuntime') {
+            doLast {
+                def files = configurations.runtimeClasspath.resolve()
+                println "Resolved ${files.size()} runtime artifacts into the Gradle cache."
+            }
+        }
+    }
+}

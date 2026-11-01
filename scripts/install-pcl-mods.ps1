@@ -22,11 +22,12 @@ $isolationFile = Join-Path $versionPath 'PCL\Setup.ini'
 if (-not (Select-String -LiteralPath $isolationFile -Pattern '^VersionArgumentIndieV2:True\s*$' -Quiet)) {
     throw 'This installer requires the selected PCL profile to use version isolation.'
 }
-$runningGame = @(Get-CimInstance Win32_Process | Where-Object {
-    $_.Name -match '^(java|javaw)\.exe$' -and $_.CommandLine -and
-    $_.CommandLine.Replace('/', '\').IndexOf($versionPath, [StringComparison]::OrdinalIgnoreCase) -ge 0
-})
-if ($runningGame.Count -gt 0) { throw 'Save and close this Minecraft instance before installing mods.' }
+# Launcher command lines may contain login tokens. Do not read them to identify
+# an instance. Conservatively wait for Java processes (including builds) to exit.
+$runningJava = @(Get-Process -Name java, javaw -ErrorAction SilentlyContinue)
+if ($runningJava.Count -gt 0) {
+    throw 'Java is still running. Save and close Minecraft and let Java builds finish before installing mods.'
+}
 
 function Get-DeclaredModIds([string]$JarPath) {
     $archive = [IO.Compression.ZipFile]::OpenRead($JarPath)

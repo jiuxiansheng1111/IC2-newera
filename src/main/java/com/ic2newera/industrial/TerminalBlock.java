@@ -17,8 +17,6 @@ import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -26,7 +24,7 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 
-/** A storage/control endpoint. Existing belts, funnels, hoppers and tubes move the items. */
+/** Retained block shell for recovery of inventories saved by old worlds. */
 public final class TerminalBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
@@ -52,7 +50,7 @@ public final class TerminalBlock extends BaseEntityBlock {
         if (level.isClientSide) return InteractionResult.SUCCESS;
         if (player instanceof ServerPlayer serverPlayer && level.getBlockEntity(pos) instanceof TerminalBlockEntity terminal) {
             if (!terminal.canManage(player)) {
-                player.displayClientMessage(Component.literal("终端机属于其他玩家；只有所有者、当前同队成员或管理员可存取物料。"), true);
+                player.displayClientMessage(Component.literal("旧终端属于其他玩家；只有所有者、当前同队成员或管理员可取回库存。"), true);
                 return InteractionResult.CONSUME;
             }
             NetworkHooks.openScreen(serverPlayer, terminal, buffer -> {
@@ -70,9 +68,5 @@ public final class TerminalBlock extends BaseEntityBlock {
             level.updateNeighbourForOutputSignal(pos, this);
         }
         super.onRemove(state, level, pos, next, moved);
-    }
-    @Override public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return !level.isClientSide && type == IndustrialBlockEntities.TERMINAL.get()
-                ? (world, pos, blockState, entity) -> ((TerminalBlockEntity) entity).serverTick() : null;
     }
 }

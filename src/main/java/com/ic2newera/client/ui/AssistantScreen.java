@@ -13,10 +13,8 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 /** Chinese-first personal industrial assistant with technology and AI views. */
@@ -30,11 +28,14 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
     private Page page = Page.TECHNOLOGY;
     private Button detailBackButton;
     private Button fullTreeButton;
+    private Button previewHomeButton;
     private Button llmSettingsButton;
     private Button llmChatButton;
     private ResourceLocation selectedNode;
-    private double treeScrollX;
-    private double treeScrollY;
+    private double cameraX;
+    private double cameraY;
+    private double previewZoom = 0.7;
+    private boolean cameraInitialized;
     private double detailScroll;
     private double aiScroll;
     private boolean panning;
@@ -44,8 +45,8 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
     private double pressMouseY;
     private double lastMouseX;
     private double lastMouseY;
-    private List<NodeView> visibleNodes = List.of();
-    private final List<NodePoint> nodePoints = new ArrayList<>();
+    private List<NodeView> cachedSnapshot;
+    private TechnologyGraphLayout graphLayout = TechnologyGraphLayout.create(List.of());
 
     public AssistantScreen(AssistantMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -57,8 +58,11 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
 
     @Override
     protected void init() {
+        int previousWidth = imageWidth;
+        int previousHeight = imageHeight;
         imageWidth = Math.max(1, Math.min(720, width - 24));
         imageHeight = Math.max(1, Math.min(480, height - 24));
+        if (previousWidth != imageWidth || previousHeight != imageHeight) cameraInitialized = false;
         super.init();
         endPan();
         leftPos = (width - imageWidth) / 2;
@@ -82,6 +86,8 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         fullTreeButton = addRenderableWidget(new Button(leftPos + imageWidth - 12 - treeButtonWidth, topPos + 36, treeButtonWidth, 20,
                 UiText.fit(font, Component.translatable("screen.ic2newera.technology.fullscreen"), treeButtonWidth - 8),
                 button -> Minecraft.getInstance().setScreen(new TechnologyTreeScreen(this))));
+        previewHomeButton = addRenderableWidget(new Button(leftPos + imageWidth - 72 - treeButtonWidth, topPos + 36, 54, 20,
+                Component.literal("归位"), button -> fitPreview()));
         int aiButtonWidth = Math.max(1, Math.min(180, (imageWidth - 32) / 2));
         llmSettingsButton = addRenderableWidget(new Button(leftPos + 12, topPos + 36, aiButtonWidth, 20,
                 UiText.fit(font, Component.translatable("screen.ic2newera.llm.open_settings"), aiButtonWidth - 8),
@@ -96,6 +102,8 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
     private void updatePageControls() {
         fullTreeButton.visible = page == Page.TECHNOLOGY;
         fullTreeButton.active = page == Page.TECHNOLOGY;
+        previewHomeButton.visible = page == Page.TECHNOLOGY && selectedNode == null && imageWidth >= 360;
+        previewHomeButton.active = previewHomeButton.visible;
         llmSettingsButton.visible = page == Page.AI;
         llmChatButton.visible = page == Page.AI;
     }
@@ -115,6 +123,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTick) {
+        syncTechnologyGraph();
         renderBackground(poseStack);
         updatePageControls();
         super.render(poseStack, mouseX, mouseY, partialTick);
@@ -126,100 +135,135 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
     protected void renderBg(PoseStack poseStack, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
-        GuiComponent.fill(poseStack, x, y, x + imageWidth, y + imageHeight, IndustrialPalette.BACKGROUND);
-        GuiComponent.fill(poseStack, x, y, x + imageWidth, y + 1, IndustrialPalette.BORDER);
-        GuiComponent.fill(poseStack, x, y + 34, x + imageWidth, y + 35, IndustrialPalette.BORDER);
+        boolean technology = page == Page.TECHNOLOGY;
+        GuiComponent.fill(poseStack, x, y, x + imageWidth, y + imageHeight,
+                technology ? TechnologyTreeTheme.BACKGROUND : IndustrialPalette.BACKGROUND);
+        GuiComponent.fill(poseStack, x, y, x + imageWidth, y + 1,
+                technology ? TechnologyTreeTheme.CYAN : IndustrialPalette.BORDER);
+        GuiComponent.fill(poseStack, x, y + 34, x + imageWidth, y + 35,
+                technology ? TechnologyTreeTheme.BORDER : IndustrialPalette.BORDER);
         GuiComponent.fill(poseStack, x + 8, y + 62, x + imageWidth - 8, y + imageHeight - 8,
-                page == Page.AI ? IndustrialPalette.PANEL : IndustrialPalette.CANVAS);
+                page == Page.AI ? IndustrialPalette.PANEL : TechnologyTreeTheme.CANVAS);
     }
 
     @Override
     protected void renderLabels(PoseStack poseStack, int mouseX, int mouseY) {
         if (page == Page.TECHNOLOGY && selectedNode == null)
-            font.draw(poseStack, Component.translatable("screen.ic2newera.tab.technology"), 12, 43, IndustrialPalette.ACCENT);
+            font.draw(poseStack, Component.translatable("screen.ic2newera.tab.technology"), 12, 43, TechnologyTreeTheme.GOLD);
         switch (page) {
-            case TECHNOLOGY -> renderTechnology(poseStack);
+            case TECHNOLOGY -> renderTechnology(poseStack, mouseX - leftPos, mouseY - topPos);
             case AI -> renderAi(poseStack);
         }
     }
 
-    private void renderTechnology(PoseStack poseStack) {
+    private void renderTechnology(PoseStack poseStack, int mouseX, int mouseY) {
         if (selectedNode != null) renderNodeDetails(poseStack);
         else {
             font.draw(poseStack, UiText.fit(font, Component.translatable("screen.ic2newera.technology.summary",
-                    TechnologyClientState.completedCount(), TechnologyClientState.totalCount()), canvasWidth()), 12, 64, IndustrialPalette.TEXT);
+                    TechnologyClientState.completedCount(), TechnologyClientState.totalCount()), canvasWidth()), 12, 64, TechnologyTreeTheme.TEXT);
             font.draw(poseStack, UiText.fit(font, Component.translatable("screen.ic2newera.technology.hidden",
-                    TechnologyClientState.hiddenCount()), canvasWidth()), 12, 77, IndustrialPalette.TEXT);
-            renderTechnologyGraph(poseStack);
+                    TechnologyClientState.hiddenCount()), canvasWidth()), 12, 77, TechnologyTreeTheme.MUTED);
+            renderTechnologyGraph(poseStack, mouseX, mouseY);
+            font.draw(poseStack, UiText.fit(font, Component.literal("拖动平移 · 滚轮缩放 · 点击查看  "
+                    + Math.round(previewZoom * 100) + "%"), canvasWidth()), 12, imageHeight - 20, TechnologyTreeTheme.MUTED);
         }
     }
 
-    private void renderTechnologyGraph(PoseStack poseStack) {
-        visibleNodes = new ArrayList<>(TechnologyClientState.nodes());
-        visibleNodes.sort(Comparator.comparingInt(NodeView::y).thenComparingInt(NodeView::x));
-        nodePoints.clear();
-        int minX = visibleNodes.stream().mapToInt(NodeView::x).min().orElse(0);
-        int minY = visibleNodes.stream().mapToInt(NodeView::y).min().orElse(0);
-        int maxX = visibleNodes.stream().mapToInt(NodeView::x).max().orElse(0);
-        int maxY = visibleNodes.stream().mapToInt(NodeView::y).max().orElse(0);
-        int contentX = CANVAS_X;
-        int contentY = CANVAS_Y;
-        int contentW = canvasWidth();
-        int contentH = canvasHeight();
-        double maxScrollX = Math.max(0, maxX - minX + 27 - contentW);
-        double maxScrollY = Math.max(0, maxY - minY + 27 - contentH);
-        treeScrollX = Math.max(0, Math.min(maxScrollX, treeScrollX));
-        treeScrollY = Math.max(0, Math.min(maxScrollY, treeScrollY));
-        for (NodeView node : visibleNodes) {
-            int px = contentX + node.x() - minX + 8 - (int)treeScrollX;
-            int py = contentY + node.y() - minY + 8 - (int)treeScrollY;
-            nodePoints.add(new NodePoint(node, px, py));
-        }
-        UiScissor.enable(minecraft, leftPos + contentX, topPos + contentY,
-                leftPos + contentX + contentW, topPos + contentY + contentH);
-        for (NodePoint point : nodePoints) {
-            for (ResourceLocation parentId : point.node.prerequisites()) {
-                NodePoint parent = pointFor(parentId);
-                if (parent != null) drawConnection(poseStack, parent.x + 8, parent.y + 8, point.x + 8, point.y + 8,
-                        point.node.status() == 2 ? IndustrialPalette.COMPLETE : IndustrialPalette.BORDER);
+    private void renderTechnologyGraph(PoseStack poseStack, int mouseX, int mouseY) {
+        if (!cameraInitialized) fitPreview();
+        clampCamera();
+        UiScissor.enable(minecraft, leftPos + CANVAS_X, topPos + CANVAS_Y,
+                leftPos + CANVAS_X + canvasWidth(), topPos + CANVAS_Y + canvasHeight());
+        try {
+            drawPreviewGrid(poseStack);
+            for (TechnologyGraphLayout.Edge edge : graphLayout.edges()) {
+                double x1 = previewX(edge.parent().x() + TechnologyGraphLayout.NODE_WIDTH / 2.0);
+                double y1 = previewY(edge.parent().y());
+                double x2 = previewX(edge.child().x() + TechnologyGraphLayout.NODE_WIDTH / 2.0);
+                double y2 = previewY(edge.child().y() + TechnologyGraphLayout.NODE_HEIGHT);
+                double elbow = previewY(edge.elbowY());
+                if (Math.max(x1, x2) < CANVAS_X || Math.min(x1, x2) > CANVAS_X + canvasWidth()
+                        || Math.max(y1, Math.max(y2, elbow)) < CANVAS_Y
+                        || Math.min(y1, Math.min(y2, elbow)) > CANVAS_Y + canvasHeight()) continue;
+                int color = edge.child().node().status() == 2 ? TechnologyTreeTheme.COMPLETE
+                        : edge.primary() ? TechnologyTreeTheme.branchAccent(edge.child().node().branch()) : TechnologyTreeTheme.BORDER;
+                drawConnection(poseStack, x1, y1, x1, elbow, color);
+                drawConnection(poseStack, x1, elbow, x2, elbow, color);
+                drawConnection(poseStack, x2, elbow, x2, y2, color);
             }
-        }
-        for (NodePoint point : nodePoints) drawNode(poseStack, point);
-        RenderSystem.disableScissor();
-    }
-
-    private NodePoint pointFor(ResourceLocation id) {
-        for (NodePoint point : nodePoints) if (point.node.id().equals(id)) return point;
-        return null;
-    }
-
-    private void drawNode(PoseStack pose, NodePoint point) {
-        int x = point.x;
-        int y = point.y;
-        int color = point.node.status() == 2 ? IndustrialPalette.COMPLETE : IndustrialPalette.BORDER;
-        GuiComponent.fill(pose, x - 2, y - 2, x + 18, y + 18, color);
-        GuiComponent.fill(pose, x - 1, y - 1, x + 17, y + 17, IndustrialPalette.NODE_FILL);
-        ItemStack icon = point.node.icon();
-        if (icon != null && !icon.isEmpty()) itemRenderer.renderAndDecorateItem(icon, leftPos + x, topPos + y);
-        else GuiComponent.fill(pose, x + 4, y + 4, x + 12, y + 12, IndustrialPalette.BORDER);
-        if (point.node.hiddenDescendants() > 0) {
-            GuiComponent.fill(pose, x + 10, y + 10, x + 19, y + 19, IndustrialPalette.HEADER);
-            String badge = point.node.hiddenDescendants() > 9 ? "+" : Integer.toString(point.node.hiddenDescendants());
-            font.draw(pose, badge, x + 12, y + 10, IndustrialPalette.TEXT);
+            for (TechnologyGraphLayout.PlacedNode point : graphLayout.nodes()) {
+                if (pointVisible(point)) TechnologyTreeTheme.drawNode(poseStack, font, itemRenderer,
+                        point.node(), previewX(point.x()), previewY(point.y()), previewZoom, false,
+                        !panning && inGraphCanvas(mouseX, mouseY) && pointContains(point, mouseX, mouseY));
+            }
+            if (graphLayout.nodes().isEmpty()) font.draw(poseStack, Component.literal("等待服务器同步科技进度…"),
+                    CANVAS_X + 12, CANVAS_Y + 12, TechnologyTreeTheme.MUTED);
+        } finally {
+            RenderSystem.disableScissor();
         }
     }
 
-    private void drawConnection(PoseStack pose, int x1, int y1, int x2, int y2, int color) {
-        int dx = Math.abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
-        int dy = -Math.abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
-        int error = dx + dy;
-        while (true) {
-            GuiComponent.fill(pose, x1, y1, x1 + 1, y1 + 1, color);
-            if (x1 == x2 && y1 == y2) break;
-            int twice = 2 * error;
-            if (twice >= dy) { error += dy; x1 += sx; }
-            if (twice <= dx) { error += dx; y1 += sy; }
+    private void syncTechnologyGraph() {
+        List<NodeView> snapshot = TechnologyClientState.nodes();
+        if (snapshot == cachedSnapshot) return;
+        boolean firstNodes = graphLayout.nodes().isEmpty() && !snapshot.isEmpty();
+        cachedSnapshot = snapshot;
+        graphLayout = TechnologyGraphLayout.create(snapshot);
+        if (firstNodes) cameraInitialized = false;
+        if (selectedNode != null && !graphLayout.byId().containsKey(selectedNode)) {
+            selectedNode = null;
+            detailScroll = 0;
+            updateDetailButton();
         }
+    }
+
+    private void fitPreview() {
+        if (graphLayout.nodes().isEmpty()) return;
+        var bounds = graphLayout.bounds();
+        double fit = Math.min((canvasWidth() - 28.0) / Math.max(1, bounds.width()),
+                (canvasHeight() - 28.0) / Math.max(1, bounds.height()));
+        previewZoom = Math.max(0.5, Math.min(0.9, fit));
+        cameraX = (bounds.minX() + bounds.maxX()) / 2.0;
+        cameraY = (bounds.minY() + bounds.maxY()) / 2.0;
+        // Large trees begin at their root at a legible scale; the full view provides a wider overview.
+        if (fit < 0.5) {
+            TechnologyGraphLayout.PlacedNode root = graphLayout.nodes().stream()
+                    .filter(point -> point.depth() == 0).findFirst().orElse(graphLayout.nodes().get(0));
+            cameraX = root.x() + TechnologyGraphLayout.NODE_WIDTH / 2.0;
+            cameraY = root.y() + TechnologyGraphLayout.NODE_HEIGHT - canvasHeight() / (2 * previewZoom) + 16 / previewZoom;
+        }
+        cameraInitialized = true;
+        clampCamera();
+    }
+
+    private void clampCamera() {
+        var bounds = graphLayout.bounds();
+        double viewW = canvasWidth() / previewZoom;
+        double viewH = canvasHeight() / previewZoom;
+        cameraX = bounds.width() + 32 / previewZoom <= viewW ? (bounds.minX() + bounds.maxX()) / 2.0
+                : Math.max(bounds.minX() + viewW / 2 - 16 / previewZoom,
+                Math.min(bounds.maxX() - viewW / 2 + 16 / previewZoom, cameraX));
+        cameraY = bounds.height() + 32 / previewZoom <= viewH ? (bounds.minY() + bounds.maxY()) / 2.0
+                : Math.max(bounds.minY() + viewH / 2 - 16 / previewZoom,
+                Math.min(bounds.maxY() - viewH / 2 + 16 / previewZoom, cameraY));
+    }
+
+    private double previewX(double x) { return CANVAS_X + canvasWidth() / 2.0 + (x - cameraX) * previewZoom; }
+    private double previewY(double y) { return CANVAS_Y + canvasHeight() / 2.0 + (y - cameraY) * previewZoom; }
+
+    private void drawPreviewGrid(PoseStack pose) {
+        double spacing = 32 * previewZoom;
+        for (double x = CANVAS_X + ((previewX(0) - CANVAS_X) % spacing + spacing) % spacing;
+                x < CANVAS_X + canvasWidth(); x += spacing)
+            GuiComponent.fill(pose, (int)x, CANVAS_Y, (int)x + 1, CANVAS_Y + canvasHeight(), TechnologyTreeTheme.GRID);
+        for (double y = CANVAS_Y + ((previewY(0) - CANVAS_Y) % spacing + spacing) % spacing;
+                y < CANVAS_Y + canvasHeight(); y += spacing)
+            GuiComponent.fill(pose, CANVAS_X, (int)y, CANVAS_X + canvasWidth(), (int)y + 1, TechnologyTreeTheme.GRID);
+    }
+
+    private void drawConnection(PoseStack pose, double x1, double y1, double x2, double y2, int color) {
+        GuiComponent.fill(pose, (int)Math.floor(Math.min(x1, x2)), (int)Math.floor(Math.min(y1, y2)),
+                (int)Math.ceil(Math.max(x1, x2)) + 1, (int)Math.ceil(Math.max(y1, y2)) + 1, color);
     }
 
     private void renderNodeDetails(PoseStack pose) {
@@ -230,10 +274,10 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         int textWidth = canvasWidth();
         int bodyTop = 96;
         int bodyBottom = imageHeight - 12;
-        font.draw(pose, UiText.fit(font, node.title(), textWidth), x, y, IndustrialPalette.TEXT);
+        font.draw(pose, UiText.fit(font, node.title(), textWidth), x, y, TechnologyTreeTheme.TEXT);
         Component state = Component.literal(node.branch() + " · ").append(Component.translatable(node.status() == 2
                 ? "screen.ic2newera.technology.status.complete" : "screen.ic2newera.technology.status.available"));
-        font.draw(pose, UiText.fit(font, state, textWidth), x, y + 14, IndustrialPalette.ACCENT);
+        font.draw(pose, UiText.fit(font, state, textWidth), x, y + 14, TechnologyTreeTheme.GOLD);
         int contentHeight = wrappedHeight(node.description(), textWidth) + 3;
         for (Component step : node.steps()) contentHeight += wrappedHeight(step, textWidth) + 3;
         for (TechnologyClientState.ObjectiveView objective : node.objectives()) {
@@ -246,21 +290,21 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         detailScroll = Math.max(0, Math.min(detailScroll, contentHeight - (bodyBottom - bodyTop)));
         UiScissor.enable(minecraft, leftPos + x, topPos + bodyTop, leftPos + x + textWidth, topPos + bodyBottom);
         int lineY = bodyTop - (int)detailScroll;
-        drawWrapped(pose, node.description(), x, lineY, textWidth, IndustrialPalette.TEXT);
+        drawWrapped(pose, node.description(), x, lineY, textWidth, TechnologyTreeTheme.TEXT);
         lineY += wrappedHeight(node.description(), textWidth) + 3;
         for (Component step : node.steps()) {
-            drawWrapped(pose, step, x, lineY, textWidth, IndustrialPalette.TEXT);
+            drawWrapped(pose, step, x, lineY, textWidth, TechnologyTreeTheme.TEXT);
             lineY += wrappedHeight(step, textWidth) + 3;
         }
         for (TechnologyClientState.ObjectiveView objective : node.objectives()) {
             Component text = Component.translatable("screen.ic2newera.technology.objective",
                     objective.text(), objective.progress(), objective.required());
-            drawWrapped(pose, text, x, lineY, textWidth, IndustrialPalette.ACCENT);
+            drawWrapped(pose, text, x, lineY, textWidth, TechnologyTreeTheme.GOLD);
             lineY += wrappedHeight(text, textWidth) + 3;
         }
         if (node.hiddenDescendants() > 0) {
             drawWrapped(pose, Component.translatable("screen.ic2newera.technology.hidden_after",
-                    node.hiddenDescendants()), x, lineY + 4, textWidth, IndustrialPalette.MUTED);
+                    node.hiddenDescendants()), x, lineY + 4, textWidth, TechnologyTreeTheme.MUTED);
         }
         RenderSystem.disableScissor();
     }
@@ -270,14 +314,15 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         int mx = mouseX - leftPos;
         int my = mouseY - topPos;
         if (!inGraphCanvas(mx, my)) return;
-        for (NodePoint point : nodePoints) {
-            if (pointVisible(point) && mx >= point.x - 2 && mx < point.x + 18 && my >= point.y - 2 && my < point.y + 18) {
+        for (TechnologyGraphLayout.PlacedNode point : graphLayout.nodes()) {
+            if (pointVisible(point) && pointContains(point, mx, my)) {
                 List<Component> tooltip = new ArrayList<>();
-                tooltip.add(point.node.title());
-                tooltip.add(Component.translatable(point.node.status() == 2
+                tooltip.add(point.node().title());
+                tooltip.add(Component.literal(point.node().branch()));
+                tooltip.add(Component.translatable(point.node().status() == 2
                         ? "screen.ic2newera.technology.status.complete" : "screen.ic2newera.technology.status.available"));
-                if (point.node.hiddenDescendants() > 0) tooltip.add(Component.translatable(
-                        "screen.ic2newera.technology.hidden_after", point.node.hiddenDescendants()));
+                if (point.node().hiddenDescendants() > 0) tooltip.add(Component.translatable(
+                        "screen.ic2newera.technology.hidden_after", point.node().hiddenDescendants()));
                 renderTooltip(pose, tooltip.stream().map(Component::getVisualOrderText).toList(), mouseX, mouseY);
                 return;
             }
@@ -345,8 +390,9 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
                 panMoved = true;
             }
             if (panMoved) {
-                treeScrollX -= mouseX - lastMouseX;
-                treeScrollY -= mouseY - lastMouseY;
+                cameraX -= (mouseX - lastMouseX) / previewZoom;
+                cameraY -= (mouseY - lastMouseY) / previewZoom;
+                clampCamera();
                 lastMouseX = mouseX;
                 lastMouseY = mouseY;
             }
@@ -361,10 +407,9 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
             int mx = (int)mouseX - leftPos;
             int my = (int)mouseY - topPos;
             if (!panMoved && button == 0 && inGraphCanvas(mx, my)) {
-                for (NodePoint point : nodePoints) {
-                    if (pointVisible(point) && mx >= point.x - 2 && mx < point.x + 18
-                            && my >= point.y - 2 && my < point.y + 18) {
-                        selectedNode = point.node.id();
+                for (TechnologyGraphLayout.PlacedNode point : graphLayout.nodes()) {
+                    if (pointVisible(point) && pointContains(point, mx, my)) {
+                        selectedNode = point.node().id();
                         detailScroll = 0;
                         updateDetailButton();
                         break;
@@ -393,8 +438,12 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
                 return true;
             }
             if (selectedNode == null && inGraphCanvas(mx, my)) {
-                if (hasShiftDown()) treeScrollX = Math.max(0, treeScrollX - delta * 20);
-                else treeScrollY = Math.max(0, treeScrollY - delta * 20);
+                double worldX = cameraX + (mx - CANVAS_X - canvasWidth() / 2.0) / previewZoom;
+                double worldY = cameraY + (my - CANVAS_Y - canvasHeight() / 2.0) / previewZoom;
+                previewZoom = Math.max(0.25, Math.min(1.35, previewZoom * Math.pow(1.13, delta)));
+                cameraX = worldX - (mx - CANVAS_X - canvasWidth() / 2.0) / previewZoom;
+                cameraY = worldY - (my - CANVAS_Y - canvasHeight() / 2.0) / previewZoom;
+                clampCamera();
                 return true;
             }
         }
@@ -410,15 +459,21 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         return x >= CANVAS_X && x < CANVAS_X + canvasWidth() && y >= CANVAS_Y && y < CANVAS_Y + canvasHeight();
     }
 
-    private boolean pointVisible(NodePoint point) {
-        return point.x + 18 > CANVAS_X && point.x - 2 < CANVAS_X + canvasWidth()
-                && point.y + 18 > CANVAS_Y && point.y - 2 < CANVAS_Y + canvasHeight();
+    private boolean pointVisible(TechnologyGraphLayout.PlacedNode point) {
+        return previewX(point.x() + TechnologyGraphLayout.NODE_WIDTH) + 3 > CANVAS_X
+                && previewX(point.x()) < CANVAS_X + canvasWidth()
+                && previewY(point.y() + TechnologyGraphLayout.NODE_HEIGHT) + 3 > CANVAS_Y
+                && previewY(point.y()) < CANVAS_Y + canvasHeight();
+    }
+
+    private boolean pointContains(TechnologyGraphLayout.PlacedNode point, double x, double y) {
+        double px = Math.round(previewX(point.x())), py = Math.round(previewY(point.y()));
+        return x >= px && x < px + Math.round(TechnologyGraphLayout.NODE_WIDTH * previewZoom)
+                && y >= py && y < py + Math.round(TechnologyGraphLayout.NODE_HEIGHT * previewZoom);
     }
 
     private int canvasWidth() { return Math.max(1, imageWidth - 24); }
-    private int canvasHeight() { return Math.max(1, imageHeight - CANVAS_Y - 12); }
-
-    private record NodePoint(NodeView node, int x, int y) {}
+    private int canvasHeight() { return Math.max(1, imageHeight - CANVAS_Y - 28); }
 
     private enum Page {
         TECHNOLOGY("screen.ic2newera.tab.technology"), AI("screen.ic2newera.tab.ai");

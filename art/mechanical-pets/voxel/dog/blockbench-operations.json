@@ -1,0 +1,809 @@
+{
+  "model_file": "dog.bbmodel",
+  "operation_origin": "Serialized from the final saved Blockbench MCP hierarchy.",
+  "operations": [
+    {
+      "op": "add_group",
+      "name": "body",
+      "origin": [
+        0,
+        7,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": null
+    },
+    {
+      "op": "add_group",
+      "name": "head",
+      "origin": [
+        0,
+        10,
+        -4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_group",
+      "name": "jaw",
+      "origin": [
+        0,
+        8,
+        -7
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "head"
+    },
+    {
+      "op": "add_cube",
+      "name": "lower_jaw_block",
+      "from": [
+        -2,
+        7,
+        -8
+      ],
+      "to": [
+        2,
+        8,
+        -7
+      ],
+      "origin": [
+        0,
+        8,
+        -7
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "jaw",
+      "box_uv": true,
+      "uv_offset": [
+        0,
+        40
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "pixel_tongue_block",
+      "from": [
+        -1,
+        7,
+        -9
+      ],
+      "to": [
+        0,
+        8,
+        -8
+      ],
+      "origin": [
+        0,
+        8,
+        -7
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "jaw",
+      "box_uv": true,
+      "uv_offset": [
+        16,
+        40
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "ear_l",
+      "origin": [
+        3,
+        12,
+        -5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "head"
+    },
+    {
+      "op": "add_cube",
+      "name": "ear_l_block",
+      "from": [
+        2,
+        11,
+        -6
+      ],
+      "to": [
+        4,
+        13,
+        -4
+      ],
+      "origin": [
+        3,
+        12,
+        -5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "ear_l",
+      "box_uv": true,
+      "uv_offset": [
+        40,
+        0
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "ear_r",
+      "origin": [
+        -3,
+        12,
+        -5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "head"
+    },
+    {
+      "op": "add_cube",
+      "name": "ear_r_block",
+      "from": [
+        -4,
+        11,
+        -6
+      ],
+      "to": [
+        -2,
+        13,
+        -4
+      ],
+      "origin": [
+        -3,
+        12,
+        -5
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "ear_r",
+      "box_uv": true,
+      "uv_offset": [
+        40,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "head_6x6x5",
+      "from": [
+        -3,
+        7,
+        -7
+      ],
+      "to": [
+        3,
+        13,
+        -2
+      ],
+      "origin": [
+        0,
+        10,
+        -4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "head",
+      "box_uv": true,
+      "uv_offset": [
+        0,
+        0
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "short_square_muzzle",
+      "from": [
+        -2,
+        8,
+        -8
+      ],
+      "to": [
+        2,
+        10,
+        -7
+      ],
+      "origin": [
+        0,
+        10,
+        -4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "head",
+      "box_uv": true,
+      "uv_offset": [
+        0,
+        32
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "tail",
+      "origin": [
+        0,
+        9,
+        6
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_cube",
+      "name": "tail_step_base",
+      "from": [
+        -1,
+        8,
+        5
+      ],
+      "to": [
+        1,
+        10,
+        7
+      ],
+      "origin": [
+        0,
+        9,
+        6
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "tail",
+      "box_uv": true,
+      "uv_offset": [
+        40,
+        16
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "tail_step_tip",
+      "from": [
+        -1,
+        10,
+        5
+      ],
+      "to": [
+        1,
+        12,
+        7
+      ],
+      "origin": [
+        0,
+        9,
+        6
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "tail",
+      "box_uv": true,
+      "uv_offset": [
+        40,
+        16
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "leg_fl",
+      "origin": [
+        2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_cube",
+      "name": "front_leg_fl",
+      "from": [
+        1,
+        1,
+        -4
+      ],
+      "to": [
+        3,
+        5,
+        -2
+      ],
+      "origin": [
+        2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_fl",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "front_paw_fl",
+      "from": [
+        1,
+        0,
+        -5
+      ],
+      "to": [
+        3,
+        1,
+        -2
+      ],
+      "origin": [
+        2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_fl",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        24
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "leg_fr",
+      "origin": [
+        -2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_cube",
+      "name": "front_leg_fr",
+      "from": [
+        -3,
+        1,
+        -4
+      ],
+      "to": [
+        -1,
+        5,
+        -2
+      ],
+      "origin": [
+        -2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_fr",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "front_paw_fr",
+      "from": [
+        -3,
+        0,
+        -5
+      ],
+      "to": [
+        -1,
+        1,
+        -2
+      ],
+      "origin": [
+        -2,
+        5,
+        -3
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_fr",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        24
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "leg_bl",
+      "origin": [
+        2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_thigh_bl",
+      "from": [
+        1,
+        2,
+        3
+      ],
+      "to": [
+        3,
+        5,
+        5
+      ],
+      "origin": [
+        2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_bl",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_hock_bl",
+      "from": [
+        1,
+        1,
+        4
+      ],
+      "to": [
+        3,
+        3,
+        6
+      ],
+      "origin": [
+        2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_bl",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_paw_bl",
+      "from": [
+        1,
+        0,
+        5
+      ],
+      "to": [
+        3,
+        1,
+        7
+      ],
+      "origin": [
+        2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_bl",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        24
+      ]
+    },
+    {
+      "op": "add_group",
+      "name": "leg_br",
+      "origin": [
+        -2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_thigh_br",
+      "from": [
+        -3,
+        2,
+        3
+      ],
+      "to": [
+        -1,
+        5,
+        5
+      ],
+      "origin": [
+        -2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_br",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_hock_br",
+      "from": [
+        -3,
+        1,
+        4
+      ],
+      "to": [
+        -1,
+        3,
+        6
+      ],
+      "origin": [
+        -2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_br",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        8
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "hind_paw_br",
+      "from": [
+        -3,
+        0,
+        5
+      ],
+      "to": [
+        -1,
+        1,
+        7
+      ],
+      "origin": [
+        -2,
+        5,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "leg_br",
+      "box_uv": true,
+      "uv_offset": [
+        32,
+        24
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "torso_6x5x10",
+      "from": [
+        -3,
+        5,
+        -4
+      ],
+      "to": [
+        3,
+        10,
+        6
+      ],
+      "origin": [
+        0,
+        7,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "body",
+      "box_uv": true,
+      "uv_offset": [
+        0,
+        16
+      ]
+    },
+    {
+      "op": "add_cube",
+      "name": "small_brass_collar_tag",
+      "from": [
+        -1,
+        6,
+        -4
+      ],
+      "to": [
+        1,
+        7,
+        -3
+      ],
+      "origin": [
+        0,
+        7,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "inflate": 0,
+      "parent": "body",
+      "box_uv": true,
+      "uv_offset": [
+        24,
+        40
+      ]
+    },
+    {
+      "op": "add_animation",
+      "name": "bark",
+      "length": 1,
+      "loop": "once",
+      "snapping": 1
+    },
+    {
+      "op": "set_keyframe",
+      "animation": "bark",
+      "bone": "jaw",
+      "channel": "rotation",
+      "time": 0,
+      "value": [
+        0,
+        0,
+        0
+      ],
+      "interpolation": "linear"
+    },
+    {
+      "op": "set_keyframe",
+      "animation": "bark",
+      "bone": "jaw",
+      "channel": "rotation",
+      "time": 1,
+      "value": [
+        -35,
+        0,
+        0
+      ],
+      "interpolation": "linear"
+    }
+  ]
+}

@@ -21,7 +21,9 @@ ALLOWED_ROOT = {".gitignore", "AGENTS.md", "README.md", "LICENSE", "build.gradle
                 "IC2_New_Era_Development_Goals_and_Progress_2026-10-08.md"}
 EXCLUDED = {"dist/IC2-newera.zip", "dist/IC2-newera.zip.sha256"}
 PUBLIC_DIST = {"dist/IC2-New-Era-Test-2026.10.18-Phone-Chat.zip",
-               "dist/IC2-New-Era-Test-2026.10.18-Phone-Chat.zip.sha256", "dist/README-zh_CN.txt"}
+               "dist/IC2-New-Era-Test-2026.10.18-Phone-Chat.zip.sha256",
+               "dist/IC2-New-Era-Test-2026.10.18-Robot-Care.zip",
+               "dist/IC2-New-Era-Test-2026.10.18-Robot-Care.zip.sha256", "dist/README-zh_CN.txt"}
 PRIVATE_PATHS = {"tools/robot_voice/ic2newera-voice-runtime.json", "tools/robot_voice/static-verification.json"}
 SECRET_PATTERN = re.compile(
     rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|"
@@ -46,6 +48,7 @@ def main() -> None:
         if len(parts) > 1 and parts[0] not in ALLOWED_DIRS:
             raise ValueError("Unreviewed directory: " + name)
         if ("config" in parts or "references" in parts or "runtime" in parts or "__pycache__" in parts
+                or "credentials" in parts or "ic2newera-private" in parts
                 or name in PRIVATE_PATHS or name.endswith((".log", ".env", ".pth", ".ckpt", ".onnx", ".index"))
                 or name.startswith(("art/robot-rework/", "art/robot-mcp-workspace/", "art/robot-image-reference/", "art/robot-dolls/"))):
             raise ValueError("Private or unverified file: " + name)

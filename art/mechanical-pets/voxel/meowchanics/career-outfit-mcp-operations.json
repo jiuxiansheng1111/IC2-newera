@@ -1,0 +1,2213 @@
+{
+  "format": "ic2newera:blockbench_mcp_operations_v1",
+  "base_source": "../cat/cat.bbmodel",
+  "generated_with": "Connected Blockbench MCP",
+  "models": {
+    "terminator": {
+      "source": "career-terminator.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "career_chest_radar",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "career_head_visor",
+          "from": [
+            -2,
+            10,
+            -6
+          ],
+          "to": [
+            2,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "career_visor_lens",
+          "from": [
+            -1,
+            9,
+            -8
+          ],
+          "to": [
+            1,
+            10,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "career_side_sensor",
+          "from": [
+            2,
+            8,
+            -6
+          ],
+          "to": [
+            3,
+            9,
+            -5
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "terminator_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_terminator_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "career_chest_radar",
+            "career_head_visor",
+            "career_visor_lens",
+            "career_side_sensor",
+            "terminator_harness"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "career_head_visor",
+            "career_visor_lens",
+            "career_side_sensor"
+          ],
+          "reason": "forehead marker keeps eyes clear"
+        }
+      ]
+    },
+    "fishing": {
+      "source": "career-fishing.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fishing_reel",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fishing_reel_cap",
+          "from": [
+            -4,
+            8,
+            1
+          ],
+          "to": [
+            -3,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fishing_hook",
+          "from": [
+            -3,
+            9,
+            2
+          ],
+          "to": [
+            -2,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fishing_girth",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_fishing_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "fishing_reel",
+            "fishing_reel_cap",
+            "fishing_hook",
+            "fishing_girth"
+          ]
+        }
+      ]
+    },
+    "flight": {
+      "source": "career-flight.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "flight_pack",
+          "from": [
+            -1,
+            7,
+            -1
+          ],
+          "to": [
+            1,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "flight_pack_l",
+          "from": [
+            -2,
+            8,
+            0
+          ],
+          "to": [
+            -1,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "flight_pack_r",
+          "from": [
+            1,
+            8,
+            0
+          ],
+          "to": [
+            2,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "flight_goggle",
+          "from": [
+            -2,
+            9,
+            -8
+          ],
+          "to": [
+            2,
+            10,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "flight_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_flight_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "flight_pack",
+            "flight_pack_l",
+            "flight_pack_r",
+            "flight_goggle",
+            "flight_harness"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "flight_goggle"
+          ],
+          "reason": "move head sensor to top of head; preserve eyes, muzzle, and face readability",
+          "from": [
+            -1,
+            10,
+            -6
+          ],
+          "to": [
+            1,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ]
+        }
+      ]
+    },
+    "fire": {
+      "source": "career-fire.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fire_tank",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            4
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fire_nozzle",
+          "from": [
+            -1,
+            8,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fire_muzzle",
+          "from": [
+            -1,
+            6,
+            -3
+          ],
+          "to": [
+            1,
+            7,
+            -2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "fire_harness",
+          "from": [
+            -1,
+            5,
+            2
+          ],
+          "to": [
+            1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_fire_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "fire_tank",
+            "fire_nozzle",
+            "fire_muzzle",
+            "fire_harness"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "fire_muzzle"
+          ],
+          "reason": "align preview with runtime layer and keep face clear"
+        }
+      ]
+    },
+    "honey": {
+      "source": "career-honey.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_jar_l",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_jar_r",
+          "from": [
+            2,
+            7,
+            1
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_jar_lid",
+          "from": [
+            -3,
+            9,
+            1
+          ],
+          "to": [
+            -2,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_jar_lid_r",
+          "from": [
+            2,
+            9,
+            1
+          ],
+          "to": [
+            3,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_girth_l",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "honey_girth_r",
+          "from": [
+            1,
+            5,
+            1
+          ],
+          "to": [
+            3,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_honey_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "honey_jar_l",
+            "honey_jar_r",
+            "honey_jar_lid",
+            "honey_jar_lid_r",
+            "honey_girth_l",
+            "honey_girth_r"
+          ]
+        }
+      ]
+    },
+    "transport": {
+      "source": "career-transport.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_bag_l",
+          "from": [
+            -3,
+            7,
+            0
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_bag_r",
+          "from": [
+            2,
+            7,
+            0
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_yoke",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_latch_l",
+          "from": [
+            -3,
+            8,
+            -1
+          ],
+          "to": [
+            -2,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_latch_r",
+          "from": [
+            2,
+            8,
+            -1
+          ],
+          "to": [
+            3,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_girth_l",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "transport_girth_r",
+          "from": [
+            1,
+            5,
+            1
+          ],
+          "to": [
+            3,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_transport_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "transport_bag_l",
+            "transport_bag_r",
+            "transport_yoke",
+            "transport_latch_l",
+            "transport_latch_r",
+            "transport_girth_l",
+            "transport_girth_r"
+          ]
+        }
+      ]
+    },
+    "dynamite": {
+      "source": "career-dynamite.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "dynamite_harness",
+          "from": [
+            -2,
+            7,
+            0
+          ],
+          "to": [
+            2,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "dynamite_bundle",
+          "from": [
+            -1,
+            8,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "dynamite_cap",
+          "from": [
+            -1,
+            9,
+            1
+          ],
+          "to": [
+            1,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "dynamite_harness_base",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_dynamite_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "dynamite_harness",
+            "dynamite_bundle",
+            "dynamite_cap",
+            "dynamite_harness_base"
+          ]
+        }
+      ]
+    },
+    "engineering": {
+      "source": "career-engineering.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_box",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_tool",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_gear",
+          "from": [
+            -2,
+            9,
+            1
+          ],
+          "to": [
+            -1,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_tool_upper",
+          "from": [
+            -3,
+            9,
+            1
+          ],
+          "to": [
+            -2,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_front_plate",
+          "from": [
+            -1,
+            8,
+            -1
+          ],
+          "to": [
+            1,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "engineering_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_engineering_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "engineering_box",
+            "engineering_tool",
+            "engineering_gear",
+            "engineering_tool_upper",
+            "engineering_front_plate",
+            "engineering_harness"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "engineering_tool"
+          ],
+          "reason": "split highlighted tool head by color"
+        }
+      ]
+    },
+    "medical": {
+      "source": "career-medical.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "medical_case",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "medical_cross_x",
+          "from": [
+            -2,
+            8,
+            0
+          ],
+          "to": [
+            2,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "medical_cross_y",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "medical_side_case",
+          "from": [
+            2,
+            7,
+            1
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "medical_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_medical_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "medical_case",
+            "medical_cross_x",
+            "medical_cross_y",
+            "medical_side_case",
+            "medical_harness"
+          ]
+        }
+      ]
+    },
+    "music": {
+      "source": "career-music.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "music_drum",
+          "from": [
+            -3,
+            6,
+            0
+          ],
+          "to": [
+            -2,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "music_drum_rim",
+          "from": [
+            -4,
+            6,
+            0
+          ],
+          "to": [
+            -3,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "music_tambourine",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "music_girth",
+          "from": [
+            -3,
+            5,
+            0
+          ],
+          "to": [
+            -1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_music_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "music_drum",
+            "music_drum_rim",
+            "music_tambourine",
+            "music_girth"
+          ]
+        }
+      ]
+    },
+    "agent": {
+      "source": "career-agent.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "agent_visor",
+          "from": [
+            -4,
+            7,
+            -5
+          ],
+          "to": [
+            -3,
+            9,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "agent_lens",
+          "from": [
+            -4,
+            8,
+            -6
+          ],
+          "to": [
+            -3,
+            9,
+            -5
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "agent_badge",
+          "from": [
+            -2,
+            7,
+            1
+          ],
+          "to": [
+            2,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "agent_harness",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_agent_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "agent_visor",
+            "agent_lens",
+            "agent_badge",
+            "agent_harness"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "agent_visor",
+            "agent_lens"
+          ],
+          "reason": "align preview with runtime layer and keep face clear"
+        }
+      ]
+    },
+    "diving": {
+      "source": "career-diving.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_goggle_band",
+          "from": [
+            -2,
+            10,
+            -6
+          ],
+          "to": [
+            2,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_lens_l",
+          "from": [
+            -2,
+            10,
+            -8
+          ],
+          "to": [
+            -1,
+            11,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_lens_r",
+          "from": [
+            1,
+            10,
+            -8
+          ],
+          "to": [
+            2,
+            11,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_tank_l",
+          "from": [
+            -2,
+            7,
+            1
+          ],
+          "to": [
+            -1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_tank_r",
+          "from": [
+            1,
+            7,
+            1
+          ],
+          "to": [
+            2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_girth_l",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            0,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "diving_girth_r",
+          "from": [
+            0,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_diving_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "diving_goggle_band",
+            "diving_lens_l",
+            "diving_lens_r",
+            "diving_tank_l",
+            "diving_tank_r",
+            "diving_girth_l",
+            "diving_girth_r"
+          ]
+        },
+        {
+          "op": "update_node",
+          "targets": [
+            "diving_lens_l",
+            "diving_lens_r"
+          ],
+          "reason": "align preview with runtime layer and keep face clear"
+        }
+      ]
+    },
+    "cockroach": {
+      "source": "career-cockroach.bbmodel",
+      "operations": [
+        {
+          "op": "add_group",
+          "name": "career_gear",
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "cockroach_shell_mid",
+          "from": [
+            -1,
+            7,
+            -1
+          ],
+          "to": [
+            1,
+            8,
+            4
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "cockroach_shell_l",
+          "from": [
+            -2,
+            7,
+            0
+          ],
+          "to": [
+            -1,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "cockroach_shell_r",
+          "from": [
+            1,
+            7,
+            0
+          ],
+          "to": [
+            2,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "cockroach_shell_rear",
+          "from": [
+            -1,
+            8,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_cube",
+          "name": "cockroach_girth",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent": "body"
+        },
+        {
+          "op": "add_texture",
+          "name": "career_cockroach_palette",
+          "size": [
+            16,
+            16
+          ]
+        },
+        {
+          "op": "assign_texture",
+          "targets": [
+            "cockroach_shell_mid",
+            "cockroach_shell_l",
+            "cockroach_shell_r",
+            "cockroach_shell_rear",
+            "cockroach_girth"
+          ]
+        }
+      ]
+    }
+  }
+}

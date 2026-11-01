@@ -8,6 +8,13 @@
     "ic2newera:quartz_dust",
     "ic2newera:zinc_dust",
     "ic2newera:low_carbon_steel_dust",
-    "ic2newera:high_carbon_steel_dust"
+    "ic2newera:high_carbon_steel_dust",
+    "#forge:dusts/vanadium",
+    "#forge:dusts/niobium",
+    "#forge:dusts/vanadium_steel",
+    "#forge:dusts/niobium_titanium",
+    "#forge:dusts/cobalt",
+    "#forge:dusts/molybdenum",
+    "#forge:dusts/tantalum"
   ]
 }

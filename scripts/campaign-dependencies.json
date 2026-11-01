@@ -1,0 +1,173 @@
+{
+  "minecraft": "1.19.2",
+  "forge": "43.5.0",
+  "installed": false,
+  "excluded": [
+    "terralith",
+    "alexsmobs",
+    "citadel",
+    "tacz",
+    "betterdungeons",
+    "easy_npc",
+    "yungsapi"
+  ],
+  "artifacts": [
+    {
+      "modId": "ad_astra",
+      "fileName": "ad_astra-forge-1.19.2-1.12.7.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/ad_astra-forge-1.19.2-1.12.7.jar",
+      "sha256": "24EF7A80501FA146AB588738E3333185353E7B09A36BAB785912FD3D61713A81",
+      "size": 10492498,
+      "sourceUrl": "https://www.curseforge.com/minecraft/mc-mods/ad-astra/files/4643668",
+      "downloadUrl": "https://www.cursemaven.com/curse/maven/ad-astra-635042/4643668/ad-astra-635042-4643668.jar",
+      "curseforgeProjectId": 635042,
+      "curseforgeFileId": 4643668,
+      "loader": "javafml",
+      "loaderVersion": "[43,)",
+      "hardDependencies": [
+        {
+          "modId": "forge",
+          "mandatory": true,
+          "versionRange": "[43,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "ad_astra"
+        },
+        {
+          "modId": "minecraft",
+          "mandatory": true,
+          "versionRange": "[1.19,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "ad_astra"
+        },
+        {
+          "modId": "resourcefullib",
+          "mandatory": true,
+          "versionRange": "[1.1.23,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "ad_astra"
+        },
+        {
+          "modId": "resourcefulconfig",
+          "mandatory": true,
+          "versionRange": "[1.0.20,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "ad_astra"
+        },
+        {
+          "modId": "botarium",
+          "mandatory": true,
+          "versionRange": "[1.8.2,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "ad_astra"
+        }
+      ],
+      "embeddedJars": [],
+      "jsonResources": 2882
+    },
+    {
+      "modId": "botarium",
+      "fileName": "botarium-forge-1.19.2-1.8.2.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/botarium-forge-1.19.2-1.8.2.jar",
+      "sha256": "FB08BEBB1BA81B9035294AAE3CD4E1F7FBAE6A0073E7A7AE1D4530304672493A",
+      "size": 110494,
+      "sourceUrl": "https://www.curseforge.com/minecraft/mc-mods/botarium/files/4306551",
+      "downloadUrl": "https://www.cursemaven.com/curse/maven/botarium-704113/4306551/botarium-704113-4306551.jar",
+      "curseforgeProjectId": 704113,
+      "curseforgeFileId": 4306551,
+      "loader": "javafml",
+      "loaderVersion": "[43,)",
+      "hardDependencies": [
+        {
+          "modId": "forge",
+          "mandatory": true,
+          "versionRange": "[43,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "botarium"
+        },
+        {
+          "modId": "minecraft",
+          "mandatory": true,
+          "versionRange": "[1.19.2,1.20)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "botarium"
+        }
+      ],
+      "embeddedJars": [],
+      "jsonResources": 0
+    },
+    {
+      "modId": "resourcefullib",
+      "fileName": "resourcefullib-forge-1.19.2-1.1.24.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/resourcefullib-forge-1.19.2-1.1.24.jar",
+      "sha256": "4F83A8DFA91AD381F2708293ECDA6C705039A0DABB774ED429C84C86EB158E56",
+      "size": 231039,
+      "sourceUrl": "https://www.curseforge.com/minecraft/mc-mods/resourceful-lib/files/4477753",
+      "downloadUrl": "https://www.cursemaven.com/curse/maven/resourceful-lib-570073/4477753/resourceful-lib-570073-4477753.jar",
+      "curseforgeProjectId": 570073,
+      "curseforgeFileId": 4477753,
+      "loader": "javafml",
+      "loaderVersion": "[41,)",
+      "hardDependencies": [
+        {
+          "modId": "forge",
+          "mandatory": true,
+          "versionRange": "[41,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "resourcefullib"
+        },
+        {
+          "modId": "minecraft",
+          "mandatory": true,
+          "versionRange": "[1.19,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "resourcefullib"
+        }
+      ],
+      "embeddedJars": [],
+      "jsonResources": 0
+    },
+    {
+      "modId": "resourcefulconfig",
+      "fileName": "resourcefulconfig-forge-1.19.2-1.0.20.jar",
+      "projectFile": "build-isolated/campaign-20261019/dependencies/resourcefulconfig-forge-1.19.2-1.0.20.jar",
+      "sha256": "FD0EA4D97F7D0C6A10A5325F6FDD148C2C634E5D77A25A2DE5D7AC6AFCF49F5A",
+      "size": 133629,
+      "sourceUrl": "https://www.curseforge.com/minecraft/mc-mods/resourceful-config/files/4444198",
+      "downloadUrl": "https://www.cursemaven.com/curse/maven/resourceful-config-714059/4444198/resourceful-config-714059-4444198.jar",
+      "curseforgeProjectId": 714059,
+      "curseforgeFileId": 4444198,
+      "loader": "javafml",
+      "loaderVersion": "[43,)",
+      "hardDependencies": [
+        {
+          "modId": "forge",
+          "mandatory": true,
+          "versionRange": "[43,)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "resourcefulconfig"
+        },
+        {
+          "modId": "minecraft",
+          "mandatory": true,
+          "versionRange": "[1.19.2,1.20)",
+          "ordering": "NONE",
+          "side": "BOTH",
+          "owner": "resourcefulconfig"
+        }
+      ],
+      "embeddedJars": [],
+      "jsonResources": 0
+    }
+  ],
+  "scope": "Planet exploration only. NPC campaign and extra overworld dungeons retired on 2026-10-21."
+}

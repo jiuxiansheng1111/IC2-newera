@@ -2,60 +2,45 @@ package com.ic2newera.client.ui;
 
 import com.ic2newera.technology.TechnologyClientState;
 import com.ic2newera.technology.TechnologyClientState.NodeView;
+import com.ic2newera.client.ui.TechnologyGraphLayout.PlacedNode;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 import org.lwjgl.glfw.GLFW;
 
-/** Full-screen, pannable view of the server-filtered personal industrial technology tree. */
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+/** Pannable client presentation; the server remains authoritative for reveal and prerequisites. */
 public final class TechnologyTreeScreen extends Screen {
-    private static final int NODE_W = 96;
-    private static final int NODE_H = 32;
-    private static final int[] BRANCH_ACCENTS = {
-            0xFFA56B36, 0xFFC1883C, 0xFF748151, 0xFFB87559, 0xFFA8954F, 0xFF946F5B
-    };
+    private static final double MIN_ZOOM = 0.12, MAX_ZOOM = 2.25;
     private final AssistantScreen assistantScreen;
-    private final List<NodePoint> points = new ArrayList<>();
-    private final Map<ResourceLocation, NodePoint> pointsById = new HashMap<>();
     private EditBox searchBox;
     private Button chapterButton;
-    private List<String> chapters = List.of();
-    private int chapterIndex;
+    private ZoomSlider zoomSlider;
+    private List<String> chapters = List.of("");
     private String chapter = "";
     private ResourceLocation selectedId;
-    private double cameraX;
-    private double cameraY;
-    private double zoom = 0.85;
-    private double detailScroll;
-    private boolean cameraInitialized;
+    private double cameraX, cameraY, zoom = 0.85, detailScroll;
+    private boolean cameraInitialized, dragging, dragged;
+    private int panButton = -1;
+    private double pressMouseX, pressMouseY, lastMouseX, lastMouseY;
     private List<NodeView> lastSnapshot;
     private int lastSnapshotTotal = -1;
-    private int lastLayoutWidth = -1;
-    private int lastLayoutHeight = -1;
-    private boolean hasSeenServerTree;
-    private String lastFilterKey = "";
-    private boolean dragging;
-    private boolean dragged;
-    private int panButton = -1;
-    private double lastMouseX;
-    private double lastMouseY;
-    private double pressMouseX;
-    private double pressMouseY;
+    private String lastFilterKey;
+    private TechnologyGraphLayout layout = TechnologyGraphLayout.create(List.of());
+    private List<PlacedNode> filtered = List.of();
+    private List<TechnologyGraphLayout.Edge> filteredEdges = List.of();
+    private TechnologyGraphLayout.Bounds filteredBounds = layout.bounds();
 
     public TechnologyTreeScreen(AssistantScreen assistantScreen) {
         super(Component.translatable("screen.ic2newera.technology.fullscreen.title"));
@@ -65,308 +50,313 @@ public final class TechnologyTreeScreen extends Screen {
     @Override
     protected void init() {
         String query = searchBox == null ? "" : searchBox.getValue();
-        boolean layoutChanged = lastLayoutWidth != width || lastLayoutHeight != height;
-        lastLayoutWidth = width;
-        lastLayoutHeight = height;
         dragging = false;
         panButton = -1;
         setDragging(false);
-        int right = width - 14;
-        addRenderableWidget(new Button(right - 62, 8, 62, 20,
-                Component.translatable("screen.ic2newera.technology.fullscreen.back"), button -> onClose()));
-        addRenderableWidget(new Button(right - 144, 8, 76, 20,
-                Component.translatable("screen.ic2newera.technology.fullscreen.home"), button -> resetView()));
-        if (width < 300) {
-            searchBox = new EditBox(font, 14, 54, Math.max(86, width - 28), 20,
-                    Component.translatable("screen.ic2newera.technology.fullscreen.search"));
-        } else if (width < 376) {
-            searchBox = new EditBox(font, 14, 54, width - 108, 20,
-                    Component.translatable("screen.ic2newera.technology.fullscreen.search"));
-        } else {
-            boolean compact = width < 540;
-            searchBox = new EditBox(font, compact ? 14 : right - 350, 8,
-                    compact ? Math.max(86, width - 290) : 190, 20,
-                    Component.translatable("screen.ic2newera.technology.fullscreen.search"));
-        }
-        searchBox.setSuggestion(Component.translatable("screen.ic2newera.technology.fullscreen.search_hint").getString());
+        addRenderableWidget(new Button(width - 64, 7, 54, 18, Component.literal("返回"), button -> onClose()));
+        int chapterWidth = Math.min(110, Math.max(74, width / 4));
+        searchBox = new EditBox(font, 10, 31, Math.max(60, width - chapterWidth - 28), 18, Component.literal("搜索科技"));
+        searchBox.setSuggestion("搜索名称、说明或分支");
         searchBox.setValue(query);
         addRenderableWidget(searchBox);
+        chapterButton = addRenderableWidget(new Button(width - chapterWidth - 10, 31, chapterWidth, 18,
+                chapterLabel(), button -> cycleChapter(),
+                (button, pose, mx, my) -> renderTooltip(pose, chapterLabel(), mx, my)));
+        int side = sidebarLeft() + 7, toolsWidth = width - side - 17, top = canvasTop();
+        addRenderableWidget(new Button(side, top + 17, 22, 18, Component.literal("−"), button -> zoomAt(zoom / 1.2, canvasCenterX(), canvasCenterY())));
+        addRenderableWidget(new Button(side + toolsWidth - 22, top + 17, 22, 18, Component.literal("+"), button -> zoomAt(zoom * 1.2, canvasCenterX(), canvasCenterY())));
+        zoomSlider = addRenderableWidget(new ZoomSlider(side, top + 39, toolsWidth, 18));
+        int half = (toolsWidth - 4) / 2;
+        addRenderableWidget(new Button(side, top + 61, half, 18, Component.literal("复位"), button -> resetView()));
+        addRenderableWidget(new Button(side + half + 4, top + 61, toolsWidth - half - 4, 18, Component.literal("适配"), button -> fitView()));
+        syncSnapshot();
         rebuildChapters();
-        int chapterX;
-        int chapterY;
-        int chapterWidth;
-        if (width < 300) {
-            chapterX = 14;
-            chapterY = 78;
-            chapterWidth = Math.max(86, width - 28);
-        } else if (width < 376) {
-            chapterX = width - 86;
-            chapterY = 54;
-            chapterWidth = 72;
-        } else {
-            boolean compact = width < 540;
-            chapterX = compact ? width - 270 : right - 430;
-            chapterY = 8;
-            chapterWidth = compact ? 70 : 72;
-        }
-        chapterButton = addRenderableWidget(new Button(chapterX, chapterY, chapterWidth, 20,
-                UiText.fit(font, chapterLabel(), chapterWidth - 8), button -> cycleChapter(),
-                (button, pose, mouseX, mouseY) -> renderTooltip(pose, chapterLabel(), mouseX, mouseY)));
-        lastSnapshot = TechnologyClientState.nodes();
-        lastSnapshotTotal = TechnologyClientState.totalCount();
-        hasSeenServerTree = lastSnapshotTotal > 0;
-        if ((!cameraInitialized || layoutChanged) && hasSeenServerTree) fitView(visibleNodes());
-        lastFilterKey = filterKey();
+        refreshFilter();
+        if (!cameraInitialized && !filtered.isEmpty()) resetView();
+        syncZoomSlider();
     }
+
+    private Component chapterLabel() { return Component.literal(chapter.isEmpty() ? "全部分支" : chapter); }
 
     private void rebuildChapters() {
-        String previous = chapter;
-        Set<String> names = new LinkedHashSet<>();
-        TechnologyClientState.nodes().stream().map(NodeView::branch).filter(value -> !value.isBlank())
-                .sorted(String.CASE_INSENSITIVE_ORDER).forEach(names::add);
         List<String> choices = new ArrayList<>();
         choices.add("");
-        choices.addAll(names);
+        choices.addAll(TechnologyClientState.nodes().stream().map(NodeView::branch).filter(value -> !value.isBlank()).distinct().sorted().toList());
         chapters = List.copyOf(choices);
-        chapterIndex = Math.max(0, chapters.indexOf(previous));
-        chapter = chapters.isEmpty() ? "" : chapters.get(chapterIndex);
-        if (chapterButton != null) {
-            chapterButton.setMessage(UiText.fit(font, chapterLabel(), chapterButton.getWidth() - 8));
-        }
-    }
-
-    private Component chapterLabel() {
-        return chapter.isEmpty() ? Component.translatable("screen.ic2newera.technology.fullscreen.all_chapters")
-                : Component.literal(chapter);
+        if (!chapters.contains(chapter)) chapter = "";
+        if (chapterButton != null) chapterButton.setMessage(UiText.fit(font, chapterLabel(), chapterButton.getWidth() - 8));
     }
 
     private void cycleChapter() {
-        chapterIndex = (chapterIndex + 1) % Math.max(1, chapters.size());
-        chapter = chapters.isEmpty() ? "" : chapters.get(chapterIndex);
-        if (chapterButton != null) chapterButton.setMessage(UiText.fit(font, chapterLabel(), chapterButton.getWidth() - 8));
-        if (selectedId != null && visibleNodes().stream().noneMatch(node -> node.id().equals(selectedId))) selectedId = null;
-        filterChanged();
-    }
-
-    private void resetView() {
-        fitView(visibleNodes());
-    }
-
-    private void fitView(List<NodeView> nodes) {
-        if (nodes.isEmpty()) {
-            cameraX = cameraY = 0;
-            return;
-        } else {
-            int minX = nodes.stream().mapToInt(NodeView::x).min().orElse(0);
-            int minY = nodes.stream().mapToInt(NodeView::y).min().orElse(0);
-            int maxX = nodes.stream().mapToInt(NodeView::x).max().orElse(0) + NODE_W;
-            int maxY = nodes.stream().mapToInt(NodeView::y).max().orElse(0) + NODE_H;
-            cameraX = (minX + maxX) / 2.0;
-            cameraY = (minY + maxY) / 2.0;
-            int viewW = Math.max(1, canvasRight() - canvasLeft() - 56);
-            int viewH = Math.max(1, canvasBottom() - (headerHeight() + 8) - 56);
-            double fitX = viewW / (double)Math.max(NODE_W, maxX - minX);
-            double fitY = viewH / (double)Math.max(NODE_H, maxY - minY);
-            zoom = Math.max(0.15, Math.min(1.2, Math.min(fitX, fitY)));
-        }
-        detailScroll = 0;
-        cameraInitialized = true;
-    }
-
-    private String filterKey() {
-        String query = searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);
-        return chapter + "\u0000" + query;
-    }
-
-    private void filterChanged() {
-        String key = filterKey();
-        if (key.equals(lastFilterKey)) return;
-        lastFilterKey = key;
-        fitView(visibleNodes());
+        chapter = chapters.get((chapters.indexOf(chapter) + 1) % chapters.size());
+        chapterButton.setMessage(UiText.fit(font, chapterLabel(), chapterButton.getWidth() - 8));
+        refreshFilter();
+        fitView();
     }
 
     private void syncSnapshot() {
         List<NodeView> current = TechnologyClientState.nodes();
         int total = TechnologyClientState.totalCount();
         if (current == lastSnapshot && total == lastSnapshotTotal) return;
-        boolean firstData = !hasSeenServerTree && (total > 0 || !current.isEmpty());
-        boolean firstVisibleData = !cameraInitialized && !current.isEmpty();
         lastSnapshot = current;
         lastSnapshotTotal = total;
-        if (total > 0 || !current.isEmpty()) hasSeenServerTree = true;
+        layout = TechnologyGraphLayout.create(current);
+        lastFilterKey = null;
         rebuildChapters();
-        if (firstData || firstVisibleData) {
-            fitView(visibleNodes());
-            lastFilterKey = filterKey();
-        } else if (selectedId != null && current.stream().noneMatch(node -> node.id().equals(selectedId))) {
-            selectedId = null;
-            detailScroll = 0;
-        }
+        refreshFilter();
+        if (selectedId != null && !layout.byId().containsKey(selectedId)) selectedId = null;
+        if (!cameraInitialized && !filtered.isEmpty()) resetView();
     }
 
-    private List<NodeView> visibleNodes() {
+    private void refreshFilter() {
         String query = searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);
-        List<NodeView> result = new ArrayList<>();
-        for (NodeView node : TechnologyClientState.nodes()) {
-            if (!chapter.isEmpty() && !chapter.equals(node.branch())) continue;
-            if (!query.isEmpty()) {
-                String text = (node.title().getString() + " " + node.description().getString() + " " + node.branch())
-                        .toLowerCase(Locale.ROOT);
-                if (!text.contains(query)) continue;
-            }
-            result.add(node);
-        }
-        result.sort(Comparator.comparingInt(NodeView::x).thenComparingInt(NodeView::y));
-        return result;
+        String key = chapter + "\u0000" + query;
+        if (key.equals(lastFilterKey)) return;
+        lastFilterKey = key;
+        filtered = layout.nodes().stream().filter(point -> {
+            NodeView node = point.node();
+            return (chapter.isEmpty() || chapter.equals(node.branch())) && (query.isEmpty()
+                    || (node.title().getString() + " " + node.description().getString() + " " + node.branch()).toLowerCase(Locale.ROOT).contains(query));
+        }).toList();
+        Set<ResourceLocation> ids = new HashSet<>();
+        for (PlacedNode node : filtered) ids.add(node.node().id());
+        filteredEdges = layout.edges().stream().filter(edge -> ids.contains(edge.parent().node().id()) && ids.contains(edge.child().node().id())).toList();
+        filteredBounds = filtered.isEmpty() ? layout.bounds() : new TechnologyGraphLayout.Bounds(
+                filtered.stream().mapToInt(PlacedNode::x).min().orElse(0), filtered.stream().mapToInt(PlacedNode::y).min().orElse(0),
+                filtered.stream().mapToInt(PlacedNode::x).max().orElse(0) + TechnologyGraphLayout.NODE_WIDTH,
+                filtered.stream().mapToInt(PlacedNode::y).max().orElse(0) + TechnologyGraphLayout.NODE_HEIGHT);
+        if (selectedId != null && !ids.contains(selectedId)) { selectedId = null; detailScroll = 0; }
+    }
+
+    private void resetView() {
+        if (filtered.isEmpty()) return;
+        PlacedNode root = filtered.stream().min(java.util.Comparator.comparingInt(PlacedNode::depth)
+                .thenComparingInt(PlacedNode::x)).orElse(filtered.get(0));
+        zoom = Math.max(MIN_ZOOM, Math.min(1.0, (canvasRight() - canvasLeft() - 24) / 290.0));
+        cameraX = root.x() + TechnologyGraphLayout.NODE_WIDTH / 2.0;
+        cameraY = root.y() + TechnologyGraphLayout.NODE_HEIGHT - (canvasBottom() - canvasTop()) / (2.0 * zoom) + 18 / zoom;
+        cameraInitialized = true;
+        syncZoomSlider();
+    }
+
+    private void fitView() {
+        cameraX = (filteredBounds.minX() + filteredBounds.maxX()) / 2.0;
+        cameraY = (filteredBounds.minY() + filteredBounds.maxY()) / 2.0;
+        zoom = clampZoom(Math.min(1.2, Math.min((canvasRight() - canvasLeft() - 24) / (double)Math.max(1, filteredBounds.width()),
+                (canvasBottom() - canvasTop() - 24) / (double)Math.max(1, filteredBounds.height()))));
+        cameraInitialized = !filtered.isEmpty();
+        syncZoomSlider();
     }
 
     @Override
     public void render(PoseStack pose, int mouseX, int mouseY, float partialTick) {
         syncSnapshot();
-        filterChanged();
+        String previous = lastFilterKey;
+        refreshFilter();
+        if (previous != null && !previous.equals(lastFilterKey)) fitView();
         renderBackground(pose);
-        drawBlueprint(pose);
+        drawBlueprint(pose, mouseX, mouseY);
         super.render(pose, mouseX, mouseY, partialTick);
-        renderHover(pose, mouseX, mouseY);
-    }
-
-    private void drawBlueprint(PoseStack pose) {
-        GuiComponent.fill(pose, 0, 0, width, height, IndustrialPalette.BACKGROUND);
-        int headerHeight = headerHeight();
-        GuiComponent.fill(pose, 0, 0, width, headerHeight, IndustrialPalette.HEADER);
-        GuiComponent.fill(pose, 0, headerHeight - 1, width, headerHeight, IndustrialPalette.BORDER);
-        int panelLeft = canvasLeft();
-        int panelRight = canvasRight();
-        int detailLeft = panelRight + 10;
-        int bottom = canvasBottom();
-        GuiComponent.fill(pose, panelLeft - 1, headerHeight + 7, panelRight + 1, bottom + 1, IndustrialPalette.CANVAS);
-        GuiComponent.fill(pose, detailLeft - 1, headerHeight + 7, width - 12, bottom + 1, IndustrialPalette.PANEL);
-        drawGrid(pose, panelLeft, headerHeight + 8, panelRight, bottom);
-        drawCanvas(pose, panelLeft, headerHeight + 8, panelRight, bottom);
-        drawDetails(pose, detailLeft + 10, headerHeight + 18, width - 22, bottom - 10);
-        font.draw(pose, getTitle(), 14, 29, IndustrialPalette.TEXT);
-        Component summary = Component.translatable("screen.ic2newera.technology.summary",
-                TechnologyClientState.completedCount(), TechnologyClientState.totalCount());
-        Component hidden = Component.translatable("screen.ic2newera.technology.hidden",
-                TechnologyClientState.hiddenCount());
-        font.draw(pose, summary, 14, height - 36, IndustrialPalette.ACCENT);
-        font.draw(pose, hidden, width - font.width(hidden) - 14, height - 36, IndustrialPalette.MUTED);
-        String zoomKey = width < 540 ? "screen.ic2newera.technology.fullscreen.zoom_hint_compact"
-                : "screen.ic2newera.technology.fullscreen.zoom_hint";
-        String dragKey = width < 540 ? "screen.ic2newera.technology.fullscreen.drag_hint_compact"
-                : "screen.ic2newera.technology.fullscreen.drag_hint";
-        String zoomText = Math.round(zoom * 100) + "%  ·  " + Component.translatable(zoomKey).getString();
-        int textWidth = font.width(zoomText);
-        String dragText = font.plainSubstrByWidth(Component.translatable(dragKey).getString(),
-                Math.max(0, width - textWidth - 44));
-        font.draw(pose, dragText, 14, height - 19, IndustrialPalette.MUTED);
-        font.draw(pose, zoomText, width - textWidth - 16, height - 19, IndustrialPalette.MUTED);
-    }
-
-    private void drawGrid(PoseStack pose, int left, int top, int right, int bottom) {
-        int spacing = Math.max(12, (int)(32 * zoom));
-        for (int x = left; x < right; x += spacing) GuiComponent.fill(pose, x, top, x + 1, bottom, IndustrialPalette.GRID);
-        for (int y = top; y < bottom; y += spacing) GuiComponent.fill(pose, left, y, right, y + 1, IndustrialPalette.GRID);
-        GuiComponent.fill(pose, left, top, right, top + 1, IndustrialPalette.BORDER);
-    }
-
-    private void drawCanvas(PoseStack pose, int left, int top, int right, int bottom) {
-        List<NodeView> nodes = visibleNodes();
-        points.clear();
-        pointsById.clear();
-        for (NodeView node : nodes) {
-            double sx = left + (node.x() - cameraX) * zoom + (right - left) / 2.0;
-            double sy = top + (node.y() - cameraY) * zoom + (bottom - top) / 2.0;
-            NodePoint point = new NodePoint(node, sx, sy);
-            points.add(point);
-            pointsById.put(node.id(), point);
+        if (insideCanvas(mouseX, mouseY) && !dragging) {
+            PlacedNode hovered = hit(mouseX, mouseY);
+            if (hovered != null) renderTooltip(pose, List.of(hovered.node().title().getVisualOrderText(),
+                    Component.literal(hovered.node().status() == 2 ? "已完成 · " + hovered.node().branch() : "可推进 · " + hovered.node().branch()).getVisualOrderText()), mouseX, mouseY);
         }
-        scissor(left, top, right - left, bottom - top);
-        for (NodePoint point : points) {
-            for (ResourceLocation parent : point.node.prerequisites()) {
-                NodePoint parentPoint = findPoint(parent);
-                if (parentPoint != null) {
-                    int color = point.node.status() == 2 ? IndustrialPalette.COMPLETE : IndustrialPalette.BORDER;
-                    lineClipped(pose, parentPoint.x + NODE_W * zoom, parentPoint.y + NODE_H * zoom / 2,
-                            point.x, point.y + NODE_H * zoom / 2, left, top, right, bottom, color);
-                }
+    }
+
+    private void drawBlueprint(PoseStack pose, int mouseX, int mouseY) {
+        GuiComponent.fill(pose, 0, 0, width, height, TechnologyTreeTheme.BACKGROUND);
+        GuiComponent.fill(pose, 0, 0, width, 27, TechnologyTreeTheme.PANEL);
+        GuiComponent.fill(pose, 10, 26, width - 10, 27, TechnologyTreeTheme.CYAN);
+        font.draw(pose, getTitle(), 12, 11, TechnologyTreeTheme.TEXT);
+        int left = canvasLeft(), right = canvasRight(), top = canvasTop(), bottom = canvasBottom();
+        panel(pose, left - 1, top - 1, right + 1, bottom + 1, TechnologyTreeTheme.CANVAS);
+        panel(pose, sidebarLeft(), top - 1, width - 10, bottom + 1, TechnologyTreeTheme.PANEL);
+        UiScissor.enable(minecraft, left, top, right, bottom);
+        try {
+            drawGrid(pose);
+            for (TechnologyGraphLayout.Edge edge : filteredEdges) drawEdge(pose, edge);
+            for (PlacedNode point : filtered) {
+                double x = screenX(point.x()), y = screenY(point.y());
+                if (x + TechnologyGraphLayout.NODE_WIDTH * zoom < left || x > right || y + TechnologyGraphLayout.NODE_HEIGHT * zoom < top || y > bottom) continue;
+                TechnologyTreeTheme.drawNode(pose, font, itemRenderer, point.node(), x, y, zoom,
+                        point.node().id().equals(selectedId), insideCanvas(mouseX, mouseY) && contains(point, mouseX, mouseY));
             }
-        }
-        for (NodePoint point : points) {
-            if (intersectsCanvas(point, left, top, right, bottom)) drawNode(pose, point, left, top, right, bottom);
-        }
-        RenderSystem.disableScissor();
-        if (nodes.isEmpty()) font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.no_results"),
-                left + 18, top + 18, IndustrialPalette.TEXT);
+            if (filtered.isEmpty()) font.draw(pose, Component.literal("暂无匹配科技"), left + 12, top + 14, TechnologyTreeTheme.MUTED);
+        } finally { RenderSystem.disableScissor(); }
+        int side = sidebarLeft() + 8;
+        font.draw(pose, "视图缩放", side, top + 5, TechnologyTreeTheme.CYAN);
+        String percent = Math.round(zoom * 100) + "%";
+        font.draw(pose, percent, (side + width - 18 - font.width(percent)) / 2, top + 22, TechnologyTreeTheme.TEXT);
+        GuiComponent.fill(pose, side, top + 85, width - 18, top + 86, TechnologyTreeTheme.BORDER);
+        drawDetails(pose, side, top + 92, width - 18, bottom - 5);
+        String summary = "已完成 " + TechnologyClientState.completedCount() + "/" + TechnologyClientState.totalCount()
+                + "  ·  隐藏 " + TechnologyClientState.hiddenCount();
+        font.draw(pose, summary, 11, height - 16, TechnologyTreeTheme.COMPLETE);
+        if (width >= 540) font.draw(pose, dragging ? "正在拖动画布" : "拖动平移 · 滚轮缩放 · Home 复位",
+                width - font.width("拖动平移 · 滚轮缩放 · Home 复位") - 11, height - 16, TechnologyTreeTheme.MUTED);
+        else if (dragging) font.draw(pose, "拖动中", right - font.width("拖动中"), height - 16, TechnologyTreeTheme.CYAN);
     }
 
-    private void drawNode(PoseStack pose, NodePoint point, int left, int top, int right, int bottom) {
-        int x = (int)Math.round(point.x), y = (int)Math.round(point.y);
-        int w = Math.max(18, (int)Math.round(NODE_W * zoom));
-        int h = Math.max(12, (int)Math.round(NODE_H * zoom));
-        boolean selected = point.node.id().equals(selectedId);
-        int border = selected ? IndustrialPalette.SELECTED : point.node.status() == 2 ? IndustrialPalette.COMPLETE : IndustrialPalette.BORDER;
-        GuiComponent.fill(pose, x - 1, y - 1, x + w + 1, y + h + 1, border);
-        GuiComponent.fill(pose, x, y, x + w, y + h, point.node.status() == 2 ? IndustrialPalette.COMPLETE_FILL : IndustrialPalette.NODE_FILL);
-        GuiComponent.fill(pose, x + 1, y + 1, x + 4, y + h - 1, branchAccent(point.node.branch()));
-        if (zoom >= 0.62) {
-            ItemStack icon = point.node.icon();
-            if (icon != null && !icon.isEmpty()) itemRenderer.renderAndDecorateItem(icon, x + 5, y + Math.max(1, (h - 16) / 2));
+    private void panel(PoseStack pose, int left, int top, int right, int bottom, int fill) {
+        GuiComponent.fill(pose, left, top, right, bottom, TechnologyTreeTheme.BORDER);
+        GuiComponent.fill(pose, left + 1, top + 1, right - 1, bottom - 1, fill);
+        for (int x : new int[]{left + 3, right - 5}) for (int y : new int[]{top + 3, bottom - 5})
+            GuiComponent.fill(pose, x, y, x + 2, y + 2, TechnologyTreeTheme.CYAN);
+    }
+
+    private void drawGrid(PoseStack pose) {
+        double step = Math.max(14, 38 * zoom);
+        double firstX = canvasLeft() + positiveMod(screenX(0) - canvasLeft(), step);
+        double firstY = canvasTop() + positiveMod(screenY(0) - canvasTop(), step);
+        for (double x = firstX; x < canvasRight(); x += step)
+            GuiComponent.fill(pose, (int)x, canvasTop(), (int)x + 1, canvasBottom(), TechnologyTreeTheme.GRID);
+        for (double y = firstY; y < canvasBottom(); y += step)
+            GuiComponent.fill(pose, canvasLeft(), (int)y, canvasRight(), (int)y + 1, TechnologyTreeTheme.GRID);
+    }
+
+    private static double positiveMod(double value, double divisor) { return (value % divisor + divisor) % divisor; }
+
+    private void drawEdge(PoseStack pose, TechnologyGraphLayout.Edge edge) {
+        double ax = screenX(edge.parent().x() + TechnologyGraphLayout.NODE_WIDTH / 2.0), ay = screenY(edge.parent().y());
+        double bx = screenX(edge.child().x() + TechnologyGraphLayout.NODE_WIDTH / 2.0), by = screenY(edge.child().y() + TechnologyGraphLayout.NODE_HEIGHT);
+        double joint = screenY(edge.elbowY());
+        if (Math.max(ax, bx) < canvasLeft() || Math.min(ax, bx) > canvasRight()
+                || Math.max(Math.max(ay, by), joint) < canvasTop() || Math.min(Math.min(ay, by), joint) > canvasBottom()) return;
+        int color = edge.child().node().status() == 2 ? TechnologyTreeTheme.COMPLETE
+                : edge.primary() ? TechnologyTreeTheme.branchAccent(edge.child().node().branch()) : TechnologyTreeTheme.BORDER;
+        int thickness = edge.primary() ? Math.max(2, (int)Math.round(3 * zoom)) : 1;
+        segment(pose, ax, ay, ax, joint, thickness, color);
+        segment(pose, ax, joint, bx, joint, thickness, color);
+        segment(pose, bx, joint, bx, by, thickness, color);
+    }
+
+    private void segment(PoseStack pose, double x1, double y1, double x2, double y2, int thickness, int color) {
+        int half = thickness / 2;
+        int left = Math.max(canvasLeft(), (int)Math.floor(Math.min(x1, x2)) - half);
+        int top = Math.max(canvasTop(), (int)Math.floor(Math.min(y1, y2)) - half);
+        int right = Math.min(canvasRight(), (int)Math.ceil(Math.max(x1, x2)) - half + thickness);
+        int bottom = Math.min(canvasBottom(), (int)Math.ceil(Math.max(y1, y2)) - half + thickness);
+        if (right > left && bottom > top) GuiComponent.fill(pose, left, top, right, bottom, color);
+    }
+
+    private PlacedNode hit(double mx, double my) {
+        for (PlacedNode point : filtered) if (contains(point, mx, my)) return point;
+        return null;
+    }
+    private boolean contains(PlacedNode point, double mx, double my) {
+        double x = screenX(point.x()), y = screenY(point.y());
+        return mx >= x && mx < x + TechnologyGraphLayout.NODE_WIDTH * zoom && my >= y && my < y + TechnologyGraphLayout.NODE_HEIGHT * zoom;
+    }
+    private double screenX(double x) { return canvasCenterX() + (x - cameraX) * zoom; }
+    private double screenY(double y) { return canvasCenterY() + (y - cameraY) * zoom; }
+    private double canvasCenterX() { return (canvasLeft() + canvasRight()) / 2.0; }
+    private double canvasCenterY() { return (canvasTop() + canvasBottom()) / 2.0; }
+    private int canvasLeft() { return 10; }
+    private int canvasTop() { return 57; }
+    private int canvasRight() { return sidebarLeft() - 7; }
+    private int sidebarLeft() { return width - Math.min(250, Math.max(124, width / 3)) - 10; }
+    private int canvasBottom() { return Math.max(canvasTop() + 24, height - 24); }
+    private boolean insideCanvas(double x, double y) { return x >= canvasLeft() && x < canvasRight() && y >= canvasTop() && y < canvasBottom(); }
+    private static double clampZoom(double value) { return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, value)); }
+    private void zoomAt(double requested, double anchorX, double anchorY) {
+        double worldX = cameraX + (anchorX - canvasCenterX()) / zoom;
+        double worldY = cameraY + (anchorY - canvasCenterY()) / zoom;
+        zoom = clampZoom(requested);
+        cameraX = worldX - (anchorX - canvasCenterX()) / zoom;
+        cameraY = worldY - (anchorY - canvasCenterY()) / zoom;
+        syncZoomSlider();
+    }
+    private void syncZoomSlider() { if (zoomSlider != null) zoomSlider.sync(); }
+
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        if (insideCanvas(mx, my) && (button == 0 || button == 2)) {
+            dragging = true; dragged = false; panButton = button;
+            pressMouseX = lastMouseX = mx; pressMouseY = lastMouseY = my;
+            setFocused(null); setDragging(true);
+            return true;
         }
-        int textX = x + (zoom >= 0.62 && w >= 40 ? 24 : 5);
-        int textWidth = Math.max(1, w - (textX - x) - 3);
-        String label = font.plainSubstrByWidth(point.node.title().getString(), textWidth);
-        font.draw(pose, label, textX, y + Math.max(2, (h - font.lineHeight) / 2), IndustrialPalette.TEXT);
-        if (point.node.hiddenDescendants() > 0 && w > 50) {
-            String hidden = "+" + point.node.hiddenDescendants();
-            int hiddenW = font.width(hidden);
-            font.draw(pose, hidden, x + w - hiddenW - 3, y + 2, IndustrialPalette.SELECTED);
+        if (insideCanvas(mx, my) && button == 1) { selectedId = null; detailScroll = 0; return true; }
+        return super.mouseClicked(mx, my, button);
+    }
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (dragging && button == panButton) {
+            if (Math.abs(mx - pressMouseX) + Math.abs(my - pressMouseY) > 2) dragged = true;
+            if (dragged) { cameraX -= (mx - lastMouseX) / zoom; cameraY -= (my - lastMouseY) / zoom; }
+            lastMouseX = mx; lastMouseY = my;
+            return true;
         }
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        if (dragging && button == panButton) {
+            if (!dragged && button == 0 && insideCanvas(mx, my)) {
+                PlacedNode point = hit(mx, my);
+                if (point != null) { selectedId = point.node().id(); detailScroll = 0; }
+            }
+            dragging = false; panButton = -1; setDragging(false);
+            return true;
+        }
+        return super.mouseReleased(mx, my, button);
+    }
+    @Override
+    public boolean mouseScrolled(double mx, double my, double delta) {
+        if (insideCanvas(mx, my)) { zoomAt(zoom * Math.pow(1.14, delta), mx, my); return true; }
+        if (mx >= sidebarLeft() && my >= canvasTop() + 92 && my < canvasBottom()) {
+            detailScroll = Math.max(0, detailScroll - delta * 18); return true;
+        }
+        return super.mouseScrolled(mx, my, delta);
     }
 
     private void drawDetails(PoseStack pose, int left, int top, int right, int bottom) {
-        NodeView node = selectedId == null ? null : TechnologyClientState.nodes().stream()
-                .filter(value -> value.id().equals(selectedId)).findFirst().orElse(null);
+        if (right <= left || bottom <= top) return;
+        PlacedNode selected = selectedId == null ? null : layout.byId().get(selectedId);
+        NodeView node = selected == null ? null : selected.node();
         if (node == null) {
-            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.details"), left, top, IndustrialPalette.ACCENT);
+            scissor(left, top, right - left, bottom - top);
+            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.details"), left, top, TechnologyTreeTheme.CYAN);
             int y = top + font.lineHeight + 10;
-            drawWrapped(pose, Component.translatable("screen.ic2newera.technology.fullscreen.select_hint"), left, y, right - left, IndustrialPalette.TEXT);
+            drawWrapped(pose, Component.translatable("screen.ic2newera.technology.fullscreen.select_hint"), left, y, right - left, TechnologyTreeTheme.TEXT);
+            RenderSystem.disableScissor();
             return;
         }
         int contentHeight = detailContentHeight(node, right - left);
         detailScroll = Math.max(0, Math.min(detailScroll, contentHeight - (bottom - top)));
         scissor(left, top, right - left, bottom - top);
         int y = top - (int)detailScroll;
-        font.draw(pose, font.plainSubstrByWidth(node.title().getString(), right - left), left, y, IndustrialPalette.TEXT);
+        font.draw(pose, font.plainSubstrByWidth(node.title().getString(), right - left), left, y, TechnologyTreeTheme.TEXT);
         y += font.lineHeight + 5;
-        font.draw(pose, node.branch(), left, y, IndustrialPalette.ACCENT);
+        font.draw(pose, node.branch(), left, y, TechnologyTreeTheme.CYAN);
         y += font.lineHeight + 3;
         font.draw(pose, Component.translatable(node.status() == 2
-                ? "screen.ic2newera.technology.status.complete" : "screen.ic2newera.technology.status.available"), left, y, IndustrialPalette.ACCENT);
+                ? "screen.ic2newera.technology.status.complete" : "screen.ic2newera.technology.status.available"), left, y, TechnologyTreeTheme.CYAN);
         y += font.lineHeight + 8;
-        drawWrapped(pose, node.description(), left, y, right - left, IndustrialPalette.TEXT);
+        drawWrapped(pose, node.description(), left, y, right - left, TechnologyTreeTheme.TEXT);
         y += wrappedHeight(node.description(), right - left) + 8;
         if (!node.steps().isEmpty()) {
-            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.process"), left, y, IndustrialPalette.SELECTED);
+            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.process"), left, y, TechnologyTreeTheme.GOLD);
             y += font.lineHeight + 3;
             for (int i = 0; i < node.steps().size(); i++) {
                 Component step = Component.literal((i + 1) + ". ").append(node.steps().get(i));
-                drawWrapped(pose, step, left, y, right - left, IndustrialPalette.TEXT);
+                drawWrapped(pose, step, left, y, right - left, TechnologyTreeTheme.TEXT);
                 y += wrappedHeight(step, right - left) + 4;
             }
         }
         if (!node.objectives().isEmpty()) {
-            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.requirements"), left, y, IndustrialPalette.SELECTED);
+            font.draw(pose, Component.translatable("screen.ic2newera.technology.fullscreen.requirements"), left, y, TechnologyTreeTheme.GOLD);
             y += font.lineHeight + 3;
             for (TechnologyClientState.ObjectiveView objective : node.objectives()) {
                 Component text = objectiveComponent(objective);
-                drawWrapped(pose, text, left, y, right - left, IndustrialPalette.ACCENT);
+                drawWrapped(pose, text, left, y, right - left, TechnologyTreeTheme.CYAN);
                 y += wrappedHeight(text, right - left) + 4;
             }
         }
         if (node.hiddenDescendants() > 0) {
             drawWrapped(pose, Component.translatable("screen.ic2newera.technology.hidden_after", node.hiddenDescendants()),
-                    left, y + 2, right - left, IndustrialPalette.MUTED);
+                    left, y + 2, right - left, TechnologyTreeTheme.MUTED);
         }
         RenderSystem.disableScissor();
     }
@@ -399,202 +389,30 @@ public final class TechnologyTreeScreen extends Screen {
         return y;
     }
 
-    private NodePoint findPoint(ResourceLocation id) {
-        return pointsById.get(id);
-    }
-
-    private int branchAccent(String branch) {
-        return BRANCH_ACCENTS[Math.floorMod(branch == null ? 0 : branch.hashCode(), BRANCH_ACCENTS.length)];
-    }
-
-    private void renderHover(PoseStack pose, int mouseX, int mouseY) {
-        if (!insideCanvas(mouseX, mouseY) || dragging) return;
-        for (NodePoint point : points) {
-            if (hit(point, mouseX, mouseY)) {
-                List<Component> lines = new ArrayList<>();
-                lines.add(point.node.title());
-                lines.add(Component.translatable(point.node.status() == 2
-                        ? "screen.ic2newera.technology.status.complete" : "screen.ic2newera.technology.status.available"));
-                lines.add(Component.literal(point.node.branch()));
-                renderTooltip(pose, lines.stream().map(Component::getVisualOrderText).toList(), mouseX, mouseY);
-                break;
-            }
-        }
-    }
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (insideCanvas(mouseX, mouseY) && (button == 0 || button == 2)) {
-            dragging = true;
-            dragged = false;
-            panButton = button;
-            lastMouseX = pressMouseX = mouseX;
-            lastMouseY = pressMouseY = mouseY;
-            setFocused(null);
-            setDragging(true);
-            return true;
-        }
-        if (insideCanvas(mouseX, mouseY) && button == 1) {
-            selectedId = null;
-            detailScroll = 0;
-            return true;
-        }
-        return super.mouseClicked(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (dragging && button == panButton) {
-            if (Math.abs(mouseX - pressMouseX) + Math.abs(mouseY - pressMouseY) > 3) dragged = true;
-            if (dragged) {
-                cameraX -= (mouseX - lastMouseX) / zoom;
-                cameraY -= (mouseY - lastMouseY) / zoom;
-            }
-            if (dragged) {
-                lastMouseX = mouseX;
-                lastMouseY = mouseY;
-            }
-            return true;
-        }
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (dragging && button == panButton) {
-            if (!dragged && panButton == 0 && insideCanvas(mouseX, mouseY)) {
-                for (NodePoint point : points) if (hit(point, mouseX, mouseY)) {
-                    selectedId = point.node.id();
-                    detailScroll = 0;
-                    break;
-                }
-            }
-            dragging = false;
-            panButton = -1;
-            setDragging(false);
-            return true;
-        }
-        return super.mouseReleased(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (insideCanvas(mouseX, mouseY)) {
-            if (delta == 0) return true;
-            double oldZoom = zoom;
-            double newZoom = Math.max(0.15, Math.min(1.75, oldZoom * (delta > 0 ? 1.12 : 1.0 / 1.12)));
-            if (newZoom != oldZoom) {
-                int left = canvasLeft(), right = canvasRight(), top = headerHeight() + 8, bottom = canvasBottom();
-                double centerX = (left + right) / 2.0;
-                double centerY = (top + bottom) / 2.0;
-                double worldX = cameraX + (mouseX - centerX) / oldZoom;
-                double worldY = cameraY + (mouseY - centerY) / oldZoom;
-                zoom = newZoom;
-                cameraX = worldX - (mouseX - centerX) / zoom;
-                cameraY = worldY - (mouseY - centerY) / zoom;
-            }
-            return true;
-        }
-        if (selectedId != null && mouseX >= canvasRight() && mouseY >= headerHeight() + 8 && mouseY < canvasBottom()) {
-            detailScroll = Math.max(0, detailScroll - delta * 16);
-            return true;
-        }
-        return super.mouseScrolled(mouseX, mouseY, delta);
-    }
-
-    private boolean hit(NodePoint point, double mouseX, double mouseY) {
-        int w = Math.max(18, (int)Math.round(NODE_W * zoom));
-        int h = Math.max(12, (int)Math.round(NODE_H * zoom));
-        return mouseX >= point.x && mouseX < point.x + w && mouseY >= point.y && mouseY < point.y + h;
-    }
-
-    private boolean insideCanvas(double x, double y) {
-        return x >= canvasLeft() && x < canvasRight() && y >= headerHeight() + 8 && y < canvasBottom();
-    }
-
-    private int headerHeight() { return width < 300 ? 104 : width < 376 ? 82 : 42; }
-
-    private int canvasBottom() { return Math.max(headerHeight() + 58, height - 42); }
-
-    private int canvasLeft() { return 14; }
-    private int canvasRight() {
-        int detailsWidth = Math.max(120, Math.min(320, width / 3));
-        return Math.max(canvasLeft() + 1, Math.min(width - 13, width - detailsWidth - 18));
-    }
-
-    private boolean intersectsCanvas(NodePoint point, int left, int top, int right, int bottom) {
-        double w = Math.max(18, NODE_W * zoom), h = Math.max(12, NODE_H * zoom);
-        return point.x + w >= left && point.x <= right && point.y + h >= top && point.y <= bottom;
-    }
-
-    private void lineClipped(PoseStack pose, double x1, double y1, double x2, double y2,
-                             double left, double top, double right, double bottom, int color) {
-        double dx = x2 - x1, dy = y2 - y1;
-        double[] t = {0.0, 1.0};
-        if (!clip(-dx, x1 - left, t) || !clip(dx, right - x1, t)
-                || !clip(-dy, y1 - top, t) || !clip(dy, bottom - y1, t)) return;
-        int ax = (int)Math.round(x1 + t[0] * dx), ay = (int)Math.round(y1 + t[0] * dy);
-        int bx = (int)Math.round(x1 + t[1] * dx), by = (int)Math.round(y1 + t[1] * dy);
-        line(pose, ax, ay, bx, by, color);
-    }
-
-    private boolean clip(double p, double q, double[] t) {
-        if (p == 0) return q >= 0;
-        double ratio = q / p;
-        if (p < 0) {
-            if (ratio > t[1]) return false;
-            if (ratio > t[0]) t[0] = ratio;
-        } else {
-            if (ratio < t[0]) return false;
-            if (ratio < t[1]) t[1] = ratio;
-        }
-        return true;
-    }
-
-    private void line(PoseStack pose, int x1, int y1, int x2, int y2, int color) {
-        int dx = Math.abs(x2 - x1), sx = x1 < x2 ? 1 : -1;
-        int dy = -Math.abs(y2 - y1), sy = y1 < y2 ? 1 : -1;
-        int error = dx + dy;
-        while (true) {
-            GuiComponent.fill(pose, x1, y1, x1 + 1, y1 + 1, color);
-            if (x1 == x2 && y1 == y2) break;
-            int twice = 2 * error;
-            if (twice >= dy) { error += dy; x1 += sx; }
-            if (twice <= dx) { error += dx; y1 += sy; }
-        }
-    }
-
-    private void scissor(int x, int y, int w, int h) {
-        UiScissor.enable(minecraft, x, y, x + w, y + h);
-    }
-
+    private void scissor(int x, int y, int w, int h) { UiScissor.enable(minecraft, x, y, x + w, y + h); }
     private void drawWrapped(PoseStack pose, Component text, int x, int y, int maxWidth, int color) {
-        for (var line : font.split(text, maxWidth)) {
-            font.draw(pose, line, x, y, color);
-            y += font.lineHeight + 2;
-        }
+        for (var line : font.split(text, Math.max(1, maxWidth))) { font.draw(pose, line, x, y, color); y += font.lineHeight + 2; }
     }
-
-    private int wrappedHeight(Component text, int maxWidth) {
-        return font.split(text, maxWidth).size() * (font.lineHeight + 2);
-    }
-
+    private int wrappedHeight(Component text, int maxWidth) { return font.split(text, Math.max(1, maxWidth)).size() * (font.lineHeight + 2); }
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == GLFW.GLFW_KEY_HOME) {
-            resetView();
-            return true;
-        }
+        if (keyCode == GLFW.GLFW_KEY_HOME && (searchBox == null || !searchBox.isFocused())) { resetView(); return true; }
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
-
     @Override
-    public void onClose() {
-        minecraft.setScreen(assistantScreen);
-    }
-
+    public void onClose() { minecraft.setScreen(assistantScreen); }
     @Override
     public boolean isPauseScreen() { return false; }
 
-    private record NodePoint(NodeView node, double x, double y) {}
+    private final class ZoomSlider extends AbstractSliderButton {
+        private ZoomSlider(int x, int y, int width, int height) {
+            super(x, y, width, height, Component.literal("拖动调整缩放"), 0);
+            sync();
+        }
+        private void sync() { value = Math.log(zoom / MIN_ZOOM) / Math.log(MAX_ZOOM / MIN_ZOOM); updateMessage(); }
+        @Override
+        protected void updateMessage() { setMessage(Component.literal("缩放 " + Math.round(zoom * 100) + "%")); }
+        @Override
+        protected void applyValue() { zoomAt(MIN_ZOOM * Math.pow(MAX_ZOOM / MIN_ZOOM, value), canvasCenterX(), canvasCenterY()); }
+    }
 }

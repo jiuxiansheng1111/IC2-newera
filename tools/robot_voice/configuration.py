@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from pathlib import Path
 
 CHARACTERS = ("tomori", "anon", "rana", "soyo", "taki", "sakiko", "uika", "umiri")
@@ -34,7 +35,7 @@ class VoiceConfiguration:
             raise VoiceError("独立语音配置需为不超过64KiB的JSON文件。")
         data = _object(json.loads(self.path.read_text(encoding="utf-8-sig")),
                        {"protocol", "port", "data_directory", "ffmpeg", "base_tts", "rvc", "characters"},
-                       {"gpu_lock_file"})
+                       {"gpu_lock_file", "singing"})
         if type(data["protocol"]) is not int or data["protocol"] != 1:
             raise VoiceError("独立语音配置协议必须为1。")
         self.port = _number(data["port"], 1024, 65535, integer=True)
@@ -59,7 +60,8 @@ class VoiceConfiguration:
             "root", "python", "version", "gpt_weights", "sovits_weights", "bert_base_path", "cnhuhbert_base_path",
             "reference_audio", "prompt_text", "prompt_language", "supported_languages", "seed", "top_k",
             "temperature", "repetition_penalty", "text_split_method",
-        }, {"japanese_frontend_package"}))
+        }, {"japanese_frontend_package", "speed_factor"}))
+        base.setdefault("speed_factor", 0.92)
         for name in ("root", "python", "gpt_weights", "sovits_weights", "bert_base_path", "cnhuhbert_base_path", "reference_audio"):
             base[name] = local_path(base[name])
         base["japanese_frontend_package"] = local_path(base["japanese_frontend_package"]) if base.get("japanese_frontend_package") else None
@@ -78,11 +80,26 @@ class VoiceConfiguration:
         for field, low, high, integer in (("seed", 0, 2**31 - 1, True), ("top_k", 1, 100, True),
                                          ("temperature", 0.1, 2, False), ("repetition_penalty", 1, 3, False)):
             _number(base[field], low, high, integer=integer)
+        base["speed_factor"] = _number(base["speed_factor"], 0.7, 1.2)
         self.base = base
         self.rvc = dict(_object(data["rvc"], {"root", "python", "seed"}))
         for key in ("root", "python"):
             self.rvc[key] = local_path(self.rvc[key])
         _number(self.rvc["seed"], 0, 2**31 - 1, integer=True)
+        singing = data.get("singing")
+        self.singing = None
+        if singing is not None:
+            singing = dict(_object(singing, {"enabled", "python", "model_cache", "model"},
+                                   {"ffprobe", "accompaniment_gain", "vocal_target_rms"}))
+            if type(singing["enabled"]) is not bool or singing["model"] not in ("htdemucs",):
+                raise VoiceError("翻唱配置仅接受明确启用和本地 htdemucs 模型。")
+            for key in ("python", "model_cache"):
+                singing[key] = local_path(singing[key])
+            probe_name = "ffprobe.exe" if os.name == "nt" else "ffprobe"
+            singing["ffprobe"] = local_path(singing["ffprobe"]) if singing.get("ffprobe") else self.ffmpeg.with_name(probe_name)
+            singing["accompaniment_gain"] = _number(singing.get("accompaniment_gain", 0.85), 0.5, 1.0)
+            singing["vocal_target_rms"] = _number(singing.get("vocal_target_rms", 0.20), 0.05, 0.35)
+            self.singing = singing
         characters = _object(data["characters"], set(CHARACTERS))
         self.characters = {}
         for character, value in characters.items():
@@ -132,4 +149,25 @@ class VoiceConfiguration:
                 path = profile[field]
                 if path is not None and not path.is_file():
                     missing.append(f"characters.{character}.{field}")
+        return missing
+
+    def singing_missing(self) -> list[str]:
+        singing = self.singing
+        if not singing or not singing["enabled"]:
+            return ["singing.enabled"]
+        missing = [name for name, path in (("singing.python", singing["python"]),
+                                           ("singing.ffprobe", singing["ffprobe"])) if not path.is_file()]
+        environment = singing["python"].parent.parent
+        package_candidates = [
+            singing["python"].parent / "Lib/site-packages/demucs/separate.py",
+            environment / "Lib/site-packages/demucs/separate.py",
+        ]
+        package_candidates.extend(environment.glob("lib/python*/site-packages/demucs/separate.py"))
+        if not any(path.is_file() for path in package_candidates):
+            missing.append("singing.demucs_package")
+        checkpoint = singing["model_cache"] / "checkpoints" / "955717e8-8726e21a.th"
+        if not checkpoint.is_file():
+            missing.append("singing.local_model_checkpoint")
+        if not self.rvc["python"].is_file():
+            missing.append("rvc.python")
         return missing

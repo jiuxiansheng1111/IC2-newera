@@ -204,7 +204,8 @@ async def run_worker(
     def failure_diagnostic(stdout_path: Path, stderr_path: Path) -> dict | None:
         # Only our two controlled voice workers qualify. Their environment is
         # allowlisted and their job contains no QQ/LLM settings or credentials.
-        expected = {"tts": "tts_worker.py", "rvc": "rvc_worker.py"}.get(stage)
+        expected = {"tts": "tts_worker.py", "rvc": "rvc_worker.py",
+                    "demucs": "separation_worker.py"}.get(stage)
         if not expected or len(args) < 2 or Path(args[1]).resolve() != Path(__file__).with_name(expected):
             return None
         try:

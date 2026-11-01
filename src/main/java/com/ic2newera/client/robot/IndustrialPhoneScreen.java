@@ -4,6 +4,7 @@ import com.ic2newera.client.ui.*;
 import com.ic2newera.industrial.IndustrialMobileAccess;
 import com.ic2newera.robot.*;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.screens.Screen;
@@ -16,6 +17,10 @@ public final class IndustrialPhoneScreen extends Screen {
     private UUID selected;
     private final Map<UUID, PhoneRobotChatScreen> chats = new LinkedHashMap<>(16, 0.75F, true);
     private int page, left, panelWidth, listWidth, rows, refresh;
+    private int detailScroll, detailLineCount, detailVisibleLines, detailBottom;
+    private boolean attentionOnly;
+    private UUID networkDraftDevice;
+    private String networkDraft;
     private EditBox networkName;
     private IndustrialPhoneScreen(IndustrialMobileAccess.Snapshot snapshot) { super(Component.literal("手机")); this.snapshot = snapshot; }
     public static void receive(RobotPackets.PhoneView packet) {
@@ -28,68 +33,92 @@ public final class IndustrialPhoneScreen extends Screen {
             chat.receiveSnapshot(packet.snapshot());
         } else if (client.screen instanceof RobotCollectionScreen collection) {
             collection.receivePhoneSnapshot(packet.snapshot());
+        } else if (client.screen instanceof RobotCookingScreen cooking) {
+            cooking.receivePhoneSnapshot(packet.snapshot());
         } else if (packet.open()) client.setScreen(new IndustrialPhoneScreen(packet.snapshot()));
     }
     void updateSnapshot(IndustrialMobileAccess.Snapshot next) { snapshot = next; }
-    private void openChat(IndustrialMobileAccess.Device device) {
+    private void openChat(IndustrialMobileAccess.Device device, RobotControlTabs.Page page) {
         PhoneRobotChatScreen chat = chats.get(device.id());
         if (chat == null || !chat.matches(device)) {
             if (chats.size() >= 16) chats.remove(chats.keySet().iterator().next());
             chat = new PhoneRobotChatScreen(this, snapshot, device); chats.put(device.id(), chat);
         } else chat.receiveSnapshot(snapshot);
+        chat.openPage(page);
         minecraft.setScreen(chat);
     }
     private IndustrialMobileAccess.Device selected() {
         return snapshot.devices().stream().filter(row -> row.id().equals(selected)).findFirst().orElse(null);
     }
+    private List<IndustrialMobileAccess.Device> visibleDevices() {
+        return snapshot.devices().stream().filter(row -> !attentionOnly || !row.attention().isBlank()).toList();
+    }
     @Override protected void init() {
+        if (networkName != null) networkDraft = networkName.getValue();
         networkName = null;
         panelWidth = Math.min(700, width - 20); left = (width - panelWidth) / 2;
-        listWidth = Math.max(90, Math.min(200, panelWidth / 3)); rows = Math.max(1, (height - 155) / 22);
-        if (selected() == null) selected = snapshot.devices().isEmpty() ? null : snapshot.devices().get(0).id();
-        page = Math.min(page, Math.max(0, (snapshot.devices().size() - 1) / rows));
-        for (int i = 0; i < rows && page * rows + i < snapshot.devices().size(); i++) {
-            var row = snapshot.devices().get(page * rows + i);
-            addRenderableWidget(new UiButton(left, 40 + i * 22, listWidth, 20,
-                    UiText.fit(font, Component.literal((row.id().equals(selected) ? "› " : "") + row.name()), listWidth - 8), button -> {
-                selected = row.id(); rebuildWidgets();
+        listWidth = Math.max(90, Math.min(200, panelWidth / 3)); rows = Math.max(1, (height - 166) / 22);
+        var visible = visibleDevices();
+        if (visible.stream().noneMatch(row -> row.id().equals(selected))) {
+            selected = visible.isEmpty() ? null : visible.get(0).id(); detailScroll = 0;
+        }
+        int pending = (int)snapshot.devices().stream().filter(row -> !row.attention().isBlank()).count();
+        addRenderableWidget(new UiButton(left, 40, listWidth, 18,
+                UiText.fit(font, Component.literal((attentionOnly ? "待处理" : "全部") + " / 提醒 " + pending), listWidth - 8), b -> {
+            attentionOnly = !attentionOnly; page = 0; detailScroll = 0; rebuildWidgets();
+        }));
+        page = Math.min(page, Math.max(0, (visible.size() - 1) / rows));
+        for (int i = 0; i < rows && page * rows + i < visible.size(); i++) {
+            var row = visible.get(page * rows + i);
+            addRenderableWidget(new UiButton(left, 62 + i * 22, listWidth, 20,
+                    UiText.fit(font, Component.literal((row.id().equals(selected) ? "› " : "")
+                            + (row.attention().isBlank() ? "" : "! ") + row.name()), listWidth - 8), button -> {
+                selected = row.id(); detailScroll = 0; rebuildWidgets();
             }));
         }
-        int listBottom = 40 + rows * 22;
-        addRenderableWidget(new UiButton(left, listBottom, listWidth / 2 - 2, 18, Component.literal("上一页"), b -> { page = Math.max(0, page - 1); rebuildWidgets(); }));
-        addRenderableWidget(new UiButton(left + listWidth / 2 + 2, listBottom, listWidth / 2 - 2, 18, Component.literal("下一页"), b -> {
-            page = Math.min(Math.max(0, (snapshot.devices().size() - 1) / rows), page + 1); rebuildWidgets();
+        int listBottom = 62 + rows * 22;
+        var previous = addRenderableWidget(new UiButton(left, listBottom, listWidth / 2 - 2, 18, Component.literal("上一页"), b -> { page = Math.max(0, page - 1); rebuildWidgets(); }));
+        previous.active = page > 0;
+        var next = addRenderableWidget(new UiButton(left + listWidth / 2 + 2, listBottom, listWidth / 2 - 2, 18, Component.literal("下一页"), b -> {
+            page = Math.min(Math.max(0, (visible.size() - 1) / rows), page + 1); rebuildWidgets();
         }));
+        next.active = (page + 1) * rows < visible.size();
         var device = selected();
-        String[] names = device != null && device.kind() == 1 ? new String[]{"跟随", "待命", "伐木", "采矿", "杀戮开启", "杀戮关闭"}
-                : device != null && device.kind() == 4 ? new String[]{"启用AI管理", "关闭AI管理"} : new String[]{"启用/启动", "关闭/暂停"};
-        int[] commands = device != null && device.kind() == 1 ? new int[]{1, 2, 5, 6, 7, 8} : new int[]{10, 11};
-        int columns = panelWidth < 400 ? 3 : 6, gap = 4, buttonWidth = (panelWidth - (columns - 1) * gap) / columns;
+        boolean motor = device != null && device.kind() == 2 && device.motorRpm() != 0;
+        String[] names = device != null && device.kind() == 1 ? new String[]{"聊天 / 语音", "工作 / 管理"}
+                : motor ? new String[]{"启动", "暂停", "32转", "64转", "128转", "反转"} : new String[]{"启用/启动", "关闭/暂停"};
+        int[] commands = device != null && device.kind() == 1 ? new int[]{-1, -2}
+                : motor ? new int[]{10, 11, 20, 20, 20, 20} : new int[]{10, 11};
+        int columns = motor ? (panelWidth < 400 ? 3 : 6) : 2;
+        int gap = 4, buttonWidth = (panelWidth - (columns - 1) * gap) / columns;
         for (int i = 0; i < names.length; i++) {
             int action = commands[i];
+            int speed = motor ? switch (i) { case 2 -> 32; case 3 -> 64; case 4 -> 128; default -> -Math.abs(device.motorRpm()); } * Integer.signum(device.motorRpm()) : 0;
             var button = addRenderableWidget(new UiButton(left + (i % columns) * (buttonWidth + gap), height - 80 + (i / columns) * 22,
-                    buttonWidth, 20, Component.literal(names[i]), b -> command(action, "")));
-            button.active = device != null && device.controllable() && device.kind() != 5 && device.kind() != 6;
+                    buttonWidth, 20, UiText.fit(font, Component.literal(names[i]), buttonWidth - 6), b -> {
+                if (action < 0) openChat(device, action == -1 ? RobotControlTabs.Page.CHAT : RobotControlTabs.Page.WORK);
+                else command(action, action == 20 ? Integer.toString(speed) : "");
+            }));
+            button.active = device != null && device.controllable() && device.kind() != 5 && device.kind() != 6
+                    && (device.kind() != 1 || Arrays.stream(RobotCharacter.values()).anyMatch(c -> c.id.equals(device.character())));
         }
         if (device != null && device.kind() == 5) {
             networkName = addRenderableWidget(new EditBox(font, left + listWidth + 10, height - 106, Math.max(40, panelWidth - listWidth - 94), 18, Component.literal("网络名")));
-            networkName.setMaxLength(32); networkName.setValue(snapshot.network());
+            if (!device.id().equals(networkDraftDevice)) { networkDraftDevice = device.id(); networkDraft = snapshot.network(); }
+            networkName.setMaxLength(32); networkName.setValue(networkDraft == null ? snapshot.network() : networkDraft);
             var rename = addRenderableWidget(new UiButton(left + panelWidth - 80, height - 106, 80, 18, Component.literal("设置网络名"), b -> command(12, networkName.getValue())));
             rename.active = device.controllable();
         }
-        if (device != null && device.kind() == 1) {
-            int available = Math.max(40, panelWidth - listWidth - 12), chatWidth = (available - 4) / 2;
-            var chat = addRenderableWidget(new UiButton(left + listWidth + 10, height - 106,
-                    chatWidth, 20, Component.literal("角色聊天 / 语音"),
-                    b -> openChat(device)));
-            chat.active = device.controllable() && Arrays.stream(RobotCharacter.values()).anyMatch(c -> c.id.equals(device.character()));
-            var task = addRenderableWidget(new UiButton(left + listWidth + 14 + chatWidth, height - 106,
-                    available - chatWidth - 4, 20, Component.literal("指定采集"),
-                    b -> minecraft.setScreen(new RobotCollectionScreen(this, device.id(), device.name(), true))));
-            task.active = device.controllable();
-        }
+        detailBottom = device != null && device.kind() == 5 ? height - 111 : height - 87;
+        detailVisibleLines = Math.max(1, (detailBottom - 54) / 11);
         addRenderableWidget(new UiButton(left, height - 24, 70, 20, Component.literal("刷新状态"), b -> command(0, "")));
-        addRenderableWidget(new UiButton(left + 74, height - 24, 70, 20, Component.literal("手机音乐"), b -> minecraft.setScreen(new com.ic2newera.client.media.PhoneMusicScreen(this))));
+        addRenderableWidget(new UiButton(left + 74, height - 24, 70, 20, Component.literal("手机音乐"), b -> {
+            List<IndustrialMobileAccess.Device> voiceRobots = snapshot.devices().stream()
+                    .filter(candidate -> candidate.kind() == 1 && candidate.controllable()
+                            && Arrays.stream(RobotCharacter.values()).anyMatch(character -> character.id.equals(candidate.character())))
+                    .toList();
+            minecraft.setScreen(new com.ic2newera.client.media.PhoneMusicScreen(this, voiceRobots));
+        }));
         addRenderableWidget(new UiButton(left + panelWidth - 60, height - 24, 60, 20, Component.literal("关闭"), b -> onClose()));
     }
     private void command(int action, String value) { RobotPackets.CHANNEL.sendToServer(new RobotPackets.PhoneAction(selected == null ? new UUID(0, 0) : selected, action, value)); }
@@ -107,17 +136,30 @@ public final class IndustrialPhoneScreen extends Screen {
         var device = selected();
         int detailX = left + listWidth + 10, detailWidth = Math.max(40, panelWidth - listWidth - 12);
         if (device != null) {
-            String text = device.name() + "\n" + device.status() + "\n位置：" + device.pos().toShortString()
+            String text = device.name() + (device.attention().isBlank() ? "" : "\n待处理：" + device.attention())
+                    + "\n" + device.status() + "\n位置：" + device.pos().toShortString()
                     + (device.kind() == 1 ? "\n剩余寿命：" + device.lives() + "/5" : "") + "\n" + device.details();
             var lines = font.split(Component.literal(text), detailWidth);
-            int max = Math.max(1, (height - 150) / 11);
-            for (int i = 0; i < Math.min(lines.size(), max); i++) font.draw(pose, lines.get(i), detailX, 42 + i * 11, 0xDAE6EE);
-        }
+            detailLineCount = lines.size();
+            detailScroll = Math.max(0, Math.min(detailScroll, detailLineCount - detailVisibleLines));
+            UiScissor.enable(minecraft, detailX, 40, left + panelWidth, detailBottom - 11);
+            try {
+                for (int i = 0; i < detailVisibleLines && i + detailScroll < lines.size(); i++)
+                    font.draw(pose, lines.get(i + detailScroll), detailX, 42 + i * 11, 0xDAE6EE);
+            } finally { RenderSystem.disableScissor(); }
+            if (detailLineCount > detailVisibleLines)
+                font.draw(pose, Component.literal("滚轮查看 " + (detailScroll + 1) + "–" + Math.min(detailLineCount, detailScroll + detailVisibleLines) + "/" + detailLineCount), detailX, detailBottom - 10, 0x9FB6C3);
+        } else font.draw(pose, UiText.fit(font, Component.literal(attentionOnly ? "暂无待处理提醒" : "暂无设备"), detailWidth), detailX, 42, 0xDAE6EE);
         font.draw(pose, UiText.fit(font, Component.literal(snapshot.message()), panelWidth), left, height - 36, 0xA9CACF);
         super.render(pose, x, y, partial);
-        if (device != null && x >= detailX && y >= 40 && y < height - 110)
-            renderTooltip(pose, font.split(Component.literal(device.details()), Math.min(320, width - 30)), x, y);
         if (y >= height - 38 && y < height - 25) renderTooltip(pose, font.split(Component.literal(snapshot.message()), Math.min(320, panelWidth)), x, y);
+    }
+    @Override public boolean mouseScrolled(double x, double y, double delta) {
+        if (x >= left + listWidth + 10 && x < left + panelWidth && y >= 40 && y < detailBottom) {
+            detailScroll = Math.max(0, Math.min(Math.max(0, detailLineCount - detailVisibleLines), detailScroll - (int)(delta * 3)));
+            return true;
+        }
+        return super.mouseScrolled(x, y, delta);
     }
     @Override public boolean isPauseScreen() { return false; }
 }

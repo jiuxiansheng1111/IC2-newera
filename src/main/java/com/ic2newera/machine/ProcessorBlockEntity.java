@@ -294,7 +294,8 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
 
     @Override
     public int acceptEnergy(Direction direction, int amount, int voltage) {
-        if (level == null || level.isClientSide || amount <= 0 || !canAcceptEnergy(null, direction)) return amount;
+        // IC2 filters input faces in canAcceptEnergy; its delivery direction is reversed.
+        if (level == null || level.isClientSide || amount <= 0) return amount;
         int maxVoltage = EnergyNet.INSTANCE == null ? 0 : EnergyNet.INSTANCE.getPowerFromTier(SINK_TIER);
         if (voltage > maxVoltage) return amount;
         int accepted = Math.min(amount, Math.max(0, ENERGY_CAPACITY - energy));

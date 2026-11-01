@@ -1,0 +1,59 @@
+{
+  "items": [
+    {
+      "render": {
+        "view": "three-quarter",
+        "width": 128,
+        "lighting": "outdoor",
+        "height": 128,
+        "preset": "icon",
+        "transparent": true,
+        "clip": null,
+        "time": 0
+      },
+      "renderer": "Blockbench MCP bbmodel_render",
+      "source_sha256": "7B81E3EC6A2124B5AC2D67599787AED0BD8057BB42EAD806E9F43BB9349289C9",
+      "icon_sha256": "19D84D17A0747B616F2C5E3FAE14B9F6B361C125863F8DBD67799BB36557D24F",
+      "icon": "art/mechanical-pets/voxel/cat/item-mechanical_cat.png",
+      "name": "mechanical_cat",
+      "source": "art/mechanical-pets/voxel/cat/cat.bbmodel"
+    },
+    {
+      "render": {
+        "view": "three-quarter",
+        "width": 128,
+        "lighting": "outdoor",
+        "height": 128,
+        "preset": "icon",
+        "transparent": true,
+        "clip": "pancake",
+        "time": 1
+      },
+      "renderer": "Blockbench MCP bbmodel_render",
+      "source_sha256": "7B81E3EC6A2124B5AC2D67599787AED0BD8057BB42EAD806E9F43BB9349289C9",
+      "icon_sha256": "C2DA10E995CD23F3ABEAEA169EA07505F9654431A049ADE30A08C88498E9B89C",
+      "icon": "art/mechanical-pets/voxel/cat/item-mechanical_cat_pancake.png",
+      "name": "mechanical_cat_pancake",
+      "source": "art/mechanical-pets/voxel/cat/cat.bbmodel"
+    },
+    {
+      "render": {
+        "view": "three-quarter",
+        "width": 128,
+        "lighting": "outdoor",
+        "height": 128,
+        "preset": "icon",
+        "transparent": true,
+        "clip": null,
+        "time": 0
+      },
+      "renderer": "Blockbench MCP bbmodel_render",
+      "source_sha256": "095ADEA0E4C1DCAC6604DC279BA4EB56531062C8B69DD130CB816AA9CF5F1301",
+      "icon_sha256": "BFC277B105B00996E70C7B6809EC7841A71C5443ADD849335D66F7923EBE5156",
+      "icon": "art/mechanical-pets/voxel/dog/item-mechanical_dog.png",
+      "name": "mechanical_dog",
+      "source": "art/mechanical-pets/voxel/dog/dog.bbmodel"
+    }
+  ],
+  "note": "Rendered from the exact editable voxel source; no concept-image substitute."
+}

@@ -1,0 +1,18 @@
+{
+  "id": "sakiko",
+  "cube_count": 70,
+  "mesh_count": 0,
+  "bone_count": 11,
+  "static_pass": true,
+  "errors": [],
+  "transparent_uv_faces": [],
+  "embedded_png_matches": true,
+  "appearance_acceptance": "pending Astra visual review and user acceptance",
+  "blockbench_import": "pending local UI inspection",
+  "animation_game_build_install": "not performed; paused",
+  "sha256": {
+    "models\\sakiko.json": "bd8d1527915d027aa038f09bab59ef565d85b39f157861f41c53a85930029af5",
+    "editable\\sakiko.bbmodel": "145ab9c0e402fa5ab6cafbebf9e32730cf1c53d6464f09f73cad79d5248a3242",
+    "textures\\sakiko.png": "c3ee6c116b30da0475b77a48485307db9b6ef0a777d64c2d63150389b04bd0ea"
+  }
+}

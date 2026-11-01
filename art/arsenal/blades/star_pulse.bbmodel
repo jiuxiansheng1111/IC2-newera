@@ -1,0 +1,7211 @@
+{
+	"meta": {
+		"format_version": "5.0",
+		"model_format": "free",
+		"box_uv": false
+	},
+	"name": "star_pulse",
+	"model_identifier": "",
+	"visible_box": [
+		1,
+		1,
+		0
+	],
+	"resolution": {
+		"width": 256,
+		"height": 256
+	},
+	"elements": [
+		{
+			"name": "faceted_silver_blade",
+			"color": 5,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"KKqK": [
+					-6.2,
+					12,
+					0
+				],
+				"WJir": [
+					-1.2400000000000002,
+					12,
+					1.25
+				],
+				"vdKc": [
+					6.2,
+					12,
+					0
+				],
+				"jDmU": [
+					-1.2400000000000002,
+					12,
+					-1.25
+				],
+				"O3Vv": [
+					-6.2,
+					28,
+					0
+				],
+				"fdNn": [
+					-1.2400000000000002,
+					28,
+					1.2
+				],
+				"JOJ0": [
+					6.2,
+					28,
+					0
+				],
+				"USQk": [
+					-1.2400000000000002,
+					28,
+					-1.2
+				],
+				"VHaF": [
+					-6,
+					68,
+					0
+				],
+				"fvH8": [
+					-1.2000000000000002,
+					68,
+					1.1
+				],
+				"YUKp": [
+					6,
+					68,
+					0
+				],
+				"kZup": [
+					-1.2000000000000002,
+					68,
+					-1.1
+				],
+				"kkE1": [
+					-4.9,
+					106,
+					0
+				],
+				"S5U5": [
+					-0.5800000000000001,
+					106,
+					0.95
+				],
+				"ynVP": [
+					5.9,
+					106,
+					0
+				],
+				"zjz5": [
+					-0.5800000000000001,
+					106,
+					-0.95
+				],
+				"4ky6": [
+					-3.0999999999999996,
+					130,
+					0
+				],
+				"6RHE": [
+					0.18000000000000005,
+					130,
+					0.65
+				],
+				"9cLY": [
+					5.1,
+					130,
+					0
+				],
+				"3YZG": [
+					0.18000000000000005,
+					130,
+					-0.65
+				],
+				"C02o": [
+					1.38,
+					140,
+					0
+				],
+				"E0ys": [
+					1.476,
+					140,
+					0.12
+				],
+				"Z2ZT": [
+					1.62,
+					140,
+					0
+				],
+				"VbCd": [
+					1.476,
+					140,
+					-0.12
+				]
+			},
+			"faces": {
+				"XYIoET9E": {
+					"uv": {
+						"KKqK": [
+							65,
+							1
+						],
+						"WJir": [
+							95,
+							1
+						],
+						"fdNn": [
+							95,
+							31
+						],
+						"O3Vv": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"KKqK",
+						"WJir",
+						"fdNn",
+						"O3Vv"
+					]
+				},
+				"12EmcBuo": {
+					"uv": {
+						"WJir": [
+							129,
+							1
+						],
+						"vdKc": [
+							159,
+							1
+						],
+						"JOJ0": [
+							159,
+							31
+						],
+						"fdNn": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"WJir",
+						"vdKc",
+						"JOJ0",
+						"fdNn"
+					]
+				},
+				"ogNiVj3f": {
+					"uv": {
+						"vdKc": [
+							129,
+							1
+						],
+						"jDmU": [
+							159,
+							1
+						],
+						"USQk": [
+							159,
+							31
+						],
+						"JOJ0": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"vdKc",
+						"jDmU",
+						"USQk",
+						"JOJ0"
+					]
+				},
+				"dH4m3096": {
+					"uv": {
+						"jDmU": [
+							65,
+							1
+						],
+						"KKqK": [
+							95,
+							1
+						],
+						"O3Vv": [
+							95,
+							31
+						],
+						"USQk": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"jDmU",
+						"KKqK",
+						"O3Vv",
+						"USQk"
+					]
+				},
+				"8uWyaewm": {
+					"uv": {
+						"O3Vv": [
+							65,
+							1
+						],
+						"fdNn": [
+							95,
+							1
+						],
+						"fvH8": [
+							95,
+							31
+						],
+						"VHaF": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"O3Vv",
+						"fdNn",
+						"fvH8",
+						"VHaF"
+					]
+				},
+				"x0MfPtmQ": {
+					"uv": {
+						"fdNn": [
+							129,
+							1
+						],
+						"JOJ0": [
+							159,
+							1
+						],
+						"YUKp": [
+							159,
+							31
+						],
+						"fvH8": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"fdNn",
+						"JOJ0",
+						"YUKp",
+						"fvH8"
+					]
+				},
+				"3AehmY5G": {
+					"uv": {
+						"JOJ0": [
+							129,
+							1
+						],
+						"USQk": [
+							159,
+							1
+						],
+						"kZup": [
+							159,
+							31
+						],
+						"YUKp": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JOJ0",
+						"USQk",
+						"kZup",
+						"YUKp"
+					]
+				},
+				"P6O08NTE": {
+					"uv": {
+						"USQk": [
+							65,
+							1
+						],
+						"O3Vv": [
+							95,
+							1
+						],
+						"VHaF": [
+							95,
+							31
+						],
+						"kZup": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"USQk",
+						"O3Vv",
+						"VHaF",
+						"kZup"
+					]
+				},
+				"SQX8AaHD": {
+					"uv": {
+						"VHaF": [
+							65,
+							1
+						],
+						"fvH8": [
+							95,
+							1
+						],
+						"S5U5": [
+							95,
+							31
+						],
+						"kkE1": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"VHaF",
+						"fvH8",
+						"S5U5",
+						"kkE1"
+					]
+				},
+				"3hzStc38": {
+					"uv": {
+						"fvH8": [
+							129,
+							1
+						],
+						"YUKp": [
+							159,
+							1
+						],
+						"ynVP": [
+							159,
+							31
+						],
+						"S5U5": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"fvH8",
+						"YUKp",
+						"ynVP",
+						"S5U5"
+					]
+				},
+				"cvH1PKrW": {
+					"uv": {
+						"YUKp": [
+							129,
+							1
+						],
+						"kZup": [
+							159,
+							1
+						],
+						"zjz5": [
+							159,
+							31
+						],
+						"ynVP": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"YUKp",
+						"kZup",
+						"zjz5",
+						"ynVP"
+					]
+				},
+				"yjGfPpJ4": {
+					"uv": {
+						"kZup": [
+							65,
+							1
+						],
+						"VHaF": [
+							95,
+							1
+						],
+						"kkE1": [
+							95,
+							31
+						],
+						"zjz5": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"kZup",
+						"VHaF",
+						"kkE1",
+						"zjz5"
+					]
+				},
+				"hLhFZWUi": {
+					"uv": {
+						"kkE1": [
+							65,
+							1
+						],
+						"S5U5": [
+							95,
+							1
+						],
+						"6RHE": [
+							95,
+							31
+						],
+						"4ky6": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"kkE1",
+						"S5U5",
+						"6RHE",
+						"4ky6"
+					]
+				},
+				"d3pohCDv": {
+					"uv": {
+						"S5U5": [
+							129,
+							1
+						],
+						"ynVP": [
+							159,
+							1
+						],
+						"9cLY": [
+							159,
+							31
+						],
+						"6RHE": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"S5U5",
+						"ynVP",
+						"9cLY",
+						"6RHE"
+					]
+				},
+				"vbGy82Lg": {
+					"uv": {
+						"ynVP": [
+							129,
+							1
+						],
+						"zjz5": [
+							159,
+							1
+						],
+						"3YZG": [
+							159,
+							31
+						],
+						"9cLY": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ynVP",
+						"zjz5",
+						"3YZG",
+						"9cLY"
+					]
+				},
+				"S6J1dHgW": {
+					"uv": {
+						"zjz5": [
+							65,
+							1
+						],
+						"kkE1": [
+							95,
+							1
+						],
+						"4ky6": [
+							95,
+							31
+						],
+						"3YZG": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"zjz5",
+						"kkE1",
+						"4ky6",
+						"3YZG"
+					]
+				},
+				"im9s2T04": {
+					"uv": {
+						"4ky6": [
+							65,
+							1
+						],
+						"6RHE": [
+							95,
+							1
+						],
+						"E0ys": [
+							95,
+							31
+						],
+						"C02o": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"4ky6",
+						"6RHE",
+						"E0ys",
+						"C02o"
+					]
+				},
+				"U5stWfR2": {
+					"uv": {
+						"6RHE": [
+							129,
+							1
+						],
+						"9cLY": [
+							159,
+							1
+						],
+						"Z2ZT": [
+							159,
+							31
+						],
+						"E0ys": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"6RHE",
+						"9cLY",
+						"Z2ZT",
+						"E0ys"
+					]
+				},
+				"fpzjsIW7": {
+					"uv": {
+						"9cLY": [
+							129,
+							1
+						],
+						"3YZG": [
+							159,
+							1
+						],
+						"VbCd": [
+							159,
+							31
+						],
+						"Z2ZT": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"9cLY",
+						"3YZG",
+						"VbCd",
+						"Z2ZT"
+					]
+				},
+				"MmT9F64h": {
+					"uv": {
+						"3YZG": [
+							65,
+							1
+						],
+						"4ky6": [
+							95,
+							1
+						],
+						"C02o": [
+							95,
+							31
+						],
+						"VbCd": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"3YZG",
+						"4ky6",
+						"C02o",
+						"VbCd"
+					]
+				},
+				"bzqPiaeB": {
+					"uv": {
+						"jDmU": [
+							129,
+							1
+						],
+						"vdKc": [
+							159,
+							1
+						],
+						"WJir": [
+							159,
+							31
+						],
+						"KKqK": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"jDmU",
+						"vdKc",
+						"WJir",
+						"KKqK"
+					]
+				},
+				"axlYSoWq": {
+					"uv": {
+						"C02o": [
+							65,
+							1
+						],
+						"E0ys": [
+							95,
+							1
+						],
+						"Z2ZT": [
+							95,
+							31
+						],
+						"VbCd": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"C02o",
+						"E0ys",
+						"Z2ZT",
+						"VbCd"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "40c23679-5a1c-4942-aa2a-6ef9a97a2233"
+		},
+		{
+			"name": "guard_center",
+			"color": 6,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"RcBN": [
+					-5,
+					7,
+					-3
+				],
+				"wMqI": [
+					5,
+					7,
+					-3
+				],
+				"hCT8": [
+					5,
+					12,
+					-3
+				],
+				"WxDH": [
+					-5,
+					12,
+					-3
+				],
+				"dygm": [
+					-5,
+					7,
+					3
+				],
+				"wtpq": [
+					5,
+					7,
+					3
+				],
+				"rX8y": [
+					5,
+					12,
+					3
+				],
+				"HsBA": [
+					-5,
+					12,
+					3
+				]
+			},
+			"faces": {
+				"NfzLiHoJ": {
+					"uv": {
+						"RcBN": [
+							1,
+							1
+						],
+						"WxDH": [
+							31,
+							1
+						],
+						"hCT8": [
+							31,
+							31
+						],
+						"wMqI": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RcBN",
+						"WxDH",
+						"hCT8",
+						"wMqI"
+					]
+				},
+				"THLEtb89": {
+					"uv": {
+						"dygm": [
+							1,
+							1
+						],
+						"wtpq": [
+							31,
+							1
+						],
+						"rX8y": [
+							31,
+							31
+						],
+						"HsBA": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dygm",
+						"wtpq",
+						"rX8y",
+						"HsBA"
+					]
+				},
+				"lTjOyMFb": {
+					"uv": {
+						"RcBN": [
+							1,
+							1
+						],
+						"dygm": [
+							31,
+							1
+						],
+						"HsBA": [
+							31,
+							31
+						],
+						"WxDH": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RcBN",
+						"dygm",
+						"HsBA",
+						"WxDH"
+					]
+				},
+				"L516oCuS": {
+					"uv": {
+						"wMqI": [
+							1,
+							1
+						],
+						"hCT8": [
+							31,
+							1
+						],
+						"rX8y": [
+							31,
+							31
+						],
+						"wtpq": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"wMqI",
+						"hCT8",
+						"rX8y",
+						"wtpq"
+					]
+				},
+				"Uag6VOok": {
+					"uv": {
+						"RcBN": [
+							1,
+							1
+						],
+						"wMqI": [
+							31,
+							1
+						],
+						"wtpq": [
+							31,
+							31
+						],
+						"dygm": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RcBN",
+						"wMqI",
+						"wtpq",
+						"dygm"
+					]
+				},
+				"ZKHeJTWL": {
+					"uv": {
+						"WxDH": [
+							1,
+							1
+						],
+						"HsBA": [
+							31,
+							1
+						],
+						"rX8y": [
+							31,
+							31
+						],
+						"hCT8": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"WxDH",
+						"HsBA",
+						"rX8y",
+						"hCT8"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "62393bea-ef16-48ed-8dfa-2a27a14a0781"
+		},
+		{
+			"name": "grip_core",
+			"color": 4,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"fOcR": [
+					-2.8,
+					-23,
+					-2.8
+				],
+				"lZFh": [
+					2.8,
+					-23,
+					-2.8
+				],
+				"7cxj": [
+					2.8,
+					7,
+					-2.8
+				],
+				"xKtE": [
+					-2.8,
+					7,
+					-2.8
+				],
+				"eiWd": [
+					-2.8,
+					-23,
+					2.8
+				],
+				"jhQZ": [
+					2.8,
+					-23,
+					2.8
+				],
+				"bBgo": [
+					2.8,
+					7,
+					2.8
+				],
+				"NkU4": [
+					-2.8,
+					7,
+					2.8
+				]
+			},
+			"faces": {
+				"Kp4IPlTM": {
+					"uv": {
+						"fOcR": [
+							193,
+							1
+						],
+						"xKtE": [
+							223,
+							1
+						],
+						"7cxj": [
+							223,
+							31
+						],
+						"lZFh": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"fOcR",
+						"xKtE",
+						"7cxj",
+						"lZFh"
+					]
+				},
+				"lnDZW4fq": {
+					"uv": {
+						"eiWd": [
+							193,
+							1
+						],
+						"jhQZ": [
+							223,
+							1
+						],
+						"bBgo": [
+							223,
+							31
+						],
+						"NkU4": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"eiWd",
+						"jhQZ",
+						"bBgo",
+						"NkU4"
+					]
+				},
+				"nVZmTTp8": {
+					"uv": {
+						"fOcR": [
+							193,
+							1
+						],
+						"eiWd": [
+							223,
+							1
+						],
+						"NkU4": [
+							223,
+							31
+						],
+						"xKtE": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"fOcR",
+						"eiWd",
+						"NkU4",
+						"xKtE"
+					]
+				},
+				"5WRnGdLp": {
+					"uv": {
+						"lZFh": [
+							193,
+							1
+						],
+						"7cxj": [
+							223,
+							1
+						],
+						"bBgo": [
+							223,
+							31
+						],
+						"jhQZ": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"lZFh",
+						"7cxj",
+						"bBgo",
+						"jhQZ"
+					]
+				},
+				"wq0DfLyD": {
+					"uv": {
+						"fOcR": [
+							193,
+							1
+						],
+						"lZFh": [
+							223,
+							1
+						],
+						"jhQZ": [
+							223,
+							31
+						],
+						"eiWd": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"fOcR",
+						"lZFh",
+						"jhQZ",
+						"eiWd"
+					]
+				},
+				"eXjM3enB": {
+					"uv": {
+						"xKtE": [
+							193,
+							1
+						],
+						"NkU4": [
+							223,
+							1
+						],
+						"bBgo": [
+							223,
+							31
+						],
+						"7cxj": [
+							193,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"xKtE",
+						"NkU4",
+						"bBgo",
+						"7cxj"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "2f853fb9-177a-44b0-9bf9-7f96dde96b79"
+		},
+		{
+			"name": "pommel",
+			"color": 6,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"mCHC": [
+					-3.8,
+					-26,
+					-3.5
+				],
+				"dHSF": [
+					3.8,
+					-26,
+					-3.5
+				],
+				"JrOd": [
+					3.8,
+					-22,
+					-3.5
+				],
+				"kU6Z": [
+					-3.8,
+					-22,
+					-3.5
+				],
+				"Mxkg": [
+					-3.8,
+					-26,
+					3.5
+				],
+				"OM6U": [
+					3.8,
+					-26,
+					3.5
+				],
+				"1L2z": [
+					3.8,
+					-22,
+					3.5
+				],
+				"JJEc": [
+					-3.8,
+					-22,
+					3.5
+				]
+			},
+			"faces": {
+				"Pso2olTD": {
+					"uv": {
+						"mCHC": [
+							65,
+							1
+						],
+						"kU6Z": [
+							95,
+							1
+						],
+						"JrOd": [
+							95,
+							31
+						],
+						"dHSF": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"mCHC",
+						"kU6Z",
+						"JrOd",
+						"dHSF"
+					]
+				},
+				"1T6BnRMU": {
+					"uv": {
+						"Mxkg": [
+							65,
+							1
+						],
+						"OM6U": [
+							95,
+							1
+						],
+						"1L2z": [
+							95,
+							31
+						],
+						"JJEc": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Mxkg",
+						"OM6U",
+						"1L2z",
+						"JJEc"
+					]
+				},
+				"RKFyqVdQ": {
+					"uv": {
+						"mCHC": [
+							65,
+							1
+						],
+						"Mxkg": [
+							95,
+							1
+						],
+						"JJEc": [
+							95,
+							31
+						],
+						"kU6Z": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"mCHC",
+						"Mxkg",
+						"JJEc",
+						"kU6Z"
+					]
+				},
+				"1CQkG2k6": {
+					"uv": {
+						"dHSF": [
+							65,
+							1
+						],
+						"JrOd": [
+							95,
+							1
+						],
+						"1L2z": [
+							95,
+							31
+						],
+						"OM6U": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dHSF",
+						"JrOd",
+						"1L2z",
+						"OM6U"
+					]
+				},
+				"axtNXXIL": {
+					"uv": {
+						"mCHC": [
+							65,
+							1
+						],
+						"dHSF": [
+							95,
+							1
+						],
+						"OM6U": [
+							95,
+							31
+						],
+						"Mxkg": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"mCHC",
+						"dHSF",
+						"OM6U",
+						"Mxkg"
+					]
+				},
+				"IGIOgucg": {
+					"uv": {
+						"kU6Z": [
+							65,
+							1
+						],
+						"JJEc": [
+							95,
+							1
+						],
+						"1L2z": [
+							95,
+							31
+						],
+						"JrOd": [
+							65,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"kU6Z",
+						"JJEc",
+						"1L2z",
+						"JrOd"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "7425655a-ccd5-4744-98d0-0ddc6b9f64ee"
+		},
+		{
+			"name": "guard_wing_-1",
+			"color": 1,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"7zxI": [
+					-9,
+					7,
+					-2.3
+				],
+				"ejHX": [
+					-3,
+					7,
+					-2.3
+				],
+				"da6K": [
+					-3,
+					10,
+					-2.3
+				],
+				"ovCZ": [
+					-9,
+					10,
+					-2.3
+				],
+				"4kFK": [
+					-9,
+					7,
+					2.3
+				],
+				"wLnz": [
+					-3,
+					7,
+					2.3
+				],
+				"QbHS": [
+					-3,
+					10,
+					2.3
+				],
+				"Axat": [
+					-9,
+					10,
+					2.3
+				]
+			},
+			"faces": {
+				"XrLLEbgj": {
+					"uv": {
+						"7zxI": [
+							129,
+							1
+						],
+						"ovCZ": [
+							159,
+							1
+						],
+						"da6K": [
+							159,
+							31
+						],
+						"ejHX": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7zxI",
+						"ovCZ",
+						"da6K",
+						"ejHX"
+					]
+				},
+				"lgsqjPFm": {
+					"uv": {
+						"4kFK": [
+							129,
+							1
+						],
+						"wLnz": [
+							159,
+							1
+						],
+						"QbHS": [
+							159,
+							31
+						],
+						"Axat": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"4kFK",
+						"wLnz",
+						"QbHS",
+						"Axat"
+					]
+				},
+				"ySAgE99Y": {
+					"uv": {
+						"7zxI": [
+							129,
+							1
+						],
+						"4kFK": [
+							159,
+							1
+						],
+						"Axat": [
+							159,
+							31
+						],
+						"ovCZ": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7zxI",
+						"4kFK",
+						"Axat",
+						"ovCZ"
+					]
+				},
+				"hBY9llPa": {
+					"uv": {
+						"ejHX": [
+							129,
+							1
+						],
+						"da6K": [
+							159,
+							1
+						],
+						"QbHS": [
+							159,
+							31
+						],
+						"wLnz": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ejHX",
+						"da6K",
+						"QbHS",
+						"wLnz"
+					]
+				},
+				"DdzRQA0y": {
+					"uv": {
+						"7zxI": [
+							129,
+							1
+						],
+						"ejHX": [
+							159,
+							1
+						],
+						"wLnz": [
+							159,
+							31
+						],
+						"4kFK": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7zxI",
+						"ejHX",
+						"wLnz",
+						"4kFK"
+					]
+				},
+				"siihvXHv": {
+					"uv": {
+						"ovCZ": [
+							129,
+							1
+						],
+						"Axat": [
+							159,
+							1
+						],
+						"QbHS": [
+							159,
+							31
+						],
+						"da6K": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ovCZ",
+						"Axat",
+						"QbHS",
+						"da6K"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "9d3258d5-dc75-48a1-a66f-221929eff3b4"
+		},
+		{
+			"name": "guard_fin_-1",
+			"color": 5,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"7JdC": [
+					-10,
+					9,
+					-2
+				],
+				"Buul": [
+					-8,
+					9,
+					-2
+				],
+				"xHxn": [
+					-8,
+					15,
+					-2
+				],
+				"2BFg": [
+					-10,
+					15,
+					-2
+				],
+				"pKUV": [
+					-10,
+					9,
+					2
+				],
+				"yTIm": [
+					-8,
+					9,
+					2
+				],
+				"t9KR": [
+					-8,
+					15,
+					2
+				],
+				"6cRO": [
+					-10,
+					15,
+					2
+				]
+			},
+			"faces": {
+				"c8OrUC3F": {
+					"uv": {
+						"7JdC": [
+							1,
+							1
+						],
+						"2BFg": [
+							31,
+							1
+						],
+						"xHxn": [
+							31,
+							31
+						],
+						"Buul": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7JdC",
+						"2BFg",
+						"xHxn",
+						"Buul"
+					]
+				},
+				"zx1Af6ad": {
+					"uv": {
+						"pKUV": [
+							1,
+							1
+						],
+						"yTIm": [
+							31,
+							1
+						],
+						"t9KR": [
+							31,
+							31
+						],
+						"6cRO": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"pKUV",
+						"yTIm",
+						"t9KR",
+						"6cRO"
+					]
+				},
+				"vZRJATP9": {
+					"uv": {
+						"7JdC": [
+							1,
+							1
+						],
+						"pKUV": [
+							31,
+							1
+						],
+						"6cRO": [
+							31,
+							31
+						],
+						"2BFg": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7JdC",
+						"pKUV",
+						"6cRO",
+						"2BFg"
+					]
+				},
+				"VIm9qeTq": {
+					"uv": {
+						"Buul": [
+							1,
+							1
+						],
+						"xHxn": [
+							31,
+							1
+						],
+						"t9KR": [
+							31,
+							31
+						],
+						"yTIm": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Buul",
+						"xHxn",
+						"t9KR",
+						"yTIm"
+					]
+				},
+				"gRmc3cWm": {
+					"uv": {
+						"7JdC": [
+							1,
+							1
+						],
+						"Buul": [
+							31,
+							1
+						],
+						"yTIm": [
+							31,
+							31
+						],
+						"pKUV": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"7JdC",
+						"Buul",
+						"yTIm",
+						"pKUV"
+					]
+				},
+				"IwCZYeuY": {
+					"uv": {
+						"2BFg": [
+							1,
+							1
+						],
+						"6cRO": [
+							31,
+							1
+						],
+						"t9KR": [
+							31,
+							31
+						],
+						"xHxn": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"2BFg",
+						"6cRO",
+						"t9KR",
+						"xHxn"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "008f8d94-1eb0-4986-bfd5-b1715feda7e5"
+		},
+		{
+			"name": "guard_wing_1",
+			"color": 3,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"DQif": [
+					4,
+					7,
+					-2.3
+				],
+				"5isL": [
+					10,
+					7,
+					-2.3
+				],
+				"KBlD": [
+					10,
+					10,
+					-2.3
+				],
+				"FJtM": [
+					4,
+					10,
+					-2.3
+				],
+				"e8Gh": [
+					4,
+					7,
+					2.3
+				],
+				"tnAS": [
+					10,
+					7,
+					2.3
+				],
+				"0DkA": [
+					10,
+					10,
+					2.3
+				],
+				"n7Y9": [
+					4,
+					10,
+					2.3
+				]
+			},
+			"faces": {
+				"Z6VlWzvp": {
+					"uv": {
+						"DQif": [
+							129,
+							1
+						],
+						"FJtM": [
+							159,
+							1
+						],
+						"KBlD": [
+							159,
+							31
+						],
+						"5isL": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"DQif",
+						"FJtM",
+						"KBlD",
+						"5isL"
+					]
+				},
+				"gL9BW98m": {
+					"uv": {
+						"e8Gh": [
+							129,
+							1
+						],
+						"tnAS": [
+							159,
+							1
+						],
+						"0DkA": [
+							159,
+							31
+						],
+						"n7Y9": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"e8Gh",
+						"tnAS",
+						"0DkA",
+						"n7Y9"
+					]
+				},
+				"hHtErjyM": {
+					"uv": {
+						"DQif": [
+							129,
+							1
+						],
+						"e8Gh": [
+							159,
+							1
+						],
+						"n7Y9": [
+							159,
+							31
+						],
+						"FJtM": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"DQif",
+						"e8Gh",
+						"n7Y9",
+						"FJtM"
+					]
+				},
+				"SiXhIgvw": {
+					"uv": {
+						"5isL": [
+							129,
+							1
+						],
+						"KBlD": [
+							159,
+							1
+						],
+						"0DkA": [
+							159,
+							31
+						],
+						"tnAS": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"5isL",
+						"KBlD",
+						"0DkA",
+						"tnAS"
+					]
+				},
+				"aO9STwYA": {
+					"uv": {
+						"DQif": [
+							129,
+							1
+						],
+						"5isL": [
+							159,
+							1
+						],
+						"tnAS": [
+							159,
+							31
+						],
+						"e8Gh": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"DQif",
+						"5isL",
+						"tnAS",
+						"e8Gh"
+					]
+				},
+				"ZMTF7UA5": {
+					"uv": {
+						"FJtM": [
+							129,
+							1
+						],
+						"n7Y9": [
+							159,
+							1
+						],
+						"0DkA": [
+							159,
+							31
+						],
+						"KBlD": [
+							129,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"FJtM",
+						"n7Y9",
+						"0DkA",
+						"KBlD"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "d3bc451f-5fae-4c26-bb23-db4c9a56879d"
+		},
+		{
+			"name": "guard_fin_1",
+			"color": 3,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"SUmZ": [
+					8,
+					9,
+					-2
+				],
+				"afQv": [
+					10,
+					9,
+					-2
+				],
+				"tJqd": [
+					10,
+					15,
+					-2
+				],
+				"OmNq": [
+					8,
+					15,
+					-2
+				],
+				"W2e5": [
+					8,
+					9,
+					2
+				],
+				"Ot0R": [
+					10,
+					9,
+					2
+				],
+				"sxUI": [
+					10,
+					15,
+					2
+				],
+				"H0jV": [
+					8,
+					15,
+					2
+				]
+			},
+			"faces": {
+				"UrzIe1Dr": {
+					"uv": {
+						"SUmZ": [
+							1,
+							1
+						],
+						"OmNq": [
+							31,
+							1
+						],
+						"tJqd": [
+							31,
+							31
+						],
+						"afQv": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SUmZ",
+						"OmNq",
+						"tJqd",
+						"afQv"
+					]
+				},
+				"wrfMs4bv": {
+					"uv": {
+						"W2e5": [
+							1,
+							1
+						],
+						"Ot0R": [
+							31,
+							1
+						],
+						"sxUI": [
+							31,
+							31
+						],
+						"H0jV": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"W2e5",
+						"Ot0R",
+						"sxUI",
+						"H0jV"
+					]
+				},
+				"9XqxrGEd": {
+					"uv": {
+						"SUmZ": [
+							1,
+							1
+						],
+						"W2e5": [
+							31,
+							1
+						],
+						"H0jV": [
+							31,
+							31
+						],
+						"OmNq": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SUmZ",
+						"W2e5",
+						"H0jV",
+						"OmNq"
+					]
+				},
+				"vox89TEF": {
+					"uv": {
+						"afQv": [
+							1,
+							1
+						],
+						"tJqd": [
+							31,
+							1
+						],
+						"sxUI": [
+							31,
+							31
+						],
+						"Ot0R": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"afQv",
+						"tJqd",
+						"sxUI",
+						"Ot0R"
+					]
+				},
+				"7mNk71i6": {
+					"uv": {
+						"SUmZ": [
+							1,
+							1
+						],
+						"afQv": [
+							31,
+							1
+						],
+						"Ot0R": [
+							31,
+							31
+						],
+						"W2e5": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SUmZ",
+						"afQv",
+						"Ot0R",
+						"W2e5"
+					]
+				},
+				"yti3qi9J": {
+					"uv": {
+						"OmNq": [
+							1,
+							1
+						],
+						"H0jV": [
+							31,
+							1
+						],
+						"sxUI": [
+							31,
+							31
+						],
+						"tJqd": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"OmNq",
+						"H0jV",
+						"sxUI",
+						"tJqd"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "afc07fe5-236c-41af-a83e-e1b302987a20"
+		},
+		{
+			"name": "grip_binding_-20",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"v99T": [
+					-3.05,
+					-20,
+					-3.05
+				],
+				"TQh9": [
+					3.05,
+					-20,
+					-3.05
+				],
+				"YMcM": [
+					3.05,
+					-19,
+					-3.05
+				],
+				"Pjos": [
+					-3.05,
+					-19,
+					-3.05
+				],
+				"80Eb": [
+					-3.05,
+					-20,
+					3.05
+				],
+				"4hfj": [
+					3.05,
+					-20,
+					3.05
+				],
+				"tbn3": [
+					3.05,
+					-19,
+					3.05
+				],
+				"bgfn": [
+					-3.05,
+					-19,
+					3.05
+				]
+			},
+			"faces": {
+				"hkxdR3Pc": {
+					"uv": {
+						"v99T": [
+							1,
+							65
+						],
+						"Pjos": [
+							31,
+							65
+						],
+						"YMcM": [
+							31,
+							95
+						],
+						"TQh9": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"v99T",
+						"Pjos",
+						"YMcM",
+						"TQh9"
+					]
+				},
+				"C2IkbqfH": {
+					"uv": {
+						"80Eb": [
+							1,
+							65
+						],
+						"4hfj": [
+							31,
+							65
+						],
+						"tbn3": [
+							31,
+							95
+						],
+						"bgfn": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"80Eb",
+						"4hfj",
+						"tbn3",
+						"bgfn"
+					]
+				},
+				"TEd2LUvm": {
+					"uv": {
+						"v99T": [
+							1,
+							65
+						],
+						"80Eb": [
+							31,
+							65
+						],
+						"bgfn": [
+							31,
+							95
+						],
+						"Pjos": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"v99T",
+						"80Eb",
+						"bgfn",
+						"Pjos"
+					]
+				},
+				"79qBUExK": {
+					"uv": {
+						"TQh9": [
+							1,
+							65
+						],
+						"YMcM": [
+							31,
+							65
+						],
+						"tbn3": [
+							31,
+							95
+						],
+						"4hfj": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"TQh9",
+						"YMcM",
+						"tbn3",
+						"4hfj"
+					]
+				},
+				"EAFFya6P": {
+					"uv": {
+						"v99T": [
+							1,
+							65
+						],
+						"TQh9": [
+							31,
+							65
+						],
+						"4hfj": [
+							31,
+							95
+						],
+						"80Eb": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"v99T",
+						"TQh9",
+						"4hfj",
+						"80Eb"
+					]
+				},
+				"lT7rjULk": {
+					"uv": {
+						"Pjos": [
+							1,
+							65
+						],
+						"bgfn": [
+							31,
+							65
+						],
+						"tbn3": [
+							31,
+							95
+						],
+						"YMcM": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Pjos",
+						"bgfn",
+						"tbn3",
+						"YMcM"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "7a14973e-5fc8-4b66-9f80-612033338da6"
+		},
+		{
+			"name": "grip_binding_-15",
+			"color": 9,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"RGdG": [
+					-3.05,
+					-15,
+					-3.05
+				],
+				"LnHO": [
+					3.05,
+					-15,
+					-3.05
+				],
+				"uqGc": [
+					3.05,
+					-14,
+					-3.05
+				],
+				"NmEB": [
+					-3.05,
+					-14,
+					-3.05
+				],
+				"51Kf": [
+					-3.05,
+					-15,
+					3.05
+				],
+				"uSOy": [
+					3.05,
+					-15,
+					3.05
+				],
+				"9FV5": [
+					3.05,
+					-14,
+					3.05
+				],
+				"vQNk": [
+					-3.05,
+					-14,
+					3.05
+				]
+			},
+			"faces": {
+				"rylVAW8F": {
+					"uv": {
+						"RGdG": [
+							1,
+							65
+						],
+						"NmEB": [
+							31,
+							65
+						],
+						"uqGc": [
+							31,
+							95
+						],
+						"LnHO": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RGdG",
+						"NmEB",
+						"uqGc",
+						"LnHO"
+					]
+				},
+				"x7QC17Me": {
+					"uv": {
+						"51Kf": [
+							1,
+							65
+						],
+						"uSOy": [
+							31,
+							65
+						],
+						"9FV5": [
+							31,
+							95
+						],
+						"vQNk": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"51Kf",
+						"uSOy",
+						"9FV5",
+						"vQNk"
+					]
+				},
+				"cUlh3vii": {
+					"uv": {
+						"RGdG": [
+							1,
+							65
+						],
+						"51Kf": [
+							31,
+							65
+						],
+						"vQNk": [
+							31,
+							95
+						],
+						"NmEB": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RGdG",
+						"51Kf",
+						"vQNk",
+						"NmEB"
+					]
+				},
+				"CS2Db4h9": {
+					"uv": {
+						"LnHO": [
+							1,
+							65
+						],
+						"uqGc": [
+							31,
+							65
+						],
+						"9FV5": [
+							31,
+							95
+						],
+						"uSOy": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"LnHO",
+						"uqGc",
+						"9FV5",
+						"uSOy"
+					]
+				},
+				"G80HLfCX": {
+					"uv": {
+						"RGdG": [
+							1,
+							65
+						],
+						"LnHO": [
+							31,
+							65
+						],
+						"uSOy": [
+							31,
+							95
+						],
+						"51Kf": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"RGdG",
+						"LnHO",
+						"uSOy",
+						"51Kf"
+					]
+				},
+				"GeztOSQU": {
+					"uv": {
+						"NmEB": [
+							1,
+							65
+						],
+						"vQNk": [
+							31,
+							65
+						],
+						"9FV5": [
+							31,
+							95
+						],
+						"uqGc": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"NmEB",
+						"vQNk",
+						"9FV5",
+						"uqGc"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "d3a2a554-bf16-4399-ad94-26aeb60a1269"
+		},
+		{
+			"name": "grip_binding_-10",
+			"color": 5,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"KplV": [
+					-3.05,
+					-10,
+					-3.05
+				],
+				"xky3": [
+					3.05,
+					-10,
+					-3.05
+				],
+				"POt6": [
+					3.05,
+					-9,
+					-3.05
+				],
+				"nZCA": [
+					-3.05,
+					-9,
+					-3.05
+				],
+				"MnJy": [
+					-3.05,
+					-10,
+					3.05
+				],
+				"Zsc3": [
+					3.05,
+					-10,
+					3.05
+				],
+				"hOeo": [
+					3.05,
+					-9,
+					3.05
+				],
+				"kh7r": [
+					-3.05,
+					-9,
+					3.05
+				]
+			},
+			"faces": {
+				"dVXK01yx": {
+					"uv": {
+						"KplV": [
+							1,
+							65
+						],
+						"nZCA": [
+							31,
+							65
+						],
+						"POt6": [
+							31,
+							95
+						],
+						"xky3": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"KplV",
+						"nZCA",
+						"POt6",
+						"xky3"
+					]
+				},
+				"ARHAfjKs": {
+					"uv": {
+						"MnJy": [
+							1,
+							65
+						],
+						"Zsc3": [
+							31,
+							65
+						],
+						"hOeo": [
+							31,
+							95
+						],
+						"kh7r": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"MnJy",
+						"Zsc3",
+						"hOeo",
+						"kh7r"
+					]
+				},
+				"WeajvHy7": {
+					"uv": {
+						"KplV": [
+							1,
+							65
+						],
+						"MnJy": [
+							31,
+							65
+						],
+						"kh7r": [
+							31,
+							95
+						],
+						"nZCA": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"KplV",
+						"MnJy",
+						"kh7r",
+						"nZCA"
+					]
+				},
+				"3hxja7w2": {
+					"uv": {
+						"xky3": [
+							1,
+							65
+						],
+						"POt6": [
+							31,
+							65
+						],
+						"hOeo": [
+							31,
+							95
+						],
+						"Zsc3": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"xky3",
+						"POt6",
+						"hOeo",
+						"Zsc3"
+					]
+				},
+				"RF34wIQs": {
+					"uv": {
+						"KplV": [
+							1,
+							65
+						],
+						"xky3": [
+							31,
+							65
+						],
+						"Zsc3": [
+							31,
+							95
+						],
+						"MnJy": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"KplV",
+						"xky3",
+						"Zsc3",
+						"MnJy"
+					]
+				},
+				"QkPaHd67": {
+					"uv": {
+						"nZCA": [
+							1,
+							65
+						],
+						"kh7r": [
+							31,
+							65
+						],
+						"hOeo": [
+							31,
+							95
+						],
+						"POt6": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"nZCA",
+						"kh7r",
+						"hOeo",
+						"POt6"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "1c5ed3e0-876f-4856-8af3-1119641cba59"
+		},
+		{
+			"name": "grip_binding_-5",
+			"color": 6,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"pZNh": [
+					-3.05,
+					-5,
+					-3.05
+				],
+				"Aoy1": [
+					3.05,
+					-5,
+					-3.05
+				],
+				"Db0k": [
+					3.05,
+					-4,
+					-3.05
+				],
+				"xdMu": [
+					-3.05,
+					-4,
+					-3.05
+				],
+				"rK6H": [
+					-3.05,
+					-5,
+					3.05
+				],
+				"42QN": [
+					3.05,
+					-5,
+					3.05
+				],
+				"hMPD": [
+					3.05,
+					-4,
+					3.05
+				],
+				"aLNp": [
+					-3.05,
+					-4,
+					3.05
+				]
+			},
+			"faces": {
+				"pTbZvhc8": {
+					"uv": {
+						"pZNh": [
+							1,
+							65
+						],
+						"xdMu": [
+							31,
+							65
+						],
+						"Db0k": [
+							31,
+							95
+						],
+						"Aoy1": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"pZNh",
+						"xdMu",
+						"Db0k",
+						"Aoy1"
+					]
+				},
+				"d8lq8voF": {
+					"uv": {
+						"rK6H": [
+							1,
+							65
+						],
+						"42QN": [
+							31,
+							65
+						],
+						"hMPD": [
+							31,
+							95
+						],
+						"aLNp": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"rK6H",
+						"42QN",
+						"hMPD",
+						"aLNp"
+					]
+				},
+				"nBhvPKlR": {
+					"uv": {
+						"pZNh": [
+							1,
+							65
+						],
+						"rK6H": [
+							31,
+							65
+						],
+						"aLNp": [
+							31,
+							95
+						],
+						"xdMu": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"pZNh",
+						"rK6H",
+						"aLNp",
+						"xdMu"
+					]
+				},
+				"1G6aAigW": {
+					"uv": {
+						"Aoy1": [
+							1,
+							65
+						],
+						"Db0k": [
+							31,
+							65
+						],
+						"hMPD": [
+							31,
+							95
+						],
+						"42QN": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Aoy1",
+						"Db0k",
+						"hMPD",
+						"42QN"
+					]
+				},
+				"y7ojR7KK": {
+					"uv": {
+						"pZNh": [
+							1,
+							65
+						],
+						"Aoy1": [
+							31,
+							65
+						],
+						"42QN": [
+							31,
+							95
+						],
+						"rK6H": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"pZNh",
+						"Aoy1",
+						"42QN",
+						"rK6H"
+					]
+				},
+				"lHYYis5D": {
+					"uv": {
+						"xdMu": [
+							1,
+							65
+						],
+						"aLNp": [
+							31,
+							65
+						],
+						"hMPD": [
+							31,
+							95
+						],
+						"Db0k": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"xdMu",
+						"aLNp",
+						"hMPD",
+						"Db0k"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "76fd1296-e23c-48df-98ec-2d06d0db6122"
+		},
+		{
+			"name": "grip_binding_0",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"eQ9w": [
+					-3.05,
+					0,
+					-3.05
+				],
+				"ty9K": [
+					3.05,
+					0,
+					-3.05
+				],
+				"bwWG": [
+					3.05,
+					1,
+					-3.05
+				],
+				"18w2": [
+					-3.05,
+					1,
+					-3.05
+				],
+				"9nJo": [
+					-3.05,
+					0,
+					3.05
+				],
+				"fAWV": [
+					3.05,
+					0,
+					3.05
+				],
+				"FjEm": [
+					3.05,
+					1,
+					3.05
+				],
+				"Aja1": [
+					-3.05,
+					1,
+					3.05
+				]
+			},
+			"faces": {
+				"xox6d9Zz": {
+					"uv": {
+						"eQ9w": [
+							1,
+							65
+						],
+						"18w2": [
+							31,
+							65
+						],
+						"bwWG": [
+							31,
+							95
+						],
+						"ty9K": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"eQ9w",
+						"18w2",
+						"bwWG",
+						"ty9K"
+					]
+				},
+				"wvhj4dWq": {
+					"uv": {
+						"9nJo": [
+							1,
+							65
+						],
+						"fAWV": [
+							31,
+							65
+						],
+						"FjEm": [
+							31,
+							95
+						],
+						"Aja1": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"9nJo",
+						"fAWV",
+						"FjEm",
+						"Aja1"
+					]
+				},
+				"ETsL0t53": {
+					"uv": {
+						"eQ9w": [
+							1,
+							65
+						],
+						"9nJo": [
+							31,
+							65
+						],
+						"Aja1": [
+							31,
+							95
+						],
+						"18w2": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"eQ9w",
+						"9nJo",
+						"Aja1",
+						"18w2"
+					]
+				},
+				"RfydIbTo": {
+					"uv": {
+						"ty9K": [
+							1,
+							65
+						],
+						"bwWG": [
+							31,
+							65
+						],
+						"FjEm": [
+							31,
+							95
+						],
+						"fAWV": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ty9K",
+						"bwWG",
+						"FjEm",
+						"fAWV"
+					]
+				},
+				"qmotcDRG": {
+					"uv": {
+						"eQ9w": [
+							1,
+							65
+						],
+						"ty9K": [
+							31,
+							65
+						],
+						"fAWV": [
+							31,
+							95
+						],
+						"9nJo": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"eQ9w",
+						"ty9K",
+						"fAWV",
+						"9nJo"
+					]
+				},
+				"wRr7bkS2": {
+					"uv": {
+						"18w2": [
+							1,
+							65
+						],
+						"Aja1": [
+							31,
+							65
+						],
+						"FjEm": [
+							31,
+							95
+						],
+						"bwWG": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"18w2",
+						"Aja1",
+						"FjEm",
+						"bwWG"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "88c89cbf-b9c0-4ce5-86c2-81159c26f260"
+		},
+		{
+			"name": "grip_binding_5",
+			"color": 7,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"giEi": [
+					-3.05,
+					5,
+					-3.05
+				],
+				"XOF6": [
+					3.05,
+					5,
+					-3.05
+				],
+				"Ebyy": [
+					3.05,
+					6,
+					-3.05
+				],
+				"folk": [
+					-3.05,
+					6,
+					-3.05
+				],
+				"O3YN": [
+					-3.05,
+					5,
+					3.05
+				],
+				"qaEz": [
+					3.05,
+					5,
+					3.05
+				],
+				"GnY1": [
+					3.05,
+					6,
+					3.05
+				],
+				"7jEN": [
+					-3.05,
+					6,
+					3.05
+				]
+			},
+			"faces": {
+				"Vzkfr1cP": {
+					"uv": {
+						"giEi": [
+							1,
+							65
+						],
+						"folk": [
+							31,
+							65
+						],
+						"Ebyy": [
+							31,
+							95
+						],
+						"XOF6": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"giEi",
+						"folk",
+						"Ebyy",
+						"XOF6"
+					]
+				},
+				"W8CeMrIr": {
+					"uv": {
+						"O3YN": [
+							1,
+							65
+						],
+						"qaEz": [
+							31,
+							65
+						],
+						"GnY1": [
+							31,
+							95
+						],
+						"7jEN": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"O3YN",
+						"qaEz",
+						"GnY1",
+						"7jEN"
+					]
+				},
+				"5PLimOQ8": {
+					"uv": {
+						"giEi": [
+							1,
+							65
+						],
+						"O3YN": [
+							31,
+							65
+						],
+						"7jEN": [
+							31,
+							95
+						],
+						"folk": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"giEi",
+						"O3YN",
+						"7jEN",
+						"folk"
+					]
+				},
+				"IBybylfu": {
+					"uv": {
+						"XOF6": [
+							1,
+							65
+						],
+						"Ebyy": [
+							31,
+							65
+						],
+						"GnY1": [
+							31,
+							95
+						],
+						"qaEz": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"XOF6",
+						"Ebyy",
+						"GnY1",
+						"qaEz"
+					]
+				},
+				"BPawKwGK": {
+					"uv": {
+						"giEi": [
+							1,
+							65
+						],
+						"XOF6": [
+							31,
+							65
+						],
+						"qaEz": [
+							31,
+							95
+						],
+						"O3YN": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"giEi",
+						"XOF6",
+						"qaEz",
+						"O3YN"
+					]
+				},
+				"oa9bc5vW": {
+					"uv": {
+						"folk": [
+							1,
+							65
+						],
+						"7jEN": [
+							31,
+							65
+						],
+						"GnY1": [
+							31,
+							95
+						],
+						"Ebyy": [
+							1,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"folk",
+						"7jEN",
+						"GnY1",
+						"Ebyy"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "5921ed2e-6f1f-42c5-8384-dda1a094f840"
+		},
+		{
+			"name": "blade_mount",
+			"color": 2,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"6xQU": [
+					-3.8,
+					12,
+					-1.6
+				],
+				"WGFa": [
+					3.8,
+					12,
+					-1.6
+				],
+				"kavr": [
+					3.8,
+					20,
+					-1.6
+				],
+				"D77i": [
+					-3.8,
+					20,
+					-1.6
+				],
+				"yLSg": [
+					-3.8,
+					12,
+					1.6
+				],
+				"HEX8": [
+					3.8,
+					12,
+					1.6
+				],
+				"yt7d": [
+					3.8,
+					20,
+					1.6
+				],
+				"lxJP": [
+					-3.8,
+					20,
+					1.6
+				]
+			},
+			"faces": {
+				"PzObZFV0": {
+					"uv": {
+						"6xQU": [
+							1,
+							1
+						],
+						"D77i": [
+							31,
+							1
+						],
+						"kavr": [
+							31,
+							31
+						],
+						"WGFa": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"6xQU",
+						"D77i",
+						"kavr",
+						"WGFa"
+					]
+				},
+				"p0FNsse3": {
+					"uv": {
+						"yLSg": [
+							1,
+							1
+						],
+						"HEX8": [
+							31,
+							1
+						],
+						"yt7d": [
+							31,
+							31
+						],
+						"lxJP": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"yLSg",
+						"HEX8",
+						"yt7d",
+						"lxJP"
+					]
+				},
+				"wrMXWuvZ": {
+					"uv": {
+						"6xQU": [
+							1,
+							1
+						],
+						"yLSg": [
+							31,
+							1
+						],
+						"lxJP": [
+							31,
+							31
+						],
+						"D77i": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"6xQU",
+						"yLSg",
+						"lxJP",
+						"D77i"
+					]
+				},
+				"HtpVzIjE": {
+					"uv": {
+						"WGFa": [
+							1,
+							1
+						],
+						"kavr": [
+							31,
+							1
+						],
+						"yt7d": [
+							31,
+							31
+						],
+						"HEX8": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"WGFa",
+						"kavr",
+						"yt7d",
+						"HEX8"
+					]
+				},
+				"cweFmQfx": {
+					"uv": {
+						"6xQU": [
+							1,
+							1
+						],
+						"WGFa": [
+							31,
+							1
+						],
+						"HEX8": [
+							31,
+							31
+						],
+						"yLSg": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"6xQU",
+						"WGFa",
+						"HEX8",
+						"yLSg"
+					]
+				},
+				"muAq1waZ": {
+					"uv": {
+						"D77i": [
+							1,
+							1
+						],
+						"lxJP": [
+							31,
+							1
+						],
+						"yt7d": [
+							31,
+							31
+						],
+						"kavr": [
+							1,
+							31
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"D77i",
+						"lxJP",
+						"yt7d",
+						"kavr"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "c4ba40f0-b77d-4453-ab5f-56a94d5818dd"
+		},
+		{
+			"name": "mount_rivet_-1",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"ddzB": [
+					-2.5,
+					15,
+					-1.85
+				],
+				"3Hl5": [
+					-1.5,
+					15,
+					-1.85
+				],
+				"q2oe": [
+					-1.5,
+					16,
+					-1.85
+				],
+				"EvZz": [
+					-2.5,
+					16,
+					-1.85
+				],
+				"dK8B": [
+					-2.5,
+					15,
+					-1.6
+				],
+				"bEFO": [
+					-1.5,
+					15,
+					-1.6
+				],
+				"8WBF": [
+					-1.5,
+					16,
+					-1.6
+				],
+				"5tWY": [
+					-2.5,
+					16,
+					-1.6
+				]
+			},
+			"faces": {
+				"O0ICV1bw": {
+					"uv": {
+						"ddzB": [
+							129,
+							65
+						],
+						"EvZz": [
+							159,
+							65
+						],
+						"q2oe": [
+							159,
+							95
+						],
+						"3Hl5": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ddzB",
+						"EvZz",
+						"q2oe",
+						"3Hl5"
+					]
+				},
+				"vlJm8O06": {
+					"uv": {
+						"dK8B": [
+							129,
+							65
+						],
+						"bEFO": [
+							159,
+							65
+						],
+						"8WBF": [
+							159,
+							95
+						],
+						"5tWY": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dK8B",
+						"bEFO",
+						"8WBF",
+						"5tWY"
+					]
+				},
+				"pEwBY6x2": {
+					"uv": {
+						"ddzB": [
+							129,
+							65
+						],
+						"dK8B": [
+							159,
+							65
+						],
+						"5tWY": [
+							159,
+							95
+						],
+						"EvZz": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ddzB",
+						"dK8B",
+						"5tWY",
+						"EvZz"
+					]
+				},
+				"orvoOabi": {
+					"uv": {
+						"3Hl5": [
+							129,
+							65
+						],
+						"q2oe": [
+							159,
+							65
+						],
+						"8WBF": [
+							159,
+							95
+						],
+						"bEFO": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"3Hl5",
+						"q2oe",
+						"8WBF",
+						"bEFO"
+					]
+				},
+				"Q92ZTYav": {
+					"uv": {
+						"ddzB": [
+							129,
+							65
+						],
+						"3Hl5": [
+							159,
+							65
+						],
+						"bEFO": [
+							159,
+							95
+						],
+						"dK8B": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ddzB",
+						"3Hl5",
+						"bEFO",
+						"dK8B"
+					]
+				},
+				"RZTHrSb7": {
+					"uv": {
+						"EvZz": [
+							129,
+							65
+						],
+						"5tWY": [
+							159,
+							65
+						],
+						"8WBF": [
+							159,
+							95
+						],
+						"q2oe": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"EvZz",
+						"5tWY",
+						"8WBF",
+						"q2oe"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "ae54ed8c-51b2-45a7-88a6-0e9a66fc21f3"
+		},
+		{
+			"name": "mount_rivet_1",
+			"color": 4,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"dMuD": [
+					1.5,
+					15,
+					-1.85
+				],
+				"ikn9": [
+					2.5,
+					15,
+					-1.85
+				],
+				"HMmv": [
+					2.5,
+					16,
+					-1.85
+				],
+				"bQEi": [
+					1.5,
+					16,
+					-1.85
+				],
+				"I8VB": [
+					1.5,
+					15,
+					-1.6
+				],
+				"eMK4": [
+					2.5,
+					15,
+					-1.6
+				],
+				"Uhjv": [
+					2.5,
+					16,
+					-1.6
+				],
+				"t4VK": [
+					1.5,
+					16,
+					-1.6
+				]
+			},
+			"faces": {
+				"lhLVUSGe": {
+					"uv": {
+						"dMuD": [
+							129,
+							65
+						],
+						"bQEi": [
+							159,
+							65
+						],
+						"HMmv": [
+							159,
+							95
+						],
+						"ikn9": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dMuD",
+						"bQEi",
+						"HMmv",
+						"ikn9"
+					]
+				},
+				"MKZVAPSH": {
+					"uv": {
+						"I8VB": [
+							129,
+							65
+						],
+						"eMK4": [
+							159,
+							65
+						],
+						"Uhjv": [
+							159,
+							95
+						],
+						"t4VK": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"I8VB",
+						"eMK4",
+						"Uhjv",
+						"t4VK"
+					]
+				},
+				"mUVvdsMC": {
+					"uv": {
+						"dMuD": [
+							129,
+							65
+						],
+						"I8VB": [
+							159,
+							65
+						],
+						"t4VK": [
+							159,
+							95
+						],
+						"bQEi": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dMuD",
+						"I8VB",
+						"t4VK",
+						"bQEi"
+					]
+				},
+				"vxS37Ncq": {
+					"uv": {
+						"ikn9": [
+							129,
+							65
+						],
+						"HMmv": [
+							159,
+							65
+						],
+						"Uhjv": [
+							159,
+							95
+						],
+						"eMK4": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"ikn9",
+						"HMmv",
+						"Uhjv",
+						"eMK4"
+					]
+				},
+				"HExqjN7g": {
+					"uv": {
+						"dMuD": [
+							129,
+							65
+						],
+						"ikn9": [
+							159,
+							65
+						],
+						"eMK4": [
+							159,
+							95
+						],
+						"I8VB": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dMuD",
+						"ikn9",
+						"eMK4",
+						"I8VB"
+					]
+				},
+				"rnJKVYFK": {
+					"uv": {
+						"bQEi": [
+							129,
+							65
+						],
+						"t4VK": [
+							159,
+							65
+						],
+						"Uhjv": [
+							159,
+							95
+						],
+						"HMmv": [
+							129,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"bQEi",
+						"t4VK",
+						"Uhjv",
+						"HMmv"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "a9a1c3c1-3188-44df-87ed-48544410dc2d"
+		},
+		{
+			"name": "guard_emitter_-1",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"epjc": [
+					-9.6,
+					10,
+					-2.2
+				],
+				"AkkS": [
+					-8.4,
+					10,
+					-2.2
+				],
+				"tvYP": [
+					-8.4,
+					14,
+					-2.2
+				],
+				"OAbc": [
+					-9.6,
+					14,
+					-2.2
+				],
+				"kHjM": [
+					-9.6,
+					10,
+					2.2
+				],
+				"RGYO": [
+					-8.4,
+					10,
+					2.2
+				],
+				"pPzn": [
+					-8.4,
+					14,
+					2.2
+				],
+				"PzTW": [
+					-9.6,
+					14,
+					2.2
+				]
+			},
+			"faces": {
+				"yvF3HWrA": {
+					"uv": {
+						"epjc": [
+							65,
+							65
+						],
+						"OAbc": [
+							95,
+							65
+						],
+						"tvYP": [
+							95,
+							95
+						],
+						"AkkS": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"epjc",
+						"OAbc",
+						"tvYP",
+						"AkkS"
+					]
+				},
+				"1kZBrSGV": {
+					"uv": {
+						"kHjM": [
+							65,
+							65
+						],
+						"RGYO": [
+							95,
+							65
+						],
+						"pPzn": [
+							95,
+							95
+						],
+						"PzTW": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"kHjM",
+						"RGYO",
+						"pPzn",
+						"PzTW"
+					]
+				},
+				"mnRkkINN": {
+					"uv": {
+						"epjc": [
+							65,
+							65
+						],
+						"kHjM": [
+							95,
+							65
+						],
+						"PzTW": [
+							95,
+							95
+						],
+						"OAbc": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"epjc",
+						"kHjM",
+						"PzTW",
+						"OAbc"
+					]
+				},
+				"iU7IOfhy": {
+					"uv": {
+						"AkkS": [
+							65,
+							65
+						],
+						"tvYP": [
+							95,
+							65
+						],
+						"pPzn": [
+							95,
+							95
+						],
+						"RGYO": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"AkkS",
+						"tvYP",
+						"pPzn",
+						"RGYO"
+					]
+				},
+				"P3eUNaCr": {
+					"uv": {
+						"epjc": [
+							65,
+							65
+						],
+						"AkkS": [
+							95,
+							65
+						],
+						"RGYO": [
+							95,
+							95
+						],
+						"kHjM": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"epjc",
+						"AkkS",
+						"RGYO",
+						"kHjM"
+					]
+				},
+				"xMGY4Fzf": {
+					"uv": {
+						"OAbc": [
+							65,
+							65
+						],
+						"PzTW": [
+							95,
+							65
+						],
+						"pPzn": [
+							95,
+							95
+						],
+						"tvYP": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"OAbc",
+						"PzTW",
+						"pPzn",
+						"tvYP"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "64fa1366-03f5-4277-8477-71cac8170fcf"
+		},
+		{
+			"name": "guard_emitter_1",
+			"color": 2,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"YQyy": [
+					8.4,
+					10,
+					-2.2
+				],
+				"12sM": [
+					9.6,
+					10,
+					-2.2
+				],
+				"glLM": [
+					9.6,
+					14,
+					-2.2
+				],
+				"E9bE": [
+					8.4,
+					14,
+					-2.2
+				],
+				"Bzxf": [
+					8.4,
+					10,
+					2.2
+				],
+				"wUdm": [
+					9.6,
+					10,
+					2.2
+				],
+				"CQ3A": [
+					9.6,
+					14,
+					2.2
+				],
+				"ohky": [
+					8.4,
+					14,
+					2.2
+				]
+			},
+			"faces": {
+				"fHpUf3eW": {
+					"uv": {
+						"YQyy": [
+							65,
+							65
+						],
+						"E9bE": [
+							95,
+							65
+						],
+						"glLM": [
+							95,
+							95
+						],
+						"12sM": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"YQyy",
+						"E9bE",
+						"glLM",
+						"12sM"
+					]
+				},
+				"cH4Emc8o": {
+					"uv": {
+						"Bzxf": [
+							65,
+							65
+						],
+						"wUdm": [
+							95,
+							65
+						],
+						"CQ3A": [
+							95,
+							95
+						],
+						"ohky": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Bzxf",
+						"wUdm",
+						"CQ3A",
+						"ohky"
+					]
+				},
+				"dYzv33FP": {
+					"uv": {
+						"YQyy": [
+							65,
+							65
+						],
+						"Bzxf": [
+							95,
+							65
+						],
+						"ohky": [
+							95,
+							95
+						],
+						"E9bE": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"YQyy",
+						"Bzxf",
+						"ohky",
+						"E9bE"
+					]
+				},
+				"obtuBMOX": {
+					"uv": {
+						"12sM": [
+							65,
+							65
+						],
+						"glLM": [
+							95,
+							65
+						],
+						"CQ3A": [
+							95,
+							95
+						],
+						"wUdm": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"12sM",
+						"glLM",
+						"CQ3A",
+						"wUdm"
+					]
+				},
+				"kW09nVWe": {
+					"uv": {
+						"YQyy": [
+							65,
+							65
+						],
+						"12sM": [
+							95,
+							65
+						],
+						"wUdm": [
+							95,
+							95
+						],
+						"Bzxf": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"YQyy",
+						"12sM",
+						"wUdm",
+						"Bzxf"
+					]
+				},
+				"Rt0yGAxz": {
+					"uv": {
+						"E9bE": [
+							65,
+							65
+						],
+						"ohky": [
+							95,
+							65
+						],
+						"CQ3A": [
+							95,
+							95
+						],
+						"glLM": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"E9bE",
+						"ohky",
+						"CQ3A",
+						"glLM"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "982621d6-14bb-4a69-a4e2-6130a6627314"
+		},
+		{
+			"name": "energy_inlay_24_-1",
+			"color": 2,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"8ji3": [
+					-0.6,
+					24,
+					-1.4200000000000002
+				],
+				"xslD": [
+					0.6,
+					24,
+					-1.4200000000000002
+				],
+				"srNa": [
+					0.6,
+					43,
+					-1.4200000000000002
+				],
+				"1NAk": [
+					-0.6,
+					43,
+					-1.4200000000000002
+				],
+				"TnZT": [
+					-0.6,
+					24,
+					-1.22
+				],
+				"gOox": [
+					0.6,
+					24,
+					-1.22
+				],
+				"LUk6": [
+					0.6,
+					43,
+					-1.22
+				],
+				"lehY": [
+					-0.6,
+					43,
+					-1.22
+				]
+			},
+			"faces": {
+				"UDUdYAJk": {
+					"uv": {
+						"8ji3": [
+							65,
+							65
+						],
+						"1NAk": [
+							95,
+							65
+						],
+						"srNa": [
+							95,
+							95
+						],
+						"xslD": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"8ji3",
+						"1NAk",
+						"srNa",
+						"xslD"
+					]
+				},
+				"wpJkjKss": {
+					"uv": {
+						"TnZT": [
+							65,
+							65
+						],
+						"gOox": [
+							95,
+							65
+						],
+						"LUk6": [
+							95,
+							95
+						],
+						"lehY": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"TnZT",
+						"gOox",
+						"LUk6",
+						"lehY"
+					]
+				},
+				"HCUu0apx": {
+					"uv": {
+						"8ji3": [
+							65,
+							65
+						],
+						"TnZT": [
+							95,
+							65
+						],
+						"lehY": [
+							95,
+							95
+						],
+						"1NAk": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"8ji3",
+						"TnZT",
+						"lehY",
+						"1NAk"
+					]
+				},
+				"pDDZRi0L": {
+					"uv": {
+						"xslD": [
+							65,
+							65
+						],
+						"srNa": [
+							95,
+							65
+						],
+						"LUk6": [
+							95,
+							95
+						],
+						"gOox": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"xslD",
+						"srNa",
+						"LUk6",
+						"gOox"
+					]
+				},
+				"qUPRony6": {
+					"uv": {
+						"8ji3": [
+							65,
+							65
+						],
+						"xslD": [
+							95,
+							65
+						],
+						"gOox": [
+							95,
+							95
+						],
+						"TnZT": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"8ji3",
+						"xslD",
+						"gOox",
+						"TnZT"
+					]
+				},
+				"ho4VGefj": {
+					"uv": {
+						"1NAk": [
+							65,
+							65
+						],
+						"lehY": [
+							95,
+							65
+						],
+						"LUk6": [
+							95,
+							95
+						],
+						"srNa": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"1NAk",
+						"lehY",
+						"LUk6",
+						"srNa"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "c757f1e8-80b1-482b-a996-6856415f71ac"
+		},
+		{
+			"name": "energy_inlay_24_1",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"i9gi": [
+					-0.6,
+					24,
+					1.22
+				],
+				"zsaw": [
+					0.6,
+					24,
+					1.22
+				],
+				"9HzJ": [
+					0.6,
+					43,
+					1.22
+				],
+				"Lfpp": [
+					-0.6,
+					43,
+					1.22
+				],
+				"mGMq": [
+					-0.6,
+					24,
+					1.4200000000000002
+				],
+				"1wRQ": [
+					0.6,
+					24,
+					1.4200000000000002
+				],
+				"MlWr": [
+					0.6,
+					43,
+					1.4200000000000002
+				],
+				"gofK": [
+					-0.6,
+					43,
+					1.4200000000000002
+				]
+			},
+			"faces": {
+				"35aEdHlP": {
+					"uv": {
+						"i9gi": [
+							65,
+							65
+						],
+						"Lfpp": [
+							95,
+							65
+						],
+						"9HzJ": [
+							95,
+							95
+						],
+						"zsaw": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"i9gi",
+						"Lfpp",
+						"9HzJ",
+						"zsaw"
+					]
+				},
+				"zFQEXEnj": {
+					"uv": {
+						"mGMq": [
+							65,
+							65
+						],
+						"1wRQ": [
+							95,
+							65
+						],
+						"MlWr": [
+							95,
+							95
+						],
+						"gofK": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"mGMq",
+						"1wRQ",
+						"MlWr",
+						"gofK"
+					]
+				},
+				"Qml8GPsM": {
+					"uv": {
+						"i9gi": [
+							65,
+							65
+						],
+						"mGMq": [
+							95,
+							65
+						],
+						"gofK": [
+							95,
+							95
+						],
+						"Lfpp": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"i9gi",
+						"mGMq",
+						"gofK",
+						"Lfpp"
+					]
+				},
+				"YlkPwpyR": {
+					"uv": {
+						"zsaw": [
+							65,
+							65
+						],
+						"9HzJ": [
+							95,
+							65
+						],
+						"MlWr": [
+							95,
+							95
+						],
+						"1wRQ": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"zsaw",
+						"9HzJ",
+						"MlWr",
+						"1wRQ"
+					]
+				},
+				"IaEmFkTA": {
+					"uv": {
+						"i9gi": [
+							65,
+							65
+						],
+						"zsaw": [
+							95,
+							65
+						],
+						"1wRQ": [
+							95,
+							95
+						],
+						"mGMq": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"i9gi",
+						"zsaw",
+						"1wRQ",
+						"mGMq"
+					]
+				},
+				"2omU6iWw": {
+					"uv": {
+						"Lfpp": [
+							65,
+							65
+						],
+						"gofK": [
+							95,
+							65
+						],
+						"MlWr": [
+							95,
+							95
+						],
+						"9HzJ": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Lfpp",
+						"gofK",
+						"MlWr",
+						"9HzJ"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "3b044c8a-3892-404c-a968-264703794848"
+		},
+		{
+			"name": "energy_inlay_47_-1",
+			"color": 1,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"aDdr": [
+					0,
+					47,
+					-1.4200000000000002
+				],
+				"3xcN": [
+					1.2,
+					47,
+					-1.4200000000000002
+				],
+				"fi3n": [
+					1.2,
+					65,
+					-1.4200000000000002
+				],
+				"Xykf": [
+					0,
+					65,
+					-1.4200000000000002
+				],
+				"8vpe": [
+					0,
+					47,
+					-1.22
+				],
+				"1bQE": [
+					1.2,
+					47,
+					-1.22
+				],
+				"fkkf": [
+					1.2,
+					65,
+					-1.22
+				],
+				"gEsM": [
+					0,
+					65,
+					-1.22
+				]
+			},
+			"faces": {
+				"ZJPes7hN": {
+					"uv": {
+						"aDdr": [
+							65,
+							65
+						],
+						"Xykf": [
+							95,
+							65
+						],
+						"fi3n": [
+							95,
+							95
+						],
+						"3xcN": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"aDdr",
+						"Xykf",
+						"fi3n",
+						"3xcN"
+					]
+				},
+				"mpZFUyzZ": {
+					"uv": {
+						"8vpe": [
+							65,
+							65
+						],
+						"1bQE": [
+							95,
+							65
+						],
+						"fkkf": [
+							95,
+							95
+						],
+						"gEsM": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"8vpe",
+						"1bQE",
+						"fkkf",
+						"gEsM"
+					]
+				},
+				"I1hOpIfx": {
+					"uv": {
+						"aDdr": [
+							65,
+							65
+						],
+						"8vpe": [
+							95,
+							65
+						],
+						"gEsM": [
+							95,
+							95
+						],
+						"Xykf": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"aDdr",
+						"8vpe",
+						"gEsM",
+						"Xykf"
+					]
+				},
+				"eZ4ZO0FG": {
+					"uv": {
+						"3xcN": [
+							65,
+							65
+						],
+						"fi3n": [
+							95,
+							65
+						],
+						"fkkf": [
+							95,
+							95
+						],
+						"1bQE": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"3xcN",
+						"fi3n",
+						"fkkf",
+						"1bQE"
+					]
+				},
+				"fjcrMeFL": {
+					"uv": {
+						"aDdr": [
+							65,
+							65
+						],
+						"3xcN": [
+							95,
+							65
+						],
+						"1bQE": [
+							95,
+							95
+						],
+						"8vpe": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"aDdr",
+						"3xcN",
+						"1bQE",
+						"8vpe"
+					]
+				},
+				"oM1m2WS6": {
+					"uv": {
+						"Xykf": [
+							65,
+							65
+						],
+						"gEsM": [
+							95,
+							65
+						],
+						"fkkf": [
+							95,
+							95
+						],
+						"fi3n": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Xykf",
+						"gEsM",
+						"fkkf",
+						"fi3n"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "5b1da8ce-4b08-4d40-bfef-332efa86b49f"
+		},
+		{
+			"name": "energy_inlay_47_1",
+			"color": 7,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"Y07K": [
+					0,
+					47,
+					1.22
+				],
+				"4G0A": [
+					1.2,
+					47,
+					1.22
+				],
+				"qrV9": [
+					1.2,
+					65,
+					1.22
+				],
+				"39MQ": [
+					0,
+					65,
+					1.22
+				],
+				"Tw53": [
+					0,
+					47,
+					1.4200000000000002
+				],
+				"MEUV": [
+					1.2,
+					47,
+					1.4200000000000002
+				],
+				"wvVQ": [
+					1.2,
+					65,
+					1.4200000000000002
+				],
+				"djk2": [
+					0,
+					65,
+					1.4200000000000002
+				]
+			},
+			"faces": {
+				"lfHgBnm8": {
+					"uv": {
+						"Y07K": [
+							65,
+							65
+						],
+						"39MQ": [
+							95,
+							65
+						],
+						"qrV9": [
+							95,
+							95
+						],
+						"4G0A": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Y07K",
+						"39MQ",
+						"qrV9",
+						"4G0A"
+					]
+				},
+				"BPEAmTR9": {
+					"uv": {
+						"Tw53": [
+							65,
+							65
+						],
+						"MEUV": [
+							95,
+							65
+						],
+						"wvVQ": [
+							95,
+							95
+						],
+						"djk2": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Tw53",
+						"MEUV",
+						"wvVQ",
+						"djk2"
+					]
+				},
+				"V1EYkQVZ": {
+					"uv": {
+						"Y07K": [
+							65,
+							65
+						],
+						"Tw53": [
+							95,
+							65
+						],
+						"djk2": [
+							95,
+							95
+						],
+						"39MQ": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Y07K",
+						"Tw53",
+						"djk2",
+						"39MQ"
+					]
+				},
+				"5XqZUZP1": {
+					"uv": {
+						"4G0A": [
+							65,
+							65
+						],
+						"qrV9": [
+							95,
+							65
+						],
+						"wvVQ": [
+							95,
+							95
+						],
+						"MEUV": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"4G0A",
+						"qrV9",
+						"wvVQ",
+						"MEUV"
+					]
+				},
+				"MjXhkcMC": {
+					"uv": {
+						"Y07K": [
+							65,
+							65
+						],
+						"4G0A": [
+							95,
+							65
+						],
+						"MEUV": [
+							95,
+							95
+						],
+						"Tw53": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Y07K",
+						"4G0A",
+						"MEUV",
+						"Tw53"
+					]
+				},
+				"viRoKHxn": {
+					"uv": {
+						"39MQ": [
+							65,
+							65
+						],
+						"djk2": [
+							95,
+							65
+						],
+						"wvVQ": [
+							95,
+							95
+						],
+						"qrV9": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"39MQ",
+						"djk2",
+						"wvVQ",
+						"qrV9"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "50615d1c-0b1e-4d4c-823c-91380c37fac6"
+		},
+		{
+			"name": "energy_inlay_69_-1",
+			"color": 8,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"JoVs": [
+					-0.6,
+					69,
+					-1.4200000000000002
+				],
+				"02zO": [
+					0.6,
+					69,
+					-1.4200000000000002
+				],
+				"I3pq": [
+					0.6,
+					88,
+					-1.4200000000000002
+				],
+				"gfiY": [
+					-0.6,
+					88,
+					-1.4200000000000002
+				],
+				"MrFA": [
+					-0.6,
+					69,
+					-1.22
+				],
+				"Juj7": [
+					0.6,
+					69,
+					-1.22
+				],
+				"evzz": [
+					0.6,
+					88,
+					-1.22
+				],
+				"wslC": [
+					-0.6,
+					88,
+					-1.22
+				]
+			},
+			"faces": {
+				"KnQKVLV0": {
+					"uv": {
+						"JoVs": [
+							65,
+							65
+						],
+						"gfiY": [
+							95,
+							65
+						],
+						"I3pq": [
+							95,
+							95
+						],
+						"02zO": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JoVs",
+						"gfiY",
+						"I3pq",
+						"02zO"
+					]
+				},
+				"phC3h1rV": {
+					"uv": {
+						"MrFA": [
+							65,
+							65
+						],
+						"Juj7": [
+							95,
+							65
+						],
+						"evzz": [
+							95,
+							95
+						],
+						"wslC": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"MrFA",
+						"Juj7",
+						"evzz",
+						"wslC"
+					]
+				},
+				"Mxn4Nn7N": {
+					"uv": {
+						"JoVs": [
+							65,
+							65
+						],
+						"MrFA": [
+							95,
+							65
+						],
+						"wslC": [
+							95,
+							95
+						],
+						"gfiY": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JoVs",
+						"MrFA",
+						"wslC",
+						"gfiY"
+					]
+				},
+				"8LRi1xnA": {
+					"uv": {
+						"02zO": [
+							65,
+							65
+						],
+						"I3pq": [
+							95,
+							65
+						],
+						"evzz": [
+							95,
+							95
+						],
+						"Juj7": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"02zO",
+						"I3pq",
+						"evzz",
+						"Juj7"
+					]
+				},
+				"fziEq7np": {
+					"uv": {
+						"JoVs": [
+							65,
+							65
+						],
+						"02zO": [
+							95,
+							65
+						],
+						"Juj7": [
+							95,
+							95
+						],
+						"MrFA": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JoVs",
+						"02zO",
+						"Juj7",
+						"MrFA"
+					]
+				},
+				"5SfBL5wH": {
+					"uv": {
+						"gfiY": [
+							65,
+							65
+						],
+						"wslC": [
+							95,
+							65
+						],
+						"evzz": [
+							95,
+							95
+						],
+						"I3pq": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"gfiY",
+						"wslC",
+						"evzz",
+						"I3pq"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "74a69a4a-c7e7-423e-aeff-5fa7edaf6257"
+		},
+		{
+			"name": "energy_inlay_69_1",
+			"color": 0,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"CHu1": [
+					-0.6,
+					69,
+					1.22
+				],
+				"guyl": [
+					0.6,
+					69,
+					1.22
+				],
+				"GZm5": [
+					0.6,
+					88,
+					1.22
+				],
+				"mm63": [
+					-0.6,
+					88,
+					1.22
+				],
+				"hvbW": [
+					-0.6,
+					69,
+					1.4200000000000002
+				],
+				"jnM1": [
+					0.6,
+					69,
+					1.4200000000000002
+				],
+				"oGa9": [
+					0.6,
+					88,
+					1.4200000000000002
+				],
+				"FHBE": [
+					-0.6,
+					88,
+					1.4200000000000002
+				]
+			},
+			"faces": {
+				"FPphIcLv": {
+					"uv": {
+						"CHu1": [
+							65,
+							65
+						],
+						"mm63": [
+							95,
+							65
+						],
+						"GZm5": [
+							95,
+							95
+						],
+						"guyl": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"CHu1",
+						"mm63",
+						"GZm5",
+						"guyl"
+					]
+				},
+				"7s687a7z": {
+					"uv": {
+						"hvbW": [
+							65,
+							65
+						],
+						"jnM1": [
+							95,
+							65
+						],
+						"oGa9": [
+							95,
+							95
+						],
+						"FHBE": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"hvbW",
+						"jnM1",
+						"oGa9",
+						"FHBE"
+					]
+				},
+				"XPuCx5Qd": {
+					"uv": {
+						"CHu1": [
+							65,
+							65
+						],
+						"hvbW": [
+							95,
+							65
+						],
+						"FHBE": [
+							95,
+							95
+						],
+						"mm63": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"CHu1",
+						"hvbW",
+						"FHBE",
+						"mm63"
+					]
+				},
+				"pzreFotB": {
+					"uv": {
+						"guyl": [
+							65,
+							65
+						],
+						"GZm5": [
+							95,
+							65
+						],
+						"oGa9": [
+							95,
+							95
+						],
+						"jnM1": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"guyl",
+						"GZm5",
+						"oGa9",
+						"jnM1"
+					]
+				},
+				"5uhEC6hB": {
+					"uv": {
+						"CHu1": [
+							65,
+							65
+						],
+						"guyl": [
+							95,
+							65
+						],
+						"jnM1": [
+							95,
+							95
+						],
+						"hvbW": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"CHu1",
+						"guyl",
+						"jnM1",
+						"hvbW"
+					]
+				},
+				"CMLnZ3ia": {
+					"uv": {
+						"mm63": [
+							65,
+							65
+						],
+						"FHBE": [
+							95,
+							65
+						],
+						"oGa9": [
+							95,
+							95
+						],
+						"GZm5": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"mm63",
+						"FHBE",
+						"oGa9",
+						"GZm5"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "cd2481d8-da04-44ab-ac49-5bdb96483a0c"
+		},
+		{
+			"name": "energy_inlay_92_-1",
+			"color": 6,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"SPfh": [
+					-0.19999999999999996,
+					92,
+					-1.4200000000000002
+				],
+				"o9Vx": [
+					1,
+					92,
+					-1.4200000000000002
+				],
+				"S47r": [
+					1,
+					109,
+					-1.4200000000000002
+				],
+				"tEa8": [
+					-0.19999999999999996,
+					109,
+					-1.4200000000000002
+				],
+				"rXJ6": [
+					-0.19999999999999996,
+					92,
+					-1.22
+				],
+				"VKsd": [
+					1,
+					92,
+					-1.22
+				],
+				"e2ov": [
+					1,
+					109,
+					-1.22
+				],
+				"4UWU": [
+					-0.19999999999999996,
+					109,
+					-1.22
+				]
+			},
+			"faces": {
+				"a4ALMW1J": {
+					"uv": {
+						"SPfh": [
+							65,
+							65
+						],
+						"tEa8": [
+							95,
+							65
+						],
+						"S47r": [
+							95,
+							95
+						],
+						"o9Vx": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SPfh",
+						"tEa8",
+						"S47r",
+						"o9Vx"
+					]
+				},
+				"6oPbweTm": {
+					"uv": {
+						"rXJ6": [
+							65,
+							65
+						],
+						"VKsd": [
+							95,
+							65
+						],
+						"e2ov": [
+							95,
+							95
+						],
+						"4UWU": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"rXJ6",
+						"VKsd",
+						"e2ov",
+						"4UWU"
+					]
+				},
+				"t9sOxY2o": {
+					"uv": {
+						"SPfh": [
+							65,
+							65
+						],
+						"rXJ6": [
+							95,
+							65
+						],
+						"4UWU": [
+							95,
+							95
+						],
+						"tEa8": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SPfh",
+						"rXJ6",
+						"4UWU",
+						"tEa8"
+					]
+				},
+				"OAS2QpAA": {
+					"uv": {
+						"o9Vx": [
+							65,
+							65
+						],
+						"S47r": [
+							95,
+							65
+						],
+						"e2ov": [
+							95,
+							95
+						],
+						"VKsd": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"o9Vx",
+						"S47r",
+						"e2ov",
+						"VKsd"
+					]
+				},
+				"XJDet9Py": {
+					"uv": {
+						"SPfh": [
+							65,
+							65
+						],
+						"o9Vx": [
+							95,
+							65
+						],
+						"VKsd": [
+							95,
+							95
+						],
+						"rXJ6": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"SPfh",
+						"o9Vx",
+						"VKsd",
+						"rXJ6"
+					]
+				},
+				"xPEyyYa4": {
+					"uv": {
+						"tEa8": [
+							65,
+							65
+						],
+						"4UWU": [
+							95,
+							65
+						],
+						"e2ov": [
+							95,
+							95
+						],
+						"S47r": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"tEa8",
+						"4UWU",
+						"e2ov",
+						"S47r"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "0a00e3fb-1fa4-4a03-a357-e81393e9dbe8"
+		},
+		{
+			"name": "energy_inlay_92_1",
+			"color": 5,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"JzKi": [
+					-0.19999999999999996,
+					92,
+					1.22
+				],
+				"4Bo7": [
+					1,
+					92,
+					1.22
+				],
+				"7Kec": [
+					1,
+					109,
+					1.22
+				],
+				"hLNu": [
+					-0.19999999999999996,
+					109,
+					1.22
+				],
+				"a7y6": [
+					-0.19999999999999996,
+					92,
+					1.4200000000000002
+				],
+				"b0t0": [
+					1,
+					92,
+					1.4200000000000002
+				],
+				"v4Wa": [
+					1,
+					109,
+					1.4200000000000002
+				],
+				"1i2J": [
+					-0.19999999999999996,
+					109,
+					1.4200000000000002
+				]
+			},
+			"faces": {
+				"wddFxDV5": {
+					"uv": {
+						"JzKi": [
+							65,
+							65
+						],
+						"hLNu": [
+							95,
+							65
+						],
+						"7Kec": [
+							95,
+							95
+						],
+						"4Bo7": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JzKi",
+						"hLNu",
+						"7Kec",
+						"4Bo7"
+					]
+				},
+				"eB9aNWiS": {
+					"uv": {
+						"a7y6": [
+							65,
+							65
+						],
+						"b0t0": [
+							95,
+							65
+						],
+						"v4Wa": [
+							95,
+							95
+						],
+						"1i2J": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"a7y6",
+						"b0t0",
+						"v4Wa",
+						"1i2J"
+					]
+				},
+				"Mnc3wGOa": {
+					"uv": {
+						"JzKi": [
+							65,
+							65
+						],
+						"a7y6": [
+							95,
+							65
+						],
+						"1i2J": [
+							95,
+							95
+						],
+						"hLNu": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JzKi",
+						"a7y6",
+						"1i2J",
+						"hLNu"
+					]
+				},
+				"z0uPGnqH": {
+					"uv": {
+						"4Bo7": [
+							65,
+							65
+						],
+						"7Kec": [
+							95,
+							65
+						],
+						"v4Wa": [
+							95,
+							95
+						],
+						"b0t0": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"4Bo7",
+						"7Kec",
+						"v4Wa",
+						"b0t0"
+					]
+				},
+				"3pzGiSzn": {
+					"uv": {
+						"JzKi": [
+							65,
+							65
+						],
+						"4Bo7": [
+							95,
+							65
+						],
+						"b0t0": [
+							95,
+							95
+						],
+						"a7y6": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"JzKi",
+						"4Bo7",
+						"b0t0",
+						"a7y6"
+					]
+				},
+				"7GOotYNO": {
+					"uv": {
+						"hLNu": [
+							65,
+							65
+						],
+						"1i2J": [
+							95,
+							65
+						],
+						"v4Wa": [
+							95,
+							95
+						],
+						"7Kec": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"hLNu",
+						"1i2J",
+						"v4Wa",
+						"7Kec"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "322af815-f723-4e1c-a77c-6cb17603a793"
+		},
+		{
+			"name": "energy_inlay_113_-1",
+			"color": 0,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"teJl": [
+					0.09999999999999998,
+					113,
+					-1.4200000000000002
+				],
+				"OJAb": [
+					1.2999999999999998,
+					113,
+					-1.4200000000000002
+				],
+				"51tw": [
+					1.2999999999999998,
+					125,
+					-1.4200000000000002
+				],
+				"nM28": [
+					0.09999999999999998,
+					125,
+					-1.4200000000000002
+				],
+				"O9KS": [
+					0.09999999999999998,
+					113,
+					-1.22
+				],
+				"So6b": [
+					1.2999999999999998,
+					113,
+					-1.22
+				],
+				"k0Sf": [
+					1.2999999999999998,
+					125,
+					-1.22
+				],
+				"1iCj": [
+					0.09999999999999998,
+					125,
+					-1.22
+				]
+			},
+			"faces": {
+				"ezDr9z8w": {
+					"uv": {
+						"teJl": [
+							65,
+							65
+						],
+						"nM28": [
+							95,
+							65
+						],
+						"51tw": [
+							95,
+							95
+						],
+						"OJAb": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"teJl",
+						"nM28",
+						"51tw",
+						"OJAb"
+					]
+				},
+				"MiJEP847": {
+					"uv": {
+						"O9KS": [
+							65,
+							65
+						],
+						"So6b": [
+							95,
+							65
+						],
+						"k0Sf": [
+							95,
+							95
+						],
+						"1iCj": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"O9KS",
+						"So6b",
+						"k0Sf",
+						"1iCj"
+					]
+				},
+				"4oLYQGNz": {
+					"uv": {
+						"teJl": [
+							65,
+							65
+						],
+						"O9KS": [
+							95,
+							65
+						],
+						"1iCj": [
+							95,
+							95
+						],
+						"nM28": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"teJl",
+						"O9KS",
+						"1iCj",
+						"nM28"
+					]
+				},
+				"i9e9LkD9": {
+					"uv": {
+						"OJAb": [
+							65,
+							65
+						],
+						"51tw": [
+							95,
+							65
+						],
+						"k0Sf": [
+							95,
+							95
+						],
+						"So6b": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"OJAb",
+						"51tw",
+						"k0Sf",
+						"So6b"
+					]
+				},
+				"9zrIsTIn": {
+					"uv": {
+						"teJl": [
+							65,
+							65
+						],
+						"OJAb": [
+							95,
+							65
+						],
+						"So6b": [
+							95,
+							95
+						],
+						"O9KS": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"teJl",
+						"OJAb",
+						"So6b",
+						"O9KS"
+					]
+				},
+				"BwZNGHCm": {
+					"uv": {
+						"nM28": [
+							65,
+							65
+						],
+						"1iCj": [
+							95,
+							65
+						],
+						"k0Sf": [
+							95,
+							95
+						],
+						"51tw": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"nM28",
+						"1iCj",
+						"k0Sf",
+						"51tw"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "3de55792-df70-41fd-a078-16cc3bbfaf51"
+		},
+		{
+			"name": "energy_inlay_113_1",
+			"color": 0,
+			"origin": [
+				0,
+				0,
+				0
+			],
+			"rotation": [
+				0,
+				0,
+				0
+			],
+			"shading": "flat",
+			"export": true,
+			"visibility": true,
+			"locked": false,
+			"render_order": "default",
+			"allow_mirror_modeling": true,
+			"vertices": {
+				"gef8": [
+					0.09999999999999998,
+					113,
+					1.22
+				],
+				"dBfu": [
+					1.2999999999999998,
+					113,
+					1.22
+				],
+				"rqUB": [
+					1.2999999999999998,
+					125,
+					1.22
+				],
+				"AkY1": [
+					0.09999999999999998,
+					125,
+					1.22
+				],
+				"Ia25": [
+					0.09999999999999998,
+					113,
+					1.4200000000000002
+				],
+				"jdoa": [
+					1.2999999999999998,
+					113,
+					1.4200000000000002
+				],
+				"AaS0": [
+					1.2999999999999998,
+					125,
+					1.4200000000000002
+				],
+				"lgak": [
+					0.09999999999999998,
+					125,
+					1.4200000000000002
+				]
+			},
+			"faces": {
+				"r7kL76UB": {
+					"uv": {
+						"gef8": [
+							65,
+							65
+						],
+						"AkY1": [
+							95,
+							65
+						],
+						"rqUB": [
+							95,
+							95
+						],
+						"dBfu": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"gef8",
+						"AkY1",
+						"rqUB",
+						"dBfu"
+					]
+				},
+				"80QwPtpE": {
+					"uv": {
+						"Ia25": [
+							65,
+							65
+						],
+						"jdoa": [
+							95,
+							65
+						],
+						"AaS0": [
+							95,
+							95
+						],
+						"lgak": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"Ia25",
+						"jdoa",
+						"AaS0",
+						"lgak"
+					]
+				},
+				"5B9QKU1s": {
+					"uv": {
+						"gef8": [
+							65,
+							65
+						],
+						"Ia25": [
+							95,
+							65
+						],
+						"lgak": [
+							95,
+							95
+						],
+						"AkY1": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"gef8",
+						"Ia25",
+						"lgak",
+						"AkY1"
+					]
+				},
+				"4YoFCSDb": {
+					"uv": {
+						"dBfu": [
+							65,
+							65
+						],
+						"rqUB": [
+							95,
+							65
+						],
+						"AaS0": [
+							95,
+							95
+						],
+						"jdoa": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"dBfu",
+						"rqUB",
+						"AaS0",
+						"jdoa"
+					]
+				},
+				"b1FYnILr": {
+					"uv": {
+						"gef8": [
+							65,
+							65
+						],
+						"dBfu": [
+							95,
+							65
+						],
+						"jdoa": [
+							95,
+							95
+						],
+						"Ia25": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"gef8",
+						"dBfu",
+						"jdoa",
+						"Ia25"
+					]
+				},
+				"2VjA49Tf": {
+					"uv": {
+						"AkY1": [
+							65,
+							65
+						],
+						"lgak": [
+							95,
+							65
+						],
+						"AaS0": [
+							95,
+							95
+						],
+						"rqUB": [
+							65,
+							95
+						]
+					},
+					"texture": 0,
+					"vertices": [
+						"AkY1",
+						"lgak",
+						"AaS0",
+						"rqUB"
+					]
+				}
+			},
+			"type": "mesh",
+			"uuid": "88024b9d-5396-458e-8081-03b81e049876"
+		}
+	],
+	"groups": [],
+	"outliner": [
+		"40c23679-5a1c-4942-aa2a-6ef9a97a2233",
+		"62393bea-ef16-48ed-8dfa-2a27a14a0781",
+		"2f853fb9-177a-44b0-9bf9-7f96dde96b79",
+		"7425655a-ccd5-4744-98d0-0ddc6b9f64ee",
+		"9d3258d5-dc75-48a1-a66f-221929eff3b4",
+		"008f8d94-1eb0-4986-bfd5-b1715feda7e5",
+		"d3bc451f-5fae-4c26-bb23-db4c9a56879d",
+		"afc07fe5-236c-41af-a83e-e1b302987a20",
+		"7a14973e-5fc8-4b66-9f80-612033338da6",
+		"d3a2a554-bf16-4399-ad94-26aeb60a1269",
+		"1c5ed3e0-876f-4856-8af3-1119641cba59",
+		"76fd1296-e23c-48df-98ec-2d06d0db6122",
+		"88c89cbf-b9c0-4ce5-86c2-81159c26f260",
+		"5921ed2e-6f1f-42c5-8384-dda1a094f840",
+		"c4ba40f0-b77d-4453-ab5f-56a94d5818dd",
+		"ae54ed8c-51b2-45a7-88a6-0e9a66fc21f3",
+		"a9a1c3c1-3188-44df-87ed-48544410dc2d",
+		"64fa1366-03f5-4277-8477-71cac8170fcf",
+		"982621d6-14bb-4a69-a4e2-6130a6627314",
+		"c757f1e8-80b1-482b-a996-6856415f71ac",
+		"3b044c8a-3892-404c-a968-264703794848",
+		"5b1da8ce-4b08-4d40-bfef-332efa86b49f",
+		"50615d1c-0b1e-4d4c-823c-91380c37fac6",
+		"74a69a4a-c7e7-423e-aeff-5fa7edaf6257",
+		"cd2481d8-da04-44ab-ac49-5bdb96483a0c",
+		"0a00e3fb-1fa4-4a03-a357-e81393e9dbe8",
+		"322af815-f723-4e1c-a77c-6cb17603a793",
+		"3de55792-df70-41fd-a078-16cc3bbfaf51",
+		"88024b9d-5396-458e-8081-03b81e049876"
+	],
+	"textures": [
+		{
+			"path": "",
+			"name": "star_pulse",
+			"folder": "",
+			"namespace": "",
+			"id": "0",
+			"width": 256,
+			"height": 256,
+			"uv_width": 256,
+			"uv_height": 256,
+			"particle": false,
+			"use_as_default": false,
+			"layers_enabled": false,
+			"sync_to_project": "",
+			"render_mode": "default",
+			"render_sides": "auto",
+			"frame_time": 1,
+			"frame_order_type": "loop",
+			"frame_order": "",
+			"frame_interpolate": false,
+			"visible": true,
+			"internal": true,
+			"saved": false,
+			"uuid": "cde1b5ee-8912-44b6-ae28-9d6688940ec0",
+			"relative_path": "",
+			"source": "data:image/png;base64,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"
+		}
+	],
+	"variable_placeholders": "",
+	"variable_placeholder_buttons": [],
+	"timeline_setups": [],
+	"unhandled_root_fields": {},
+	"ai_used": true,
+	"ai_agents": "codex-mcp-client"
+}

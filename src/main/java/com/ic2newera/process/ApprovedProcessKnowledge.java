@@ -37,20 +37,45 @@ public final class ApprovedProcessKnowledge {
         addMaterial(query, selectedMaterials, "silver", "银", "silver");
         addMaterial(query, selectedMaterials, "aluminium", "铝", "aluminium", "aluminum");
         addMaterial(query, selectedMaterials, "zinc", "锌", "zinc");
+        addMaterial(query, selectedMaterials, "vanadium", "钒", "vanadium");
+        addMaterial(query, selectedMaterials, "niobium", "铌", "niobium");
+        addMaterial(query, selectedMaterials, "cobalt", "钴", "cobalt");
+        addMaterial(query, selectedMaterials, "molybdenum", "钼", "molybdenum");
+        addMaterial(query, selectedMaterials, "tantalum", "钽", "tantalum");
         if (containsAny(query,"矿物","矿粉","打粉","洗矿","mineral","washing"))
             selectedMaterials.addAll(graph.materials().keySet().stream().sorted().toList());
         boolean electronics = containsAny(query, "硅", "silicon", "silicone", "cpu", "处理器", "ram", "内存",
                 "gpu", "显卡", "ssd", "pcb", "电路板", "电子", "network", "网络", "交换机", "ai core", "ai核心","服务器","server","加工机","石英","quartz");
-        String[] alloyIds={"stainless_steel","invar","nichrome","tool_steel","titanium_alloy","tungsten_carbide"};
-        String[] alloyNames={"不锈钢","因瓦","镍铬","工具钢","钛合金","碳化钨"};
+        String[] alloyIds={"stainless_steel","invar","nichrome","tool_steel","titanium_alloy","tungsten_carbide","vanadium_steel","niobium_titanium"};
+        String[] alloyNames={"不锈钢","因瓦","镍铬","工具钢","钛合金","碳化钨","钒钢","铌钛"};
         for (int i=0;i<alloyIds.length;i++) if (query.contains(alloyIds[i])||query.contains(alloyNames[i])) {
             if (i==0) selectedMaterials.add("chromium");
             if (i==1||i==2) selectedMaterials.add("nickel");
             if (i==2) selectedMaterials.add("chromium");
             if (i==3||i==5) selectedMaterials.add("tungsten");
             if (i==4) selectedMaterials.add("titanium");
+            if (i==6) selectedMaterials.add("vanadium");
+            if (i==7) { selectedMaterials.add("niobium"); selectedMaterials.add("titanium"); }
         }
         List<String> lines = new ArrayList<>();
+        boolean armor=containsAny(query,"磁导","共振甲","科技护甲","magnetic_armor","resonance_armor");
+        boolean components=containsAny(query,"磁线圈","耐热板","脉冲电容","共振","稳定器","伺服","magnetic_coil","heat_resistant_plate","pulse_capacitor","resonance_core","blade_stabilizer","servo_armor_joint");
+        if(armor||components){
+            graph.routes().stream().filter(route->route.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS)
+                    .filter(route->components&&route.material().equals("arsenal_components")
+                            ||armor&&route.material().equals("arsenal_armor"))
+                    .sorted(java.util.Comparator.comparingInt(ProcessGraph.Route::priority).thenComparing(route->route.id().toString()))
+                    .limit(18).forEach(route->lines.add(routeLine(route)));
+            if(components)lines.add("原创共振晶只经已有非金属处理机将2碎晶精制为1共振核心，没有共振金属锭或粉末阶段。");
+        }
+        boolean space=containsAny(query,"航天","火箭","月球","火星","供氧","ad_astra","desh","ostrum","戴什","紫金");
+        if(space){
+            graph.routes().stream().filter(route->route.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS)
+                    .filter(route->route.output().getNamespace().equals("ad_astra"))
+                    .sorted(java.util.Comparator.comparingInt(ProcessGraph.Route::priority).thenComparing(route->route.id().toString()))
+                    .limit(12).forEach(route->lines.add(routeLine(route)));
+            if(space)lines.add("Ad Astra机器保留原生能源，不能据此声称与EU或Create转速自动兼容；Desh/Ostrum没有虚构粉末阶段。");
+        }
         Set<String> devices = new LinkedHashSet<>();
         if (containsAny(query, "充电宝", "power_bank"))
             devices.addAll(List.of("power_bank", "intermediate_power_bank", "advanced_power_bank", "nuclear_power_bank"));
@@ -89,8 +114,10 @@ public final class ApprovedProcessKnowledge {
                     .limit(20).forEach(route -> lines.add(routeLine(route)));
         }
         for (int i=0;i<alloyIds.length;i++) if (query.contains(alloyIds[i])||query.contains(alloyNames[i])) {
-            String product="ic2newera:"+alloyIds[i]+"_ingot";
-            graph.routes().stream().filter(route->route.output().toString().equals(product)
+            String product="ic2newera:"+alloyIds[i];
+            graph.routes().stream().filter(route->(route.output().toString().equals(product+"_ingot")
+                            ||route.output().toString().equals(product+"_dust")
+                            ||route.output().toString().startsWith(product+"_")&&containsAny(query,"工具","装备","镐","护甲","tool","armor"))
                     && route.classification()==ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS)
                     .forEach(route->lines.add(routeLine(route)));
         }
@@ -139,6 +166,8 @@ public final class ApprovedProcessKnowledge {
             case "iron" -> "铁"; case "gold" -> "金"; case "copper" -> "铜"; case "coal" -> "煤";
             case "diamond" -> "钻石"; case "quartz" -> "石英"; case "tin" -> "锡";
             case "silver" -> "银"; case "aluminium" -> "铝"; case "zinc" -> "锌";
+            case "vanadium" -> "钒"; case "niobium" -> "铌";
+            case "cobalt" -> "钴"; case "molybdenum" -> "钼"; case "tantalum" -> "钽";
             default -> id;
         };
     }

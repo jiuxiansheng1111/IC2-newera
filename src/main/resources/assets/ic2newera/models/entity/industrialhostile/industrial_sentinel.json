@@ -1,0 +1,787 @@
+{
+  "name": "industrial_sentinel",
+  "texture_size": [
+    256,
+    256
+  ],
+  "bones": [
+    {
+      "name": "body",
+      "pivot": [
+        0,
+        13,
+        0
+      ],
+      "parent": null
+    },
+    {
+      "name": "head",
+      "pivot": [
+        0,
+        22,
+        -1
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "left_leg",
+      "pivot": [
+        -3,
+        11,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "right_leg",
+      "pivot": [
+        3,
+        11,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "left_arm",
+      "pivot": [
+        -7,
+        20,
+        0
+      ],
+      "parent": "body"
+    },
+    {
+      "name": "hammer_arm",
+      "pivot": [
+        7,
+        20,
+        0
+      ],
+      "parent": "body"
+    }
+  ],
+  "cubes": [
+    {
+      "name": "pelvis_armored_frame",
+      "bone": "body",
+      "from": [
+        -5,
+        9,
+        -3
+      ],
+      "to": [
+        5,
+        13,
+        3
+      ],
+      "material": "tread",
+      "uv": [
+        0,
+        0
+      ]
+    },
+    {
+      "name": "waist_rotary_bearing",
+      "bone": "body",
+      "from": [
+        -3,
+        12,
+        -2
+      ],
+      "to": [
+        3,
+        14,
+        2
+      ],
+      "material": "piston",
+      "uv": [
+        34,
+        0
+      ]
+    },
+    {
+      "name": "armored_torso",
+      "bone": "body",
+      "from": [
+        -6,
+        14,
+        -4
+      ],
+      "to": [
+        6,
+        21,
+        4
+      ],
+      "material": "shell",
+      "uv": [
+        56,
+        0
+      ]
+    },
+    {
+      "name": "sloped_chest_sill",
+      "bone": "body",
+      "from": [
+        -5,
+        13,
+        -5
+      ],
+      "to": [
+        5,
+        16,
+        -4
+      ],
+      "material": "plate",
+      "uv": [
+        98,
+        0
+      ]
+    },
+    {
+      "name": "upper_chest_plate",
+      "bone": "body",
+      "from": [
+        -5,
+        18,
+        -5
+      ],
+      "to": [
+        5,
+        21,
+        -4
+      ],
+      "material": "plate",
+      "uv": [
+        122,
+        0
+      ]
+    },
+    {
+      "name": "chest_warning_band",
+      "bone": "body",
+      "from": [
+        -5,
+        16,
+        -5
+      ],
+      "to": [
+        5,
+        18,
+        -4
+      ],
+      "material": "hazard",
+      "uv": [
+        146,
+        0
+      ]
+    },
+    {
+      "name": "back_power_unit",
+      "bone": "body",
+      "from": [
+        -4,
+        14,
+        4
+      ],
+      "to": [
+        4,
+        21,
+        7
+      ],
+      "material": "vent",
+      "uv": [
+        170,
+        0
+      ]
+    },
+    {
+      "name": "back_coolant_-3",
+      "bone": "body",
+      "from": [
+        -3,
+        15,
+        7
+      ],
+      "to": [
+        -2,
+        20,
+        8
+      ],
+      "material": "cable",
+      "uv": [
+        194,
+        0
+      ]
+    },
+    {
+      "name": "back_coolant_2",
+      "bone": "body",
+      "from": [
+        2,
+        15,
+        7
+      ],
+      "to": [
+        3,
+        20,
+        8
+      ],
+      "material": "cable",
+      "uv": [
+        200,
+        0
+      ]
+    },
+    {
+      "name": "angular_sensor_hood",
+      "bone": "head",
+      "from": [
+        -4,
+        21,
+        -4
+      ],
+      "to": [
+        4,
+        26,
+        3
+      ],
+      "material": "plate",
+      "uv": [
+        206,
+        0
+      ]
+    },
+    {
+      "name": "dark_recessed_visor",
+      "bone": "head",
+      "from": [
+        -3,
+        22,
+        -5
+      ],
+      "to": [
+        3,
+        25,
+        -4
+      ],
+      "material": "tread",
+      "uv": [
+        238,
+        0
+      ]
+    },
+    {
+      "name": "single_amber_sensor",
+      "bone": "head",
+      "from": [
+        -2,
+        23,
+        -6
+      ],
+      "to": [
+        2,
+        24,
+        -5
+      ],
+      "material": "eye",
+      "uv": [
+        0,
+        17
+      ]
+    },
+    {
+      "name": "right_rangefinder",
+      "bone": "head",
+      "from": [
+        4,
+        22,
+        -2
+      ],
+      "to": [
+        5,
+        25,
+        0
+      ],
+      "material": "hazard",
+      "uv": [
+        12,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_upper",
+      "bone": "left_leg",
+      "from": [
+        -5,
+        7,
+        -2
+      ],
+      "to": [
+        -1,
+        11,
+        2
+      ],
+      "material": "plate",
+      "uv": [
+        20,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_knee",
+      "bone": "left_leg",
+      "from": [
+        -5,
+        4,
+        -3
+      ],
+      "to": [
+        -1,
+        7,
+        3
+      ],
+      "material": "tread",
+      "uv": [
+        38,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_shin",
+      "bone": "left_leg",
+      "from": [
+        -5,
+        1,
+        -2
+      ],
+      "to": [
+        -1,
+        4,
+        2
+      ],
+      "material": "shell",
+      "uv": [
+        60,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_foot",
+      "bone": "left_leg",
+      "from": [
+        -6,
+        0,
+        -4
+      ],
+      "to": [
+        0,
+        2,
+        3
+      ],
+      "material": "tread",
+      "uv": [
+        78,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_foot_cap",
+      "bone": "left_leg",
+      "from": [
+        -6,
+        2,
+        -4
+      ],
+      "to": [
+        0,
+        3,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        106,
+        17
+      ]
+    },
+    {
+      "name": "left_leg_exposed_piston",
+      "bone": "left_leg",
+      "from": [
+        -5,
+        3,
+        1
+      ],
+      "to": [
+        -4,
+        9,
+        2
+      ],
+      "material": "piston",
+      "uv": [
+        124,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_upper",
+      "bone": "right_leg",
+      "from": [
+        1,
+        7,
+        -2
+      ],
+      "to": [
+        5,
+        11,
+        2
+      ],
+      "material": "plate",
+      "uv": [
+        130,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_knee",
+      "bone": "right_leg",
+      "from": [
+        1,
+        4,
+        -3
+      ],
+      "to": [
+        5,
+        7,
+        3
+      ],
+      "material": "tread",
+      "uv": [
+        148,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_shin",
+      "bone": "right_leg",
+      "from": [
+        1,
+        1,
+        -2
+      ],
+      "to": [
+        5,
+        4,
+        2
+      ],
+      "material": "shell",
+      "uv": [
+        170,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_foot",
+      "bone": "right_leg",
+      "from": [
+        0,
+        0,
+        -4
+      ],
+      "to": [
+        6,
+        2,
+        3
+      ],
+      "material": "tread",
+      "uv": [
+        188,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_foot_cap",
+      "bone": "right_leg",
+      "from": [
+        0,
+        2,
+        -4
+      ],
+      "to": [
+        6,
+        3,
+        -2
+      ],
+      "material": "hazard",
+      "uv": [
+        216,
+        17
+      ]
+    },
+    {
+      "name": "right_leg_exposed_piston",
+      "bone": "right_leg",
+      "from": [
+        5,
+        3,
+        1
+      ],
+      "to": [
+        6,
+        9,
+        2
+      ],
+      "material": "piston",
+      "uv": [
+        234,
+        17
+      ]
+    },
+    {
+      "name": "left_shoulder",
+      "bone": "left_arm",
+      "from": [
+        -10,
+        18,
+        -3
+      ],
+      "to": [
+        -6,
+        22,
+        3
+      ],
+      "material": "plate",
+      "uv": [
+        0,
+        28
+      ]
+    },
+    {
+      "name": "left_upper_actuator",
+      "bone": "left_arm",
+      "from": [
+        -9,
+        14,
+        -2
+      ],
+      "to": [
+        -7,
+        18,
+        2
+      ],
+      "material": "piston",
+      "uv": [
+        22,
+        28
+      ]
+    },
+    {
+      "name": "left_forearm_clamp",
+      "bone": "left_arm",
+      "from": [
+        -10,
+        9,
+        -3
+      ],
+      "to": [
+        -6,
+        14,
+        3
+      ],
+      "material": "shell",
+      "uv": [
+        36,
+        28
+      ]
+    },
+    {
+      "name": "left_gripper_a",
+      "bone": "left_arm",
+      "from": [
+        -10,
+        7,
+        -3
+      ],
+      "to": [
+        -9,
+        10,
+        2
+      ],
+      "material": "edge",
+      "uv": [
+        58,
+        28
+      ]
+    },
+    {
+      "name": "left_gripper_b",
+      "bone": "left_arm",
+      "from": [
+        -7,
+        7,
+        -3
+      ],
+      "to": [
+        -6,
+        10,
+        2
+      ],
+      "material": "edge",
+      "uv": [
+        72,
+        28
+      ]
+    },
+    {
+      "name": "hammer_shoulder",
+      "bone": "hammer_arm",
+      "from": [
+        6,
+        18,
+        -4
+      ],
+      "to": [
+        11,
+        23,
+        4
+      ],
+      "material": "hazard",
+      "uv": [
+        86,
+        28
+      ]
+    },
+    {
+      "name": "hammer_upper_actuator",
+      "bone": "hammer_arm",
+      "from": [
+        7,
+        14,
+        -2
+      ],
+      "to": [
+        10,
+        18,
+        2
+      ],
+      "material": "piston",
+      "uv": [
+        114,
+        28
+      ]
+    },
+    {
+      "name": "hammer_forearm",
+      "bone": "hammer_arm",
+      "from": [
+        7,
+        8,
+        -3
+      ],
+      "to": [
+        11,
+        14,
+        3
+      ],
+      "material": "shell",
+      "uv": [
+        130,
+        28
+      ]
+    },
+    {
+      "name": "hammer_head",
+      "bone": "hammer_arm",
+      "from": [
+        5,
+        5,
+        -5
+      ],
+      "to": [
+        13,
+        9,
+        5
+      ],
+      "material": "plate",
+      "uv": [
+        152,
+        28
+      ]
+    },
+    {
+      "name": "hammer_striking_face",
+      "bone": "hammer_arm",
+      "from": [
+        4,
+        5,
+        -5
+      ],
+      "to": [
+        5,
+        9,
+        5
+      ],
+      "material": "edge",
+      "uv": [
+        190,
+        28
+      ]
+    },
+    {
+      "name": "hammer_warning_face",
+      "bone": "hammer_arm",
+      "from": [
+        13,
+        5,
+        -5
+      ],
+      "to": [
+        14,
+        9,
+        5
+      ],
+      "material": "hazard",
+      "uv": [
+        214,
+        28
+      ]
+    },
+    {
+      "name": "hammer_coolant_-3",
+      "bone": "hammer_arm",
+      "from": [
+        11,
+        10,
+        -3
+      ],
+      "to": [
+        12,
+        17,
+        -2
+      ],
+      "material": "cable",
+      "uv": [
+        238,
+        28
+      ]
+    },
+    {
+      "name": "hammer_coolant_2",
+      "bone": "hammer_arm",
+      "from": [
+        11,
+        10,
+        2
+      ],
+      "to": [
+        12,
+        17,
+        3
+      ],
+      "material": "cable",
+      "uv": [
+        244,
+        28
+      ]
+    }
+  ]
+}

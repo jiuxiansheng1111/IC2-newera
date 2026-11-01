@@ -23,13 +23,18 @@ tasks.register('generateProcessRecipes') {
                         body = [type:"minecraft:${r.format}", ingredient:input(r.inputs[0]), result:r.output.item,
                                 experience:0.2, cookingtime:r.duration_ticks]
                         break
+                    case 'crafting_shaped':
+                        assert r.pattern && r.keys
+                        body = [type:'minecraft:crafting_shaped', pattern:r.pattern,
+                                key:r.keys.collectEntries { k,v -> [(k):input(v)] }, result:result]
+                        break
                     case 'crafting':
                         assert repeated.size()<=9
                         body = [type:'minecraft:crafting_shapeless', ingredients:repeated, result:result]
                         break
-                    case 'crushing': case 'splashing': case 'mixing':
+                    case 'crushing': case 'splashing': case 'mixing': case 'pressing':
                         body = [type:"create:${r.format}", ingredients:repeated, results:[result]]
-                        if (r.format!='splashing') body.processingTime = r.duration_ticks
+                        if (!(r.format in ['splashing','pressing'])) body.processingTime = r.duration_ticks
                         if (r.heat) body.heatRequirement = r.heat
                         break
                     case 'processor':
@@ -38,7 +43,11 @@ tasks.register('generateProcessRecipes') {
                             ingredients:r.inputs.collect { i -> input(i)+[count:i.count] }, result:result,
                             duration_ticks:r.duration_ticks, eu_per_tick:r.eu_per_tick]
                         break
-                    case 'macerator': case 'blast_furnace': case 'mixing_furnace':
+                    case 'blast_furnace':
+                        // IC2 2.1.3.4 ignores JSON for its cooking-backed BLAST_FURNACE list.
+                        // RecipeGuard registers these Graph routes in IC2 only; never expose a vanilla bypass.
+                        return
+                    case 'macerator': case 'mixing_furnace':
                         directory = "ic2_recipes/${r.format}"
                         def ic2in = r.inputs.collect { i -> input(i)+[type:i.item?'ic2:item':'ic2:tag',size:i.count] }
                         body = [input:ic2in.size()==1?ic2in[0]:ic2in,
@@ -51,10 +60,21 @@ tasks.register('generateProcessRecipes') {
                     assert directory == 'recipes'
                     body.conditions = r.required_mods.collect { mod -> [type:'forge:mod_loaded', modid:mod] }
                 }
-                assert name[0]=='ic2newera'
+                assert name[0]=='ic2newera' || (r.required_mods && r.required_mods.contains(name[0]))
                 def target = new File(base, "data/${name[0]}/${directory}/${name[1]}.json")
                 target.parentFile.mkdirs()
                 target.setText(JsonOutput.prettyPrint(JsonOutput.toJson(body))+'\n','UTF-8')
+            }
+            // Exact native IDs only: a false condition replaces that single original recipe.
+            graph.routes.findAll { it.classification=='BLOCKED_BYPASS' && it.disable_native }.each { recipe ->
+                assert recipe.id && recipe.reason && recipe.required_mods
+                def name = recipe.id.split(':',2)
+                assert recipe.required_mods.contains(name[0])
+                def target = new File(base, "data/${name[0]}/recipes/${name[1]}.json")
+                target.parentFile.mkdirs()
+                target.setText(JsonOutput.prettyPrint(JsonOutput.toJson([conditions:[[type:'forge:false']],
+                        type:'minecraft:crafting_shapeless', ingredients:[[item:'minecraft:barrier']],
+                        result:[item:'minecraft:barrier']]))+'\n','UTF-8')
             }
         }
     }

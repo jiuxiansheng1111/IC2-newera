@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "ic2newera:block/resonance_cluster"
+    },
+    "facing=down": {
+      "model": "ic2newera:block/resonance_cluster",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "ic2newera:block/resonance_cluster",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "ic2newera:block/resonance_cluster",
+      "x": 90,
+      "y": 180
+    },
+    "facing=west": {
+      "model": "ic2newera:block/resonance_cluster",
+      "x": 90,
+      "y": 270
+    },
+    "facing=east": {
+      "model": "ic2newera:block/resonance_cluster",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

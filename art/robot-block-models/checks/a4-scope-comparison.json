@@ -1,0 +1,21 @@
+{
+  "scope": [
+    "anon",
+    "sakiko"
+  ],
+  "comparison": "A3 in-flight non-head and non-neck parts",
+  "characters": [
+    {
+      "id": "anon",
+      "all_body_limb_parts_equal_to_preserved_a3": true,
+      "face_revision": "A4",
+      "face_sections": 42
+    },
+    {
+      "id": "sakiko",
+      "all_body_limb_parts_equal_to_preserved_a3": true,
+      "face_revision": "A4",
+      "face_sections": 42
+    }
+  ]
+}

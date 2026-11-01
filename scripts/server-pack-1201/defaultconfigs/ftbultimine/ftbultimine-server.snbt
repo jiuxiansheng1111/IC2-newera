@@ -1,0 +1,5 @@
+# Server-specific FTB Ultimine settings.
+# The bundled FTB Ultimine 2001.1.8 Forge JAR defines max_blocks with a default of 64.
+{
+	max_blocks: 64
+}

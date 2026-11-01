@@ -23,6 +23,7 @@ public final class MediaClient {
     private static final ExecutorService DISK = Executors.newSingleThreadExecutor(task -> { Thread t = new Thread(task, "IC2-NewEra-Media-Files"); t.setDaemon(true); return t; });
     private static final class Pending {
         final UUID ticket;
+        final int operation;
         final long timeout;
         final CompletableFuture<Result> future = new CompletableFuture<>();
         volatile Path file;
@@ -30,10 +31,11 @@ public final class MediaClient {
         volatile long received;
         long size, lastProgress = System.nanoTime();
         String sha, mime;
+        volatile String progress = "";
         MessageDigest digest;
         boolean writing;
         int sequence;
-        Pending(UUID ticket, int operation) { this.ticket = ticket; timeout = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE ? 670_000_000_000L : 210_000_000_000L; }
+        Pending(UUID ticket, int operation) { this.ticket = ticket; this.operation = operation; timeout = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE || operation == MediaPackets.COVER ? 670_000_000_000L : 210_000_000_000L; }
     }
     private MediaClient() { }
     public static CompletableFuture<Result> request(int operation, UUID target, String value, List<MediaPackets.Message> messages) {
@@ -61,6 +63,9 @@ public final class MediaClient {
                 String message = parse(packet.json()).get("message").getAsString();
                 p.future.completeExceptionally(new IllegalStateException(message)); return;
             }
+            if (packet.kind() == MediaPackets.STATUS) {
+                p.progress = parse(packet.json()).get("message").getAsString(); return;
+            }
             if (packet.kind() == MediaPackets.JSON) {
                 if (p.file != null || p.writing) throw new IOException("媒体响应顺序错误。");
                 PENDING.remove(p.ticket); p.future.complete(new Result(parse(packet.json()), null, "")); return;
@@ -68,8 +73,10 @@ public final class MediaClient {
             if (packet.kind() == MediaPackets.AUDIO) {
                 if (p.file != null || p.writing) throw new IOException("重复的音频传输。");
                 JsonObject info = parse(packet.json()); p.size = info.get("size").getAsLong(); p.sha = info.get("sha256").getAsString(); p.mime = info.get("mime").getAsString();
-                if (p.size < 44 || p.size > 16 * 1024 * 1024 || !p.sha.matches("[a-f0-9]{64}")
-                        || !(p.mime.equals("audio/ogg") || p.mime.equals("audio/wav") || p.mime.equals("audio/mpeg")) || (p.mime.equals("audio/wav") && p.size > 8 * 1024 * 1024))
+                long maxSize = p.operation == MediaPackets.COVER ? 80L * 1024 * 1024 : 16L * 1024 * 1024;
+                long maxWav = p.operation == MediaPackets.COVER ? 80L * 1024 * 1024 : 8L * 1024 * 1024;
+                if (p.size < 44 || p.size > maxSize || !p.sha.matches("[a-f0-9]{64}")
+                        || !(p.mime.equals("audio/ogg") || p.mime.equals("audio/wav") || p.mime.equals("audio/mpeg")) || (p.mime.equals("audio/wav") && p.size > maxWav))
                     throw new IOException("音频元数据超出限制。");
                 p.digest = MessageDigest.getInstance("SHA-256"); p.writing = true;
                 DISK.execute(() -> {
@@ -129,7 +136,9 @@ public final class MediaClient {
     }
     public static void delete(Path file) { if (file != null) try { Files.deleteIfExists(file); } catch (IOException ignored) { } }
     public static String transferStatus() {
-        for (Pending p : PENDING.values()) if (p.mime != null && (p.mime.equals("audio/ogg") || p.mime.equals("audio/mpeg"))) return "正在接收歌曲：" + p.received * 100 / Math.max(1, p.size) + "%";
+        for (Pending p : PENDING.values()) if (p.operation == MediaPackets.COVER && !p.progress.isBlank()) return p.progress;
+        for (Pending p : PENDING.values()) if (p.operation == MediaPackets.IMPORT && !p.progress.isBlank()) return p.progress;
+        for (Pending p : PENDING.values()) if (p.mime != null && (p.mime.equals("audio/ogg") || p.mime.equals("audio/mpeg") || p.operation == MediaPackets.COVER)) return (p.operation == MediaPackets.COVER ? "正在接收翻唱：" : "正在接收歌曲：") + p.received * 100 / Math.max(1, p.size) + "%";
         return "";
     }
     @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) {

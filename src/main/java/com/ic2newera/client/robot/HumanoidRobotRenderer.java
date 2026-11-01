@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 
 public final class HumanoidRobotRenderer extends MobRenderer<RobotEntity, RobotRuntimeModel> {
     public HumanoidRobotRenderer(EntityRendererProvider.Context context) {
-        super(context, new RobotRuntimeModel(), 0.35F);
+        super(context, new RobotRuntimeModel(), RobotModelDimensions.scaledShadowRadius());
         addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         addLayer(new HumanoidArmorLayer<>(this,
                 new RobotArmorModel(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),

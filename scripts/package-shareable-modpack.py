@@ -17,16 +17,18 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "dist" / "IC2-New-Era-Test-2026.10.18-Phone-Chat.zip"
-PACK_VERSION = "0.1.0-test.20261018-phone-chat"
+OUTPUT = ROOT / "dist" / "IC2-New-Era-Test-2026.10.18-Tech-Tree.zip"
+PACK_VERSION = "0.1.0-test.20261018-tech-tree"
 # IDs and original filenames verified against each author's CurseForge file page.
 OFFICIAL = {
+    "farmersdelight": (398521, 5051241, "farmers-delight", "FarmersDelight-1.19.2-1.2.4.jar",
+                      "农夫乐事 Farmer's Delight", "1.19.2-1.2.4", "机器人烹饪兼容；复用原生料理锅与食材配方"),
     "ic2": (242942, 8545995, "ic2-classic", "IC2Classic-1.19.2-2.1.3.4.jar",
             "IC2 Classic", "2.1.3.4", "核心工业模组"),
     "create": (328085, 5797604, "create", "create-1.19.2-0.5.1.i.jar",
                "机械动力 Create", "0.5.1.i", "核心机械模组"),
     "projecte": (226410, 4860858, "projecte", "ProjectE-1.19.2-PE1.1.0.jar",
-                 "等价交换 ProjectE", "1.1.0", "核心等价交换模组；提供终端配方暗物质"),
+                 "等价交换 ProjectE", "1.1.0", "核心等价交换模组"),
     "carbonconfig": (898104, 8018088, "carbon-config", "CarbonConfig-1.19.2-2.0.2.jar",
                      "Carbon Config", "2.0.2", "IC2 Classic 必需前置"),
     "curios": (309927, 5843737, "curios", "curios-forge-1.19.2-5.1.6.4.jar",
@@ -118,6 +120,11 @@ def main() -> None:
                 mp3 = [library for library in embedded if library["identifier"] == {"group": "javazoom", "artifact": "jlayer"}]
                 if len(mp3) != 1 or sha256(project_archive.read(mp3[0]["path"])) != "850508C837454A1B06017C32A36876FAE516DE1E89A829F725FEE1E6DCC52000":
                     raise ValueError("Complete release must include the verified JLayer MP3 dependency")
+                qr = [library for library in embedded if library["identifier"] == {"group": "com.google.zxing", "artifact": "core"}]
+                if len(qr) != 1 or sha256(project_archive.read(qr[0]["path"])) != "71DE5D89341B5FCF5DD89DA7F44E84D825D0E084CDF3EC77C9ABE26B0F0CEB13":
+                    raise ValueError("Complete release must include the verified local QR encoder")
+                if "META-INF/licenses/zxing/LICENSE.txt" not in project_archive.namelist():
+                    raise ValueError("QR encoder license notice is missing")
             name, version, purpose = "IC2：新纪元", "0.1.0-dev", "八角色机器人、充电宝、手机、原生点歌与可选独立语音"
             filename = row["fileName"]
             url = ""
@@ -157,7 +164,7 @@ Java 版本：
 
 请勿附带 AI 密钥、账号令牌或未经处理的私人配置。
 """
-    public_docs = ("new-industrial-stage-guide.md", "terminal-design-and-guide.md", "ai-assistant-setup.md",
+    public_docs = ("new-industrial-stage-guide.md", "ai-assistant-setup.md",
                    "player-test-2026-10-18.md")
     for filename in public_docs:
         data = (ROOT / "docs" / filename).read_bytes()
@@ -165,6 +172,12 @@ Java 版本：
         if re.search(r"[A-Za-z]:[/\\]Users[/\\]", data.decode("utf-8")):
             raise ValueError("Public guide contains a personal absolute path: " + filename)
         entries["overrides/IC2-New-Era-Test/" + filename] = data
+    # Optional host runtime source only. Never traverse private assets, credentials or generated audio.
+    public_voice = ("configuration.py", "engine.py", "server.py", "resources.py", "runtime_support.py",
+                    "tts_worker.py", "rvc_worker.py", "japanese_frontend.py", "separation_worker.py",
+                    "cover_mixer.py", "start_voice.ps1", "ic2newera-voice-runtime.example.json")
+    for filename in public_voice:
+        entries["overrides/tools/robot_voice/" + filename] = (ROOT / "tools/robot_voice" / filename).read_bytes()
     entries["README-zh_CN.txt"] = readme.replace("\n", "\r\n").encode("utf-8-sig")
     entries["overrides/IC2-New-Era-Test/README-zh_CN.txt"] = entries["README-zh_CN.txt"]
     entries["overrides/IC2-New-Era-Test/feedback-template-zh_CN.txt"] = feedback.replace("\n", "\r\n").encode("utf-8-sig")
@@ -179,7 +192,7 @@ Java 版本：
         mod_rows.append(f'<li>{title} — {html.escape(mod["purpose"])}</li>')
     entries["modlist.html"] = ('<!doctype html><html lang="zh-CN"><meta charset="UTF-8">'
                               '<title>IC2新纪元测试包模组清单</title><h1>IC2新纪元测试包</h1><ul>'
-                              + "".join(mod_rows) + '</ul><p>七个官方模组由启动器按固定清单下载；'
+                              + "".join(mod_rows) + '</ul><p>配套官方模组由启动器按固定清单下载；'
                               '新纪元为开发组提供的测试版，已随包内置。</p></html>').encode("utf-8")
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(OUTPUT, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
@@ -200,7 +213,7 @@ Java 版本：
     audit = {
         "archive": OUTPUT.name, "bytes": OUTPUT.stat().st_size, "sha256": pack_hash,
         "format": "CurseForge minecraftModpack manifestVersion 1", "version": PACK_VERSION,
-        "coreModCount": 4, "totalTopLevelMods": 8, "officialDownloadEntries": len(manifest["files"]),
+        "coreModCount": 4, "totalTopLevelMods": len(runtime["mods"]), "officialDownloadEntries": len(manifest["files"]),
         "bundledModCount": 1, "allSourceHashesMatchRuntimeLock": True,
         "requiredDependencyIdsCovered": True, "jarBytesReopenedAndMatched": True,
         "archiveFiles": sorted(entries), "playerConfigRead": False,

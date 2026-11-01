@@ -34,7 +34,9 @@ final class RobotArmorModel extends HumanoidModel<RobotEntity> {
         try {
             // Scale geometry after applying the actual R16 joint orientation.
             part.translateAndRotate(stack);
-            stack.scale(sx, sy, sz);
+            stack.scale(sx * RobotModelDimensions.REFERENCE_SCALE,
+                    sy * RobotModelDimensions.REFERENCE_SCALE,
+                    sz * RobotModelDimensions.REFERENCE_SCALE);
             part.loadPose(PartPose.ZERO);
             part.render(stack, buffer, light, overlay, red, green, blue, alpha);
         } finally {

@@ -1,0 +1,43 @@
+{
+  "provenance": "geometry-source.json is the canonical cuboid data. The generator compiles that data into MechanicalPetGeometryData.java and projects the same boxes into review PNGs.",
+  "texture_size": [
+    64,
+    64
+  ],
+  "geometry_source": "geometry-source.json",
+  "variants": {
+    "cat": {
+      "texture": "textures/entity/pet/mechanical_cat.png",
+      "renderer_layer": "mechanical_pet_cat/main"
+    },
+    "dog": {
+      "texture": "textures/entity/pet/mechanical_dog.png",
+      "renderer_layer": "mechanical_pet_dog/main"
+    }
+  },
+  "poses": [
+    "sit",
+    "pancake",
+    "restore_half"
+  ],
+  "views": [
+    "front",
+    "side",
+    "three_quarter"
+  ],
+  "review_images": [
+    "mechanical-cat-poses.png",
+    "mechanical-dog-poses.png"
+  ],
+  "item_models": [
+    "mechanical_cat.json",
+    "mechanical_dog.json",
+    "mechanical_cat_pancake.json"
+  ],
+  "motion_inputs": [
+    "PetAction",
+    "getActionProgress(age - tickCount)",
+    "getFlattenProgress(age - tickCount)",
+    "walk animation"
+  ]
+}

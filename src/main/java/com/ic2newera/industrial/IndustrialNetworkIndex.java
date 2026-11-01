@@ -77,7 +77,8 @@ public final class IndustrialNetworkIndex {
     }
 
     private static boolean isIndexed(BlockEntity entity) {
-        return entity instanceof OwnedIndustrialBlockEntity || entity instanceof IndustrialFiberBlockEntity;
+        return !(entity instanceof TerminalBlockEntity)
+                && (entity instanceof OwnedIndustrialBlockEntity || entity instanceof IndustrialFiberBlockEntity);
     }
 
     private static void add(ServerLevel level, BlockPos pos) {

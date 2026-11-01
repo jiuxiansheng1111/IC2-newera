@@ -1,0 +1,18 @@
+{
+  "id": "anon",
+  "cube_count": 61,
+  "mesh_count": 0,
+  "bone_count": 11,
+  "static_pass": true,
+  "errors": [],
+  "transparent_uv_faces": [],
+  "embedded_png_matches": true,
+  "appearance_acceptance": "pending Astra visual review and user acceptance",
+  "blockbench_import": "pending local UI inspection",
+  "animation_game_build_install": "not performed; paused",
+  "sha256": {
+    "models\\anon.json": "757c3b1e31d515d18f3a76b495c1b807dec6a9ddf33b904d6bfe2541b94b6eab",
+    "editable\\anon.bbmodel": "2d9d4a0882d3b890be0ec0f7ef8762ed8729518a98c8962f3c3739dc3687d109",
+    "textures\\anon.png": "005d5df0a3ce65069227fd1412f5a11f6f273abb29a163e94c2149dd08abc179"
+  }
+}

@@ -4,6 +4,15 @@
   "data_directory": "runtime",
   "gpu_lock_file": "runtime/gpu.lock",
   "ffmpeg": "D:/IC2NewEraVoice/RVC-upstream-20261012/ffmpeg.exe",
+  "singing": {
+    "enabled": false,
+    "python": "D:/IC2NewEraVoice/Demucs/.venv/Scripts/python.exe",
+    "ffprobe": "D:/IC2NewEraVoice/bin/ffprobe.exe",
+    "model_cache": "D:/IC2NewEraVoice/torch-hub",
+    "model": "htdemucs",
+    "accompaniment_gain": 0.85,
+    "vocal_target_rms": 0.20
+  },
   "base_tts": {
     "root": "D:/IC2NewEraVoice/GPT-SoVITS",
     "python": "D:/IC2NewEraVoice/GPT-SoVITS/.venv/Scripts/python.exe",
@@ -25,6 +34,7 @@
     "temperature": 0.8,
     "repetition_penalty": 1.35,
     "text_split_method": "cut5",
+    "speed_factor": 0.92,
     "japanese_frontend_package": "D:/IC2NewEraVoice/GPT-SoVITS/.venv_cpu/Lib/site-packages/pyopenjtalk"
   },
   "rvc": {

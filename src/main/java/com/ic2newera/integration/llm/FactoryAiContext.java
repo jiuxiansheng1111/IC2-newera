@@ -34,8 +34,5 @@ public final class FactoryAiContext {
         if (wrapper.has("error")) throw new IllegalStateException("工厂查询失败：" + wrapper.get("error").getAsString());
         return wrapper.has("data") ? wrapper.get("data").toString() : "";
     }
-    public static String ticket(String snapshot) {
-        try { return JsonParser.parseString(snapshot).getAsJsonObject().get("ticket").getAsString(); }
-        catch (RuntimeException invalid) { return ""; }
-    }
+
 }

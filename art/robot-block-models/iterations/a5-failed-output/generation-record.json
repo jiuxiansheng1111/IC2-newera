@@ -1,0 +1,55 @@
+{
+  "scope": [
+    "anon"
+  ],
+  "uniform_design_revision": true,
+  "design_export_author": "GPT-6.1 Sol",
+  "root_role": "guidance, architecture and review",
+  "revisions": [
+    "A5"
+  ],
+  "characters": [
+    {
+      "id": "anon",
+      "design_revision": "A5",
+      "coordinates": "Y-up, north camera at -Z, screen-right=-X; source copied unchanged",
+      "euler_order": "ZYX",
+      "euler_order_source": "https://raw.githubusercontent.com/JannisX11/blockbench/master/js/io/format.ts",
+      "rotated_cube_count": 69,
+      "bounds": {
+        "from": [
+          -5.38,
+          0.0,
+          -3.31623545831384
+        ],
+        "to": [
+          5.38,
+          31.703607391067422,
+          3.844745089269635
+        ]
+      },
+      "cube_count": 125,
+      "mesh_count": 0,
+      "bone_count": 16,
+      "source_coordinates_and_uv_preserved": true,
+      "source_rotations_and_origins_preserved": true,
+      "face_section_count": 1,
+      "face_uv_chart_continuous": true,
+      "static_pass": true,
+      "errors": [],
+      "transparent_uv_faces": [],
+      "embedded_png_matches": true,
+      "appearance_acceptance": "pending root visual review and user acceptance",
+      "blockbench_import": "pending local UI inspection",
+      "animation_game_build_install": "not performed; paused",
+      "design_source_sha256": "a7742f0331d63c5feb7798b4de6012f00eb67f090165913fb034c5a119802069",
+      "pipeline_source_sha256": "ceef3962f6cdb8016955f5ac50e28652b789bcebfa8ba2c7d9aea3826f3b8ad9",
+      "sha256": {
+        "models\\anon.json": "b5c7f25e9f865d00d15032a5dc2e09a7e0cf4cd3b4469c541678cc2dfc73528d",
+        "editable\\anon.bbmodel": "dddf022f30889783548631846727ea5d8b165d5a006cbff884d743ebce0e4dd4",
+        "textures\\anon.png": "7e49a2bb5582833fdf5b3c9caf32e1ded501d90fe3318817853e040a6c247734"
+      }
+    }
+  ],
+  "scope_note": "Only listed characters exported; never implies eight-character completion"
+}

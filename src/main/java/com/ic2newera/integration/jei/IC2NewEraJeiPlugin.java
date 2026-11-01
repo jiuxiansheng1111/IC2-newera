@@ -11,6 +11,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -31,6 +32,7 @@ public final class IC2NewEraJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         var guiHelper = registration.getJeiHelpers().getGuiHelper();
         registration.addRecipeCategories(
+                new AdvancedFurnaceJeiCategory(guiHelper),
                 new ProcessorJeiCategory(guiHelper, ProcessorKind.NON_METAL),
                 new ProcessorJeiCategory(guiHelper, ProcessorKind.ELECTRONIC));
     }
@@ -38,6 +40,7 @@ public final class IC2NewEraJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         Minecraft minecraft = Minecraft.getInstance();
+        AdvancedFurnaceJeiSync.registerRecipes(registration);
         if (minecraft.level == null) return;
         List<ProcessorRecipe> recipes = minecraft.level.getRecipeManager()
                 .getAllRecipesFor(ModProcessorRecipes.PROCESSOR.get());
@@ -49,6 +52,7 @@ public final class IC2NewEraJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        AdvancedFurnaceJeiSync.registerCatalysts(registration);
         registration.addRecipeCatalyst(new ItemStack(ModProcessorBlocks.NON_METAL_PROCESSOR.get()),
                 ProcessorJeiCategory.NON_METAL);
         registration.addRecipeCatalyst(new ItemStack(ModProcessorBlocks.ELECTRONIC_FABRICATOR.get()),
@@ -59,5 +63,17 @@ public final class IC2NewEraJeiPlugin implements IModPlugin {
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addRecipeClickArea(ProcessorScreen.class, 10, 80, 156, 6,
                 ProcessorJeiCategory.NON_METAL, ProcessorJeiCategory.ELECTRONIC);
+    }
+
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        AdvancedFurnaceJeiSync.onRuntimeAvailable(runtime);
+        runtime.getIngredientManager().removeIngredientsAtRuntime(mezz.jei.api.constants.VanillaTypes.ITEM_STACK,
+                List.of(new ItemStack(com.ic2newera.industrial.IndustrialItems.TERMINAL.get())));
+    }
+
+    @Override
+    public void onRuntimeUnavailable() {
+        AdvancedFurnaceJeiSync.onRuntimeUnavailable();
     }
 }

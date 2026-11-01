@@ -197,7 +197,7 @@ final class IndustrialNetworkTopology {
         ArrayDeque<BlockPos> fibers = new ArrayDeque<>();
         for (var networkSwitch : switches) {
             for (var entity : IndustrialNetworkIndex.nearby(level, networkSwitch.getBlockPos(), networkSwitch.getWirelessSearchRange(), MAX_INDEX_CANDIDATES)) {
-                if (type.isInstance(entity) && candidates.size() < MAX_INDEX_CANDIDATES) candidates.add(entity.getBlockPos().immutable());
+                if (!(entity instanceof TerminalBlockEntity) && type.isInstance(entity) && candidates.size() < MAX_INDEX_CANDIDATES) candidates.add(entity.getBlockPos().immutable());
             }
             enqueueAdjacentFibers(level, networkSwitch.getBlockPos(), fibers, visited);
         }
@@ -209,11 +209,12 @@ final class IndustrialNetworkTopology {
                 BlockEntity entity = level.getBlockEntity(next);
                 if (entity instanceof IndustrialFiberBlockEntity && visited.add(next.immutable()) && visited.size() <= MAX_FIBER_SEGMENTS)
                     fibers.addLast(next.immutable());
-                else if (type.isInstance(entity)) candidates.add(next.immutable());
+                else if (!(entity instanceof TerminalBlockEntity) && type.isInstance(entity)) candidates.add(next.immutable());
             }
         }
         for (BlockPos pos : candidates) {
-            if (!level.hasChunkAt(pos) || !type.isInstance(level.getBlockEntity(pos))) continue;
+            if (!level.hasChunkAt(pos) || level.getBlockEntity(pos) instanceof TerminalBlockEntity
+                    || !type.isInstance(level.getBlockEntity(pos))) continue;
             T endpoint = type.cast(level.getBlockEntity(pos));
             Attachment attachment = attach(level, pos);
             if (attachment != null && switchPositions.contains(attachment.networkSwitch().getBlockPos()))

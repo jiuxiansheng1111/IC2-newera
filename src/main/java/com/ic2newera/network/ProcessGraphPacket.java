@@ -18,12 +18,12 @@ import java.util.function.Supplier;
 /** Bounded server-to-client read-only snapshot of approved and non-approved process metadata. */
 public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) {
     public static final int MAX_BYTES = 512 * 1024;
-    private static final int MAX_MATERIALS = 16;
-    private static final int MAX_ROUTES = 256;
+    private static final int MAX_MATERIALS = 24;
+    private static final int MAX_ROUTES = 512;
     private static final int MAX_INPUTS = 25;
     private static final int MAX_MACHINES = 8;
-    private static final java.util.Set<String> FORMATS = java.util.Set.of("smelting", "blasting", "crafting", "crushing",
-            "splashing", "mixing", "processor", "macerator", "blast_furnace", "mixing_furnace");
+    private static final java.util.Set<String> FORMATS = java.util.Set.of("smelting", "blasting", "crafting", "crafting_shaped", "crushing",
+            "splashing", "mixing", "pressing", "processor", "macerator", "blast_furnace", "mixing_furnace");
     private static boolean registered;
 
     public static synchronized void register() {

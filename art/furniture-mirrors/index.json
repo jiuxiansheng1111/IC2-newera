@@ -1,0 +1,62 @@
+{
+  "format": "ic2newera:furniture_mirror_assets_v1",
+  "created_with": "Blockbench MCP model editing and headless rendering",
+  "front": "north",
+  "front_direction": "-Z",
+  "pane_front_local_z": 7,
+  "generation_script": "generate_models.py",
+  "calibration_source": "The integer dimensions in the 2026-10-26 furniture mirror task specification, expressed on the Minecraft 16-unit block grid.",
+  "models": [
+    {
+      "id": "floor_mirror",
+      "source": "floor_mirror.bbmodel",
+      "height_units": 32,
+      "blockstate_properties": ["half", "facing"],
+      "block_models": [
+        "floor_mirror_lower.json",
+        "floor_mirror_upper.json"
+      ],
+      "inventory_model": "floor_mirror_inventory.json",
+      "previews": [
+        "previews/floor_mirror-front.png",
+        "previews/floor_mirror-back.png",
+        "previews/floor_mirror-left.png",
+        "previews/floor_mirror-right.png",
+        "previews/floor_mirror-three-quarter.png"
+      ],
+      "bounds": {
+        "pane": {"x": [3, 13], "y_lower": [4, 16], "y_upper": [16, 30], "z": [7, 8]},
+        "frame": {"x": [2, 14], "y": [3, 31], "z": [7, 8]},
+        "feet_y": [0, 3]
+      }
+    },
+    {
+      "id": "dressing_mirror",
+      "source": "dressing_mirror.bbmodel",
+      "height_units": 16,
+      "blockstate_properties": ["half", "facing"],
+      "fixed_half": "lower",
+      "block_model": "dressing_mirror.json",
+      "inventory_model": "dressing_mirror.json",
+      "previews": [
+        "previews/dressing_mirror-front.png",
+        "previews/dressing_mirror-back.png",
+        "previews/dressing_mirror-left.png",
+        "previews/dressing_mirror-right.png",
+        "previews/dressing_mirror-three-quarter.png",
+        "previews/dressing_mirror-top.png"
+      ],
+      "bounds": {
+        "pane": {"x": [4, 12], "y": [9, 15], "z": [7, 8]},
+        "frame": {"x": [3, 13], "y": [8, 16], "z": [7, 8]},
+        "tabletop": {"x": [1, 15], "y": [0, 7], "z": [4, 13]}
+      }
+    }
+  ],
+  "textures": [
+    "ivory_wood.png",
+    "brass.png",
+    "mirror_glass.png",
+    "warm_wood.png"
+  ]
+}

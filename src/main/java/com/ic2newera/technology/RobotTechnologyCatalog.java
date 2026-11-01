@@ -34,7 +34,7 @@ final class RobotTechnologyCatalog {
             steps.add(Component.literal("右键空位放置；右键机器人打开信息、跟随、待命、收回与聊天界面。只有放置者可操作。"));
             steps.add(Component.literal("点击发送才调用模型；单人复用助手模型设置，多人服由服主配置。其他功能不依赖模型。"));
             steps.add(Component.literal("电池/装备页面装入已充电的机器人电池、斧/镐/武器或防具。每次死亡扣 1 次寿命并销毁电池，五次耗尽；正常收回保留状态。"));
-            steps.add(Component.literal("伐木/采矿在下令位置附近已加载区域执行，需要正确工具；杀戮模式仅攻击敌对生物。手机可通过同一网络派发命令，也能打开角色聊天并朗读回复。"));
+            steps.add(Component.literal("伐木/采矿在下令位置附近已加载区域执行，需要正确工具；默认攻击敌对生物，杀戮模式额外攻击附近动物，保护玩家、宠物和机器人。手机可派发命令、打开角色聊天并朗读回复。"));
             steps.add(Component.literal("角色语音使用可选独立运行时；缺少模型服务或资源不足时保留文字。"));
         }
         var itemId = ForgeRegistries.ITEMS.getKey(item);

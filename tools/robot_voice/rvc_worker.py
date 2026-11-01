@@ -19,12 +19,13 @@ def parse_args():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--semitone-shift", type=int, choices=range(-12, 13), default=0)
     parser.add_argument("--seed", type=int, default=20261004)
+    parser.add_argument("--max-duration-seconds", type=int, choices=(120, 360), default=120)
     return parser.parse_args()
 
 
-def conversion_sections(duration_seconds):
+def conversion_sections(duration_seconds, maximum=120):
     """短窗口避开 RVC 内部多次切分累积的音频帧偏差。"""
-    if not math.isfinite(duration_seconds) or not 0 < duration_seconds <= 120:
+    if not math.isfinite(duration_seconds) or not 0 < duration_seconds <= maximum:
         raise ValueError("Invalid RVC section duration")
     return [(start, min(start + 20, duration_seconds))
             for start in range(0, math.ceil(duration_seconds), 20)]
@@ -109,8 +110,8 @@ def main():
     source_audio = source_audio.mean(axis=1)
     if not source_audio.size or not np.all(np.isfinite(source_audio)):
         raise ValueError("Invalid source audio")
-    if source_audio.size / rate > 120:
-        raise ValueError("RVC worker input must be split into sections under 120 seconds")
+    if source_audio.size / rate > args.max_duration_seconds:
+        raise ValueError("RVC worker input exceeds its configured duration ceiling")
     source_audio = librosa.resample(source_audio, orig_sr=rate, target_sr=44100)
     rate = 44100
 
@@ -137,7 +138,7 @@ def main():
             )
         return np.pad(audio[:expected_frames], (0, max(0, expected_frames - audio.size)))
 
-    plan = conversion_sections(source_audio.size / rate)
+    plan = conversion_sections(source_audio.size / rate, args.max_duration_seconds)
     if len(plan) > 1:
         audio = convert_sections(source_audio, rate, plan, convert, output / "phrase_work")
     else:

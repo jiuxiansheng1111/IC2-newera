@@ -1,0 +1,16 @@
+{
+  "id": "anon",
+  "revision": "A2",
+  "reported_by": "root",
+  "official_blockbench_local_open": true,
+  "observed_cube_count": 66,
+  "texture_size": [
+    512,
+    512
+  ],
+  "texture_direction_visible": true,
+  "model_modified": false,
+  "image": "preview/anon-a2-editor.png",
+  "appearance_acceptance": "rejected by user: overly square coarse face",
+  "scope": "Anon only; Sakiko A2 not opened; not current next prototype proof"
+}

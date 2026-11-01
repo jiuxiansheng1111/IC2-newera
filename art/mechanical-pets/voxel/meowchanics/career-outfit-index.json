@@ -1,0 +1,1952 @@
+{
+  "format": "ic2newera:meowchanics_voxel_career_preview_v1",
+  "generated_with": "Blockbench MCP info/outline/edit/add_texture/validate/contact_sheet",
+  "base_source": "../cat/cat.bbmodel",
+  "base_geometry_id": "catSHA7B81...",
+  "rules": [
+    "Only cuboids; integer bounds; static rotations zero.",
+    "Approved cat base, face, wings, and tail flame remain unchanged.",
+    "All career shapes and 16x16 palette textures are original.",
+    "Every outfit has front, three-quarter, and back render output.",
+    "Harness cuboids attach into the body volume and support the role gear."
+  ],
+  "runtime_layer": "../../../../build-isolated/migration-1201/newera/src/main/java/com/ic2newera/client/pet/MeowchanicsCatLayer.java",
+  "models": [
+    {
+      "id": "terminator",
+      "source": "career-terminator.bbmodel",
+      "palette": "terminator.png",
+      "views": [
+        "terminator-front.png",
+        "terminator-three-quarter.png",
+        "terminator-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "career_chest_radar",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "8cb17ae8-e87d-451b-8327-7b28c57b68b5"
+        },
+        {
+          "name": "career_head_visor",
+          "from": [
+            -2,
+            10,
+            -6
+          ],
+          "to": [
+            2,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "ee7c7d57-acd4-431b-a192-7e8fbedb93a8"
+        },
+        {
+          "name": "career_visor_lens",
+          "from": [
+            -1,
+            9,
+            -8
+          ],
+          "to": [
+            1,
+            10,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "537f1cc6-26dd-4d5f-81c5-eb0125d526b2"
+        },
+        {
+          "name": "career_side_sensor",
+          "from": [
+            2,
+            8,
+            -6
+          ],
+          "to": [
+            3,
+            9,
+            -5
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "61516d9f-a3fc-4d4c-b794-daf5190936bb"
+        },
+        {
+          "name": "terminator_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "2b4f4507-d866-488c-a8f0-a51a6cb5582a"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_terminator_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "1f7b50917f31f2c0a3e43088da6dec3cf13bba378f12946c6f613aeef1f16af0"
+    },
+    {
+      "id": "fishing",
+      "source": "career-fishing.bbmodel",
+      "palette": "fishing.png",
+      "views": [
+        "fishing-front.png",
+        "fishing-three-quarter.png",
+        "fishing-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "fishing_reel",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "dd1d33a6-e668-4fb0-9939-7c04f4a7345b"
+        },
+        {
+          "name": "fishing_reel_cap",
+          "from": [
+            -4,
+            8,
+            1
+          ],
+          "to": [
+            -3,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "813cc885-d5dd-4ed9-9b3a-9e2df1bceec6"
+        },
+        {
+          "name": "fishing_hook",
+          "from": [
+            -3,
+            9,
+            2
+          ],
+          "to": [
+            -2,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "91763b13-8573-4c60-809b-1540f9be6fbb"
+        },
+        {
+          "name": "fishing_girth",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "9c76443a-bb23-4429-bb16-fd400bea13c0"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_fishing_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "97ff60b9f1b20356df3f1f0508a0d28a51ca37b6cf0eed5aebbbdc5c52f03478"
+    },
+    {
+      "id": "flight",
+      "source": "career-flight.bbmodel",
+      "palette": "flight.png",
+      "views": [
+        "flight-front.png",
+        "flight-three-quarter.png",
+        "flight-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "flight_pack",
+          "from": [
+            -1,
+            7,
+            -1
+          ],
+          "to": [
+            1,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "4ad69ffa-6c70-4dce-bc31-85b78bd26e1a"
+        },
+        {
+          "name": "flight_pack_l",
+          "from": [
+            -2,
+            8,
+            0
+          ],
+          "to": [
+            -1,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "3d6e40d1-90fa-4aa1-92e3-cc3b75c54afd"
+        },
+        {
+          "name": "flight_pack_r",
+          "from": [
+            1,
+            8,
+            0
+          ],
+          "to": [
+            2,
+            9,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "4542a229-6f0d-44c9-aa19-f361bf874599"
+        },
+        {
+          "name": "flight_goggle",
+          "from": [
+            -1,
+            10,
+            -6
+          ],
+          "to": [
+            1,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "3d7dd0c7-a3a7-4f58-b3d0-9f9f59023b8c"
+        },
+        {
+          "name": "flight_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "95920a77-52a4-4130-90fa-fa2cf37dc507"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_flight_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "3640044c44bcb437c8e6a96550335d4601ed4f10876ca011103f97f6db6a8540"
+    },
+    {
+      "id": "fire",
+      "source": "career-fire.bbmodel",
+      "palette": "fire.png",
+      "views": [
+        "fire-front.png",
+        "fire-three-quarter.png",
+        "fire-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "fire_tank",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            4
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "5ec170c9-e53f-4efa-b74d-217b6621e5f3"
+        },
+        {
+          "name": "fire_nozzle",
+          "from": [
+            -1,
+            8,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "d22654f0-8e8a-4edd-b498-33d948670871"
+        },
+        {
+          "name": "fire_muzzle",
+          "from": [
+            -1,
+            6,
+            -3
+          ],
+          "to": [
+            1,
+            7,
+            -2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "c4e7dd67-4321-4d1f-b28c-1ef6fc4df215"
+        },
+        {
+          "name": "fire_harness",
+          "from": [
+            -1,
+            5,
+            2
+          ],
+          "to": [
+            1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "058add39-6801-4441-a2ca-1c86bee4b63b"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_fire_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "6158d1a7b48e7c240b37859e83e8fe60853c7aea6e36d7537741fdb11fa36f2c"
+    },
+    {
+      "id": "honey",
+      "source": "career-honey.bbmodel",
+      "palette": "honey.png",
+      "views": [
+        "honey-front.png",
+        "honey-three-quarter.png",
+        "honey-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "honey_jar_l",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "d972c965-e67e-410d-a1c4-7e0527137c0f"
+        },
+        {
+          "name": "honey_jar_r",
+          "from": [
+            2,
+            7,
+            1
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "97a280a5-9232-4452-a152-f1575600b8b6"
+        },
+        {
+          "name": "honey_jar_lid",
+          "from": [
+            -3,
+            9,
+            1
+          ],
+          "to": [
+            -2,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "2e917508-ecb4-4f81-8a6a-a8d2f5488e23"
+        },
+        {
+          "name": "honey_jar_lid_r",
+          "from": [
+            2,
+            9,
+            1
+          ],
+          "to": [
+            3,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "f46a5d86-b6fd-4875-9270-9fa8462ecdf9"
+        },
+        {
+          "name": "honey_girth_l",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "fb690cf2-06b5-4e17-9b70-1efdcaa4dffb"
+        },
+        {
+          "name": "honey_girth_r",
+          "from": [
+            1,
+            5,
+            1
+          ],
+          "to": [
+            3,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "be980207-e113-49dd-a27f-1a9c88b91ad3"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_honey_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "93ae3de8a6d0ea6299940eb18b6f1e0a2eafefd313f46c297def183d4c1db925"
+    },
+    {
+      "id": "transport",
+      "source": "career-transport.bbmodel",
+      "palette": "transport.png",
+      "views": [
+        "transport-front.png",
+        "transport-three-quarter.png",
+        "transport-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "transport_bag_l",
+          "from": [
+            -3,
+            7,
+            0
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "7aec1a79-dadf-4b7b-8419-3d09b572e0bc"
+        },
+        {
+          "name": "transport_bag_r",
+          "from": [
+            2,
+            7,
+            0
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "a9bc6683-37a3-4435-96a8-da5a50540ade"
+        },
+        {
+          "name": "transport_yoke",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "dafa3982-0b52-4716-864b-938f8e882087"
+        },
+        {
+          "name": "transport_latch_l",
+          "from": [
+            -3,
+            8,
+            -1
+          ],
+          "to": [
+            -2,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "7cde6f2e-ac15-4a24-b841-c0aae765be00"
+        },
+        {
+          "name": "transport_latch_r",
+          "from": [
+            2,
+            8,
+            -1
+          ],
+          "to": [
+            3,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "635a9124-0e6b-4a6c-9a32-2935a5ed64d6"
+        },
+        {
+          "name": "transport_girth_l",
+          "from": [
+            -3,
+            5,
+            1
+          ],
+          "to": [
+            -1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "8449e096-d8d5-4b31-bea1-138db8fc8ebd"
+        },
+        {
+          "name": "transport_girth_r",
+          "from": [
+            1,
+            5,
+            1
+          ],
+          "to": [
+            3,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "69cf994c-1b87-4581-a368-4dae108bd5ef"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_transport_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "3cded0a1d07c2d6d2dfe3f6c94f2cc119c8fa94b4089058bf68bc5da67d8c77f"
+    },
+    {
+      "id": "dynamite",
+      "source": "career-dynamite.bbmodel",
+      "palette": "dynamite.png",
+      "views": [
+        "dynamite-front.png",
+        "dynamite-three-quarter.png",
+        "dynamite-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "dynamite_harness",
+          "from": [
+            -2,
+            7,
+            0
+          ],
+          "to": [
+            2,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "3e945c18-39f8-4802-a5a8-b338a9f23ac2"
+        },
+        {
+          "name": "dynamite_bundle",
+          "from": [
+            -1,
+            8,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "b1d4e509-b02a-4351-a71a-b0996ad7b2d4"
+        },
+        {
+          "name": "dynamite_cap",
+          "from": [
+            -1,
+            9,
+            1
+          ],
+          "to": [
+            1,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "ab31145c-54fe-45d2-9a53-46c4b2c030b2"
+        },
+        {
+          "name": "dynamite_harness_base",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "7a02a310-85bb-4e45-b5da-afdd0036f70a"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_dynamite_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "a378595802fe977bcdc19d799fc4bc2d9b04f8ec6777caf665a7b81a3331f317"
+    },
+    {
+      "id": "engineering",
+      "source": "career-engineering.bbmodel",
+      "palette": "engineering.png",
+      "views": [
+        "engineering-front.png",
+        "engineering-three-quarter.png",
+        "engineering-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "engineering_box",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "5ee667ae-b25f-4d53-b500-027dba362896"
+        },
+        {
+          "name": "engineering_tool",
+          "from": [
+            -3,
+            7,
+            1
+          ],
+          "to": [
+            -2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "9accd8c1-d4a6-49a2-80e6-78fb36e0c564"
+        },
+        {
+          "name": "engineering_gear",
+          "from": [
+            -2,
+            9,
+            1
+          ],
+          "to": [
+            -1,
+            10,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "dc7d9def-a938-400e-a45a-8afd66ec9c3d"
+        },
+        {
+          "name": "engineering_tool_upper",
+          "from": [
+            -3,
+            9,
+            1
+          ],
+          "to": [
+            -2,
+            10,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "1031201c-2238-42ca-a61f-1743d0810db6"
+        },
+        {
+          "name": "engineering_front_plate",
+          "from": [
+            -1,
+            8,
+            -1
+          ],
+          "to": [
+            1,
+            9,
+            0
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "fc87c235-a8df-45e7-9457-2000363ac58c"
+        },
+        {
+          "name": "engineering_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "8dafe5a4-7145-43df-8273-d5e9744f66a7"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_engineering_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "3cd187b6946ddab16274077f66740ae234b3742e4c4aad4cb6a55c6f8b777253"
+    },
+    {
+      "id": "medical",
+      "source": "career-medical.bbmodel",
+      "palette": "medical.png",
+      "views": [
+        "medical-front.png",
+        "medical-three-quarter.png",
+        "medical-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "medical_case",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "79b5c9b8-81e0-48ae-824f-454830cbcf49"
+        },
+        {
+          "name": "medical_cross_x",
+          "from": [
+            -2,
+            8,
+            0
+          ],
+          "to": [
+            2,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "da5be087-f97e-4631-a5bd-868d1a5fb04c"
+        },
+        {
+          "name": "medical_cross_y",
+          "from": [
+            -1,
+            7,
+            0
+          ],
+          "to": [
+            1,
+            9,
+            1
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "2f1fddd4-421a-48a5-8cd7-da7a2352c726"
+        },
+        {
+          "name": "medical_side_case",
+          "from": [
+            2,
+            7,
+            1
+          ],
+          "to": [
+            3,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "d39082c7-cd53-410b-b99c-f285bdc31f26"
+        },
+        {
+          "name": "medical_harness",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "716e3fde-249c-49c7-82b2-60ec1f54eddf"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_medical_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "5c3debebd9180c9ff56434344739090f9f3fb6b33eb052ff72878f904f0d00b9"
+    },
+    {
+      "id": "music",
+      "source": "career-music.bbmodel",
+      "palette": "music.png",
+      "views": [
+        "music-front.png",
+        "music-three-quarter.png",
+        "music-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "music_drum",
+          "from": [
+            -3,
+            6,
+            0
+          ],
+          "to": [
+            -2,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "fdaec624-cfba-4e71-9f14-6d7466733848"
+        },
+        {
+          "name": "music_drum_rim",
+          "from": [
+            -4,
+            6,
+            0
+          ],
+          "to": [
+            -3,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "67f4a06a-e09e-4098-89bb-7003c0452f29"
+        },
+        {
+          "name": "music_tambourine",
+          "from": [
+            -1,
+            7,
+            1
+          ],
+          "to": [
+            1,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "1e7f6ce1-d9fd-4b6e-9ed5-7a0ee51c98fc"
+        },
+        {
+          "name": "music_girth",
+          "from": [
+            -3,
+            5,
+            0
+          ],
+          "to": [
+            -1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "a0d1240a-2b60-4735-96c7-13d70d7bae2d"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_music_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "4b0d0eef4ee82f91343def5f82c9dc7cb546835660836728289d2375fc7cb292"
+    },
+    {
+      "id": "agent",
+      "source": "career-agent.bbmodel",
+      "palette": "agent.png",
+      "views": [
+        "agent-front.png",
+        "agent-three-quarter.png",
+        "agent-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "agent_visor",
+          "from": [
+            -4,
+            7,
+            -5
+          ],
+          "to": [
+            -3,
+            9,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "0ee2aa01-fb04-4d3a-9d3a-0a22445d92fb"
+        },
+        {
+          "name": "agent_lens",
+          "from": [
+            -4,
+            8,
+            -6
+          ],
+          "to": [
+            -3,
+            9,
+            -5
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "edf30255-1660-4d26-aa59-0d39b7a079ac"
+        },
+        {
+          "name": "agent_badge",
+          "from": [
+            -2,
+            7,
+            1
+          ],
+          "to": [
+            2,
+            8,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "ec0c5928-a099-407b-9663-736fb78e8f31"
+        },
+        {
+          "name": "agent_harness",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "e88e60d0-1e0f-4bad-a6a4-b8c0cb282c29"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_agent_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "0712565cf6a5f9f984aed9b71d44a87d89429c33edbb616f37ef59daf6fe5890"
+    },
+    {
+      "id": "diving",
+      "source": "career-diving.bbmodel",
+      "palette": "diving.png",
+      "views": [
+        "diving-front.png",
+        "diving-three-quarter.png",
+        "diving-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "diving_goggle_band",
+          "from": [
+            -2,
+            10,
+            -6
+          ],
+          "to": [
+            2,
+            11,
+            -4
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "28caddc6-5296-4cf5-8dcb-96cce73bf7ff"
+        },
+        {
+          "name": "diving_lens_l",
+          "from": [
+            -2,
+            10,
+            -8
+          ],
+          "to": [
+            -1,
+            11,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "0e5fbb46-4e4b-46ea-973f-f50c32a363fb"
+        },
+        {
+          "name": "diving_lens_r",
+          "from": [
+            1,
+            10,
+            -8
+          ],
+          "to": [
+            2,
+            11,
+            -7
+          ],
+          "origin": [
+            0,
+            8,
+            -5
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "4dd9851e-de06-42e1-8f61-dd8e97e29068"
+        },
+        {
+          "name": "diving_tank_l",
+          "from": [
+            -2,
+            7,
+            1
+          ],
+          "to": [
+            -1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "4a4b10af-45f8-4082-928b-0bd33ac1209b"
+        },
+        {
+          "name": "diving_tank_r",
+          "from": [
+            1,
+            7,
+            1
+          ],
+          "to": [
+            2,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "45fee9c6-f795-4093-a2ec-762e050247da"
+        },
+        {
+          "name": "diving_girth_l",
+          "from": [
+            -2,
+            5,
+            1
+          ],
+          "to": [
+            0,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "231820ce-15f5-45b2-8b98-ed7e6defb1be"
+        },
+        {
+          "name": "diving_girth_r",
+          "from": [
+            0,
+            5,
+            1
+          ],
+          "to": [
+            2,
+            7,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "d8370707-7731-42c2-b9da-58dcdba768fa"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_diving_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "10f47b4c1308081005b3bb9040cedd8df28d3be9af4f01d3f68cc827fdcf54c8"
+    },
+    {
+      "id": "cockroach",
+      "source": "career-cockroach.bbmodel",
+      "palette": "cockroach.png",
+      "views": [
+        "cockroach-front.png",
+        "cockroach-three-quarter.png",
+        "cockroach-back.png"
+      ],
+      "cuboids": [
+        {
+          "name": "cockroach_shell_mid",
+          "from": [
+            -1,
+            7,
+            -1
+          ],
+          "to": [
+            1,
+            8,
+            4
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "0bb66f72-8d33-4965-a78b-f68ffaa09830"
+        },
+        {
+          "name": "cockroach_shell_l",
+          "from": [
+            -2,
+            7,
+            0
+          ],
+          "to": [
+            -1,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "71f595f9-e8c8-4003-88a7-3115d9ca0ac1"
+        },
+        {
+          "name": "cockroach_shell_r",
+          "from": [
+            1,
+            7,
+            0
+          ],
+          "to": [
+            2,
+            8,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "fef540f6-1235-4b8d-a4ee-15203c794b9b"
+        },
+        {
+          "name": "cockroach_shell_rear",
+          "from": [
+            -1,
+            8,
+            1
+          ],
+          "to": [
+            1,
+            9,
+            3
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "627874a6-fc92-4331-81fc-cd3974d6e631"
+        },
+        {
+          "name": "cockroach_girth",
+          "from": [
+            -1,
+            5,
+            1
+          ],
+          "to": [
+            1,
+            7,
+            2
+          ],
+          "origin": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "parent_chain": [],
+          "uuid": "83ca877d-1f17-423a-89d3-d1ae743fbb53"
+        }
+      ],
+      "textures": [
+        {
+          "name": "career_cockroach_palette",
+          "size": [
+            16,
+            16
+          ]
+        }
+      ],
+      "sha256": "64845acbe7fed4169108baf63c9bbd0a7ef0904997a91968d4a685a4172ee91a"
+    }
+  ]
+}

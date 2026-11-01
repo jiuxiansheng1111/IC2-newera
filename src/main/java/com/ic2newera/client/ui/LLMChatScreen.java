@@ -6,8 +6,6 @@ import com.ic2newera.integration.llm.LLMConfig;
 import com.ic2newera.integration.llm.KnowledgeReport;
 import com.ic2newera.integration.llm.KnowledgeSource;
 import com.ic2newera.integration.llm.FactoryAiContext;
-import com.ic2newera.industrial.IndustrialNetworkPackets;
-import com.ic2newera.industrial.TerminalProposal;
 import com.ic2newera.client.robot.voice.RobotVoiceClient;
 import com.ic2newera.client.robot.voice.RobotVoiceSettings;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -16,7 +14,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -35,8 +32,6 @@ public final class LLMChatScreen extends Screen {
     private final Screen parent;
     private final BlockPos factoryServer;
     private String lastFactorySnapshot = "";
-    private TerminalProposal terminalProposal;
-    private Button proposalButton;
     private CompletableFuture<?> activeStage;
     private final List<ChatMessage> history = new ArrayList<>();
     private EditBox promptInput;
@@ -123,11 +118,6 @@ public final class LLMChatScreen extends Screen {
         pauseVoiceButton = controls[6];
         stopVoiceButton = controls[7];
         toolbarBottom = 22 + ((controls.length + columns - 1) / columns) * 24;
-        if (factoryServer != null) {
-            proposalButton = addRenderableWidget(new UiButton(left, toolbarBottom, panelWidth, 20,
-                    Component.literal("审阅终端提案"), button -> reviewProposal()));
-            toolbarBottom += 24;
-        }
         promptInput.moveCursorTo(caret);
         if (restoreFocus) setInitialFocus(promptInput);
         updateSendButton();
@@ -174,7 +164,6 @@ public final class LLMChatScreen extends Screen {
         statusError = false;
         status = Component.literal("正在整理本机模组资料…");
         knowledgeReport = KnowledgeReport.empty();
-        terminalProposal = null;
         updateSendButton();
         long currentRequest = ++requestId;
         CompletableFuture<String> request = new CompletableFuture<>();
@@ -219,8 +208,6 @@ public final class LLMChatScreen extends Screen {
                         scrollOffset = 0;
                         statusError = false;
                         status = Component.literal("收到回复。");
-                        terminalProposal = extractProposal(reply);
-                        if (terminalProposal != null) status = Component.literal("终端提案等待审阅；确认前不会改变机器。");
                         latestReply = reply;
                         if (RobotVoiceSettings.enabled()) speakReply(reply);
                     } else {
@@ -240,7 +227,6 @@ public final class LLMChatScreen extends Screen {
         }
         if (cancelButton != null) cancelButton.active = waiting;
         if (sourcesButton != null) sourcesButton.active = !waiting && !knowledgeReport.sources().isEmpty();
-        if (proposalButton != null) proposalButton.active = !waiting && terminalProposal != null;
         updateVoiceControls();
     }
 
@@ -275,38 +261,9 @@ public final class LLMChatScreen extends Screen {
         }));
     }
 
-    private TerminalProposal extractProposal(String reply) {
-        if (factoryServer == null || FactoryAiContext.ticket(lastFactorySnapshot).isBlank()) return null;
-        String fence = Character.toString(96).repeat(3);
-        var matcher = java.util.regex.Pattern.compile("(?s)" + java.util.regex.Pattern.quote(fence + "ic2-terminal") + "\\s*(.*?)" + java.util.regex.Pattern.quote(fence)).matcher(reply);
-        if (!matcher.find()) return null;
-        String candidate = matcher.group(1);
-        if (matcher.find()) return null;
-        try { return TerminalProposal.parse(candidate); }
-        catch (RuntimeException invalid) { return null; }
-    }
-    private void reviewProposal() {
-        TerminalProposal proposed = terminalProposal;
-        if (proposed == null || factoryServer == null) return;
-        String ticket = FactoryAiContext.ticket(lastFactorySnapshot);
-        openChild(new ConfirmScreen(confirmed -> {
-            minecraft.setScreen(this);
-            if (confirmed) {
-                IndustrialNetworkPackets.CHANNEL.sendToServer(
-                        new IndustrialNetworkPackets.ConfirmTerminalProposal(factoryServer, ticket, proposed.json()));
-                terminalProposal = null;
-                status = Component.literal("提案已提交复查；服务端的执行或拒绝结果会显示在游戏聊天中。");
-                updateSendButton();
-            }
-        }, Component.literal("确认修改终端机"), Component.literal(proposed.description()
-                + " 只有服务器控制启用且装有AI核心才能执行；目标离线、离队、断网、设置变化或提案过期会拒绝。")) {
-            @Override public boolean isPauseScreen() { return false; }
-        });
-    }
-
     private Component privacyNotice() {
         return Component.literal("按设置发送对话和模组资料；公开搜索会收到问题。"
-                + (factoryServer == null ? "" : "本页另发送经权限检查的当前网络状态与终端库存摘要。")
+                + (factoryServer == null ? "" : "本页另发送经权限检查的当前网络与机器状态摘要。")
                 + "密钥仅使用当前玩家本机配置，不交给游戏服务器或其他玩家，不读取背包或存档。AI 最终文字回复可由游戏集成语音服务朗读；关闭语音或服务不可用时，文字对话仍正常显示。");
     }
 

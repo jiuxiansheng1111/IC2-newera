@@ -23,7 +23,10 @@ final class PhoneRobotChatScreen extends Screen {
     private final List<RobotChatBridge.Message> messages = new ArrayList<>();
     private String network, status = "通过手机聊天，也可直接说：帮我采集20个钨矿。", draft = "";
     private EditBox input;
-    private Button send, combat, pause;
+    private Button send, combat, pause, follow, voice, workTypeButton, startWorkButton;
+    private RobotWorkChoice workChoice;
+    private RobotControlTabs tabs;
+    private RobotControlTabs.Page page = RobotControlTabs.Page.CHAT;
     private final List<Button> onlineControls = new ArrayList<>();
     private CompletableFuture<RobotChatBridge.Reply> pending;
     private int generation, ticks, scroll, left, panelWidth, transcriptTop, transcriptBottom, statusY, inputY;
@@ -32,6 +35,7 @@ final class PhoneRobotChatScreen extends Screen {
     PhoneRobotChatScreen(IndustrialPhoneScreen parent, IndustrialMobileAccess.Snapshot snapshot, IndustrialMobileAccess.Device device) {
         super(Component.literal("手机 · " + device.name()));
         this.parent = parent; this.device = device; robot = device.id(); character = device.character(); network = snapshot.network();
+        workChoice = RobotWorkChoice.fromStatus(device.status());
     }
     boolean matches(IndustrialMobileAccess.Device next) { return robot.equals(next.id()) && character.equals(next.character()); }
     void receiveSnapshot(IndustrialMobileAccess.Snapshot snapshot) {
@@ -50,59 +54,87 @@ final class PhoneRobotChatScreen extends Screen {
                 || minecraft.player.getOffhandItem().is(RobotRegistry.PHONE.get()));
     }
     private boolean online() { return device != null && device.controllable() && heldPhone(); }
+    void openPage(RobotControlTabs.Page page) { this.page = page; }
     @Override protected void init() {
         int caret = input == null ? draft.length() : input.getCursorPosition();
         boolean focus = input == null || input.isFocused();
         if (input != null) draft = input.getValue();
         panelWidth = Math.max(100, Math.min(620, width - 24)); left = (width - panelWidth) / 2;
         onlineControls.clear();
-        int columns = panelWidth >= 300 ? 4 : 2, gap = 4, bw = (panelWidth - (columns - 1) * gap) / columns;
-        String[] names = {"语音：" + (RobotVoiceSettings.enabled() ? "开" : "关"), "语音：" + (RobotVoiceClient.paused() ? "继续" : "暂停"),
-                "重播上一条", "停止语音", "跟随", "待命", "切换战斗", "返回设备", "指定采集"};
-        for (int i = 0; i < names.length; i++) {
-            int action = i;
-            Button b = addRenderableWidget(new UiButton(left + (i % columns) * (bw + gap), 54 + (i / columns) * 22,
-                    i % columns == columns - 1 ? panelWidth - (i % columns) * (bw + gap) : bw, 20, Component.literal(names[i]), button -> {
-                switch (action) {
-                    case 0 -> {
-                        voiceStatusFocused = false;
-                        boolean enabled = !RobotVoiceSettings.enabled(); status = RobotVoiceSettings.setEnabled(enabled);
-                        if (!enabled) RobotVoiceClient.resetGlobal();
-                        button.setMessage(Component.literal("语音：" + (enabled ? "开" : "关")));
-                    }
-                    case 1 -> { voiceStatusFocused = true; RobotVoiceClient.pauseOrResume(); }
-                    case 2 -> { voiceStatusFocused = true; RobotVoiceClient.replayLast(); }
-                    case 3 -> { voiceStatusFocused = true; RobotVoiceClient.cancelAll(); }
-                    case 4 -> command(1);
-                    case 5 -> command(2);
-                    case 6 -> command(device != null && device.details().contains("杀戮模式开启") ? 8 : 7);
-                    case 7 -> onClose();
-                    case 8 -> minecraft.setScreen(new RobotCollectionScreen(this, robot, RobotCharacter.byId(character).chineseName, true));
-                }
-            }));
-            if (i >= 4 && i <= 6 || i == 8) onlineControls.add(b);
-            if (i == 6) combat = b;
-            if (i == 1) pause = b;
-        }
-        transcriptTop = 54 + ((names.length + columns - 1) / columns) * 22 + 4;
+        addRenderableWidget(new UiButton(left + panelWidth - 60, 8, 60, 18, Component.literal("返回设备"), b -> onClose()));
+        tabs = new RobotControlTabs(left, panelWidth, page, this::addRenderableWidget, this::selectPage);
+        follow = work("跟随主人", "跟随主人；跟随中再次点击可切换为待命。", b -> command(following() ? 2 : 1));
+        work("停止工作", "结束当前工作，机器人回到待命。", b -> command(2));
+        work("指定采集", "远程指定目标物品和数量；服务端仍会检查连接、权限和电量。", b ->
+                minecraft.setScreen(new RobotCollectionScreen(this, robot, RobotCharacter.byId(character).chineseName, true)));
+        combat = work("杀戮：关", "默认攻击敌对生物；开启后额外攻击动物。始终保护玩家、宠物和机器人；指定采集时优先限制攻击。", b -> command(device != null && device.details().contains("杀戮模式开启") ? 8 : 7));
+        workTypeButton = tabs.add(RobotControlTabs.Page.WORK, "工作类型", "点击切换：伐木、采矿、烹饪、烧矿、种地；下方显示准备要求。", b -> {
+            workChoice = workChoice.next(); status = workChoice.hint; voiceStatusFocused = false; updateControls();
+        });
+        startWorkButton = work("开始工作", "在角色当前位置附近执行选定工作；先按提示准备工具、原料和设备。", b -> {
+            if (workChoice == RobotWorkChoice.COOKING) {
+                minecraft.setScreen(new RobotCookingScreen(this, robot, RobotCharacter.byId(character).chineseName, true));
+            } else command(workChoice.phoneAction);
+        });
+        work("重置烹饪", "取消当前烹饪计划并整理待投原料。", b -> command(14));
+        work("建造与生产线", "远程生成房屋/工业线方案，查看材料并确认施工。", b ->
+                minecraft.setScreen(new RobotBuildScreen(this, robot, RobotCharacter.byId(character).chineseName, true)));
+        voice = tabs.add(RobotControlTabs.Page.VOICE, "语音：开", "控制本机回复朗读，关闭会清理语音队列。", b -> {
+            voiceStatusFocused = false;
+            boolean enabled = !RobotVoiceSettings.enabled(); status = RobotVoiceSettings.setEnabled(enabled);
+            if (!enabled) RobotVoiceClient.resetGlobal();
+            updateControls();
+        });
+        pause = tabs.add(RobotControlTabs.Page.VOICE, "暂停播放", "暂停或继续本机语音队列。", b -> { voiceStatusFocused = true; RobotVoiceClient.pauseOrResume(); });
+        tabs.add(RobotControlTabs.Page.VOICE, "重播上一条", "重播最近缓存的回复；有正在播放的语音时需先停止或等待。", b -> { voiceStatusFocused = true; RobotVoiceClient.replayLast(); });
+        tabs.add(RobotControlTabs.Page.VOICE, "停止语音", "停止正在播放和排队的语音，保留聊天记录。", b -> { voiceStatusFocused = true; RobotVoiceClient.cancelAll(); });
+        tabs.add(RobotControlTabs.Page.SETTINGS, "清空对话", "取消当前文字请求并清空本页对话，不改变机器人工作任务。", b -> {
+            cancelPending(false); messages.clear(); scroll = 0; status = "本页对话已清空。"; voiceStatusFocused = false;
+        });
+        tabs.add(RobotControlTabs.Page.SETTINGS, "模型设置", "单人游戏可设置模型；多人服机器人模型由服主管理。", b -> {
+            if (minecraft.getSingleplayerServer() != null) minecraft.setScreen(new LLMSettingsScreen(this));
+            else { voiceStatusFocused = false; status = "多人服的机器人模型由服主管理。"; }
+        });
+        transcriptTop = 82;
         inputY = height - 26;
-        statusY = inputY - 6 - (height >= 240 ? 2 : 1) * font.lineHeight;
-        transcriptBottom = Math.max(transcriptTop, statusY - 5);
-        int inputWidth = Math.max(20, panelWidth - 98);
+        int inputWidth = panelWidth - 72;
         input = addRenderableWidget(new EditBox(font, left, inputY, inputWidth, 20, Component.literal("对机器人说")));
         input.setMaxLength(1200); input.setValue(draft); input.moveCursorTo(caret);
-        send = addRenderableWidget(new UiButton(left + inputWidth + 4, inputY, 42, 20, Component.literal("发送"), b -> requestChat()));
-        addRenderableWidget(new UiButton(left + panelWidth - 48, inputY, 48, 20, Component.literal("取消"), b -> {
-            cancelPending(true); voiceStatusFocused = false; status = "已取消本次远程聊天。";
+        send = addRenderableWidget(new UiButton(left + inputWidth + 4, inputY, 68, 20, Component.literal("发送"), b -> {
+            if (pending == null) requestChat();
+            else { cancelPending(true); voiceStatusFocused = false; status = "已取消本次远程聊天。"; }
         }));
-        if (focus) setInitialFocus(input);
+        selectPage(page);
+        if (focus && page == RobotControlTabs.Page.CHAT) setInitialFocus(input);
+    }
+    private Button work(String label, String hint, Button.OnPress action) {
+        Button button = tabs.add(RobotControlTabs.Page.WORK, label, hint, action);
+        onlineControls.add(button); return button;
+    }
+    private boolean following() { return device != null && device.status().startsWith("跟随"); }
+    private void selectPage(RobotControlTabs.Page next) {
+        page = next;
+        boolean chat = page == RobotControlTabs.Page.CHAT;
+        input.visible = chat; input.active = chat; send.visible = chat;
+        if (!chat) input.setFocus(false);
+        if (getFocused() instanceof AbstractWidget widget && !widget.visible) setFocused(null);
+        int lines = height >= 300 ? 2 : 1;
+        statusY = chat ? inputY - 6 - lines * font.lineHeight : height - 6 - lines * font.lineHeight;
+        transcriptBottom = Math.max(transcriptTop, statusY - 6);
         updateControls();
     }
     private void updateControls() {
         boolean phonePower = online() && IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.COMMAND_COST);
-        if (send != null) send.active = phonePower && device.energy() >= 2000 && pending == null && !input.getValue().isBlank();
+        if (send != null) {
+            send.active = pending != null || phonePower && device.energy() >= 2000 && !input.getValue().isBlank();
+            send.setMessage(Component.literal(pending != null ? "取消请求" : "发送"));
+        }
+        if (follow != null) follow.setMessage(Component.literal(following() ? "改为待命" : "跟随主人"));
+        if (workTypeButton != null) workTypeButton.setMessage(Component.literal("类型：" + workChoice.title));
+        if (startWorkButton != null) startWorkButton.setMessage(Component.literal("开始" + workChoice.title));
+        if (voice != null) voice.setMessage(Component.literal("语音：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
         for (Button b : onlineControls) b.active = phonePower;
-        if (combat != null) combat.setMessage(Component.literal("战斗：" + (device != null && device.details().contains("杀戮模式开启") ? "开" : "关")));
+        if (combat != null) combat.setMessage(Component.literal("杀戮：" + (device != null && device.details().contains("杀戮模式开启") ? "开" : "关")));
     }
     private void command(int action) {
         if (!online()) return;
@@ -158,41 +190,49 @@ final class PhoneRobotChatScreen extends Screen {
     @Override public void tick() {
         if (!heldPhone() || minecraft.level == null) { onClose(); return; }
         input.tick(); updateControls();
-        pause.setMessage(Component.literal("语音：" + (RobotVoiceClient.paused() ? "继续" : "暂停")));
+        pause.setMessage(Component.literal(RobotVoiceClient.paused() ? "继续播放" : "暂停播放"));
         // An admitted chat is already prepaid; avoid an extra polling charge while its text is in flight.
         if (++ticks % 100 == 0 && pending == null) RobotPackets.CHANNEL.sendToServer(new RobotPackets.PhoneAction(robot, 0, ""));
     }
     @Override public void render(PoseStack pose, int x, int y, float partial) {
         renderBackground(pose); fill(pose, left - 6, 4, left + panelWidth + 6, height - 2, 0xEF152631);
-        drawCenteredString(pose, font, UiText.fit(font, title, panelWidth), width / 2, 10, 0xFFFFFF);
+        font.draw(pose, UiText.fit(font, title, panelWidth - 70), left, 12, 0xFFFFFF);
         font.draw(pose, UiText.fit(font, Component.literal("网络：" + network + "；" + (device == null ? "机器人离线" : device.status())), panelWidth), left, 27, 0xBCEFE8);
         if (device != null) font.draw(pose, UiText.fit(font, Component.literal(device.dimension() + " " + device.pos().toShortString() + "  电量 " + device.energy() + " EU  寿命 " + device.lives() + "/5"), panelWidth), left, 39, 0xB3CAD4);
-        List<FormattedCharSequence> lines = new ArrayList<>();
-        for (var message : messages) {
-            lines.addAll(font.split(Component.literal((message.role().equals("user") ? "你" : RobotCharacter.byId(character).chineseName) + "：" + message.content()), panelWidth - 12));
-            lines.add(FormattedCharSequence.EMPTY);
+        if (page == RobotControlTabs.Page.CHAT) {
+            List<FormattedCharSequence> lines = new ArrayList<>();
+            for (var message : messages) {
+                lines.addAll(font.split(Component.literal((message.role().equals("user") ? "你" : RobotCharacter.byId(character).chineseName) + "：" + message.content()), panelWidth - 12));
+                lines.add(FormattedCharSequence.EMPTY);
+            }
+            int visible = Math.max(0, transcriptBottom - transcriptTop) / (font.lineHeight + 2);
+            scroll = Math.max(0, Math.min(scroll, Math.max(0, lines.size() - visible)));
+            int start = Math.max(0, lines.size() - visible - scroll);
+            if (transcriptBottom > transcriptTop) {
+                fill(pose, left - 2, transcriptTop - 2, left + panelWidth + 2, transcriptBottom, 0x99202838);
+                UiScissor.enable(minecraft, left, transcriptTop, left + panelWidth, transcriptBottom);
+                for (int i = start; i < Math.min(lines.size(), start + visible); i++) font.draw(pose, lines.get(i), left + 6, transcriptTop + (i - start) * (font.lineHeight + 2), 0xEEEEEE);
+                RenderSystem.disableScissor();
+            }
+            if (messages.isEmpty()) font.draw(pose, UiText.fit(font, Component.literal("聊天或切到“工作”远程安排任务。"), panelWidth - 12), left + 6, transcriptTop + 8, 0xAABEC9);
         }
-        int visible = Math.max(0, transcriptBottom - transcriptTop) / (font.lineHeight + 2);
-        scroll = Math.max(0, Math.min(scroll, Math.max(0, lines.size() - visible)));
-        int start = Math.max(0, lines.size() - visible - scroll);
-        if (transcriptBottom > transcriptTop) {
-            fill(pose, left - 2, transcriptTop - 2, left + panelWidth + 2, transcriptBottom, 0x99202838);
-            UiScissor.enable(minecraft, left, transcriptTop, left + panelWidth, transcriptBottom);
-            for (int i = start; i < Math.min(lines.size(), start + visible); i++) font.draw(pose, lines.get(i), left + 6, transcriptTop + (i - start) * (font.lineHeight + 2), 0xEEEEEE);
-            RenderSystem.disableScissor();
-        }
-        String shown = voiceStatusFocused ? RobotVoiceClient.statusGlobal() : status;
+        String shown = page == RobotControlTabs.Page.VOICE || voiceStatusFocused ? RobotVoiceClient.statusGlobal() : status;
         font.draw(pose, UiText.fit(font, Component.literal(shown), panelWidth), left, statusY, 0xD6E5E9);
-        if (height >= 240) font.draw(pose, UiText.fit(font, Component.literal(RobotVoiceClient.statusGlobal()), panelWidth), left, statusY + font.lineHeight, 0xBCEFE8);
+        if (height >= 300 && page != RobotControlTabs.Page.VOICE && !voiceStatusFocused) font.draw(pose, UiText.fit(font, Component.literal(RobotVoiceClient.statusGlobal()), panelWidth), left, statusY + font.lineHeight, 0xBCEFE8);
         super.render(pose, x, y, partial);
-        if (x >= left && x < left + panelWidth && y >= statusY && y < inputY) renderTooltip(pose, font.split(Component.literal(shown), Math.min(300, panelWidth)), x, y);
+        tabs.render(pose, font);
+        Component hint = tabs.hoveredHint(x, y);
+        if (hint != null && (workTypeButton.isHoveredOrFocused() || startWorkButton.isHoveredOrFocused()))
+            hint = Component.literal(workChoice.hint + " 点击左侧类型可切换工作。");
+        if (hint != null) renderTooltip(pose, font.split(hint, Math.min(300, panelWidth)), x, y);
+        if (x >= left && x < left + panelWidth && y >= statusY && y < statusY + (height >= 300 ? 2 : 1) * font.lineHeight) renderTooltip(pose, font.split(Component.literal(shown), Math.min(300, panelWidth)), x, y);
     }
     @Override public boolean mouseScrolled(double x, double y, double delta) {
-        if (x >= left && x < left + panelWidth && y >= transcriptTop && y < transcriptBottom) { scroll += (int)Math.signum(delta) * 3; return true; }
+        if (page == RobotControlTabs.Page.CHAT && x >= left && x < left + panelWidth && y >= transcriptTop && y < transcriptBottom) { scroll += (int)Math.signum(delta) * 3; return true; }
         return super.mouseScrolled(x, y, delta);
     }
     @Override public boolean keyPressed(int key, int scan, int modifiers) {
-        if ((key == 257 || key == 335) && input.isFocused()) { requestChat(); return true; }
+        if (page == RobotControlTabs.Page.CHAT && (key == 257 || key == 335) && input.isFocused()) { requestChat(); return true; }
         return super.keyPressed(key, scan, modifiers);
     }
     @Override public void onClose() { minecraft.setScreen(heldPhone() ? parent : null); }

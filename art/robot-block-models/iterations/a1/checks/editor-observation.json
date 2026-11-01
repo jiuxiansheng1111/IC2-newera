@@ -1,0 +1,16 @@
+{
+  "id": "anon",
+  "revision": "A1",
+  "reported_by": "root",
+  "official_blockbench_local_open": true,
+  "observed_cube_count": 61,
+  "texture_size": [
+    512,
+    512
+  ],
+  "bones_visible": true,
+  "texture_direction_matches_resource_preview": true,
+  "model_modified": false,
+  "image": "preview/anon-a1-editor.png",
+  "scope": "A1 only, not A2 or acceptance"
+}

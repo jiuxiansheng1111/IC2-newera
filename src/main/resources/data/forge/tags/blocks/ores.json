@@ -4,6 +4,12 @@
     "ic2newera:nickel_ore",
     "ic2newera:chromium_ore",
     "ic2newera:titanium_ore",
-    "ic2newera:tungsten_ore"
+    "ic2newera:tungsten_ore",
+    "ic2newera:vanadium_ore",
+    "ic2newera:niobium_ore",
+    "ic2newera:cobalt_ore",
+    "ic2newera:molybdenum_ore",
+    "ic2newera:tantalum_ore",
+    "ic2newera:resonance_cluster"
   ]
 }
