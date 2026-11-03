@@ -5,7 +5,7 @@
     "forge": "47.4.28",
     "java": 17
   },
-  "revision": "r61",
+  "revision": "r62",
   "runtimeVerification": "Metadata, official source hashes and API compatibility reviewed; full client/server and Linux play acceptance pending.",
   "mods": [
     {
@@ -265,6 +265,62 @@
       "releaseChannel": "release",
       "license": "MIT",
       "upstreamMavenCommit": "d50a181c2f4e018aa18e401c02fa6f43e8faeedb"
+    },
+    {
+      "modId": "spawn",
+      "version": "4.0.8-1.20.1",
+      "file": "spawn-4.0.8-1.20.1.jar",
+      "source": "https://cdn.modrinth.com/data/rex9wwpz/versions/Iw5SeMQX/spawn-4.0.8-1.20.1.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/rex9wwpz/version/Iw5SeMQX",
+      "sizeBytes": 83604580,
+      "sha256": "8CD18F3C029FDDFEEC28314AB9BB4845FF9061131E9F1DCE149778E5EE731D23",
+      "sha512": "94ae4472e508983d6baf53233d8d6ffe6293f6f2d38b803233f8b5109c276d4232b71b1aa6e203acdf8de8cbe172ad3a139f7a447a827eeee7da1c3069ce202a",
+      "sha1": "e2b28c1c8c4d73b9a2d83d9dfd9f09bd740465e9",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "All Rights Reserved"
+    },
+    {
+      "modId": "avaritia",
+      "version": "1.4.2",
+      "file": "Re-Avaritia-forge-1.20.1-1.4.2-release.jar",
+      "source": "https://cdn.modrinth.com/data/QeB3NRC5/versions/trZJ7YBv/Re-Avaritia-forge-1.20.1-1.4.2-release.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/QeB3NRC5/version/trZJ7YBv",
+      "sizeBytes": 3739642,
+      "sha256": "E8C1E6DB0448E450EE21ACFD1FABFD9E9BE8D1A95BBB46268CA2F8A98B172475",
+      "sha1": "d127e9ac5a00768b567aa1790710c39e16748fcd",
+      "sha512": "c271cdea6e55e736d34ad53b4ca06d22ac0bd227a9513ec8046a711f64b4d100d4b92d472ef30fcf5f1cc662623784475955979f60fb5e1c48f8ce27d59ceeca",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "MIT"
+    },
+    {
+      "modId": "tconstruct",
+      "version": "3.11.2.166",
+      "file": "TConstruct-1.20.1-3.11.2.166.jar",
+      "source": "https://cdn.modrinth.com/data/rxIIYO6c/versions/kJ9LD194/TConstruct-1.20.1-3.11.2.166.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/rxIIYO6c/version/kJ9LD194",
+      "sizeBytes": 21572031,
+      "sha256": "653B49D73481A1325BA78ADC7273DEE6C765A51BAFDF264A7510576D6EF91C43",
+      "sha1": "94d07ec0ff45c49f5908beff7acb9fbec43fdde5",
+      "sha512": "69da7399162b4de18b3eedf701f6013727ec4ae14b1b746265513bea6c4e88ad64ccb1187d3abca2387aafd37a91c21c56ce9b6fa7b0c26df17dfc1ac8d6a916",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "MIT"
+    },
+    {
+      "modId": "mantle",
+      "version": "1.11.104",
+      "file": "Mantle-1.20.1-1.11.104.jar",
+      "source": "https://cdn.modrinth.com/data/Cg6Uc79H/versions/SOJzuYxC/Mantle-1.20.1-1.11.104.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/Cg6Uc79H/version/SOJzuYxC",
+      "sizeBytes": 1625005,
+      "sha256": "6052E47C3981064BD5213728EAA3C5418289F6F85B07A1CD4DD1505239248838",
+      "sha512": "4b05eb01769d3cc299dbfc94c2d4f8d76192e839b53bf83109dd5e72d0dae67f188ffcdefb4683b073fc78fc19e86d84e04023f6ad7542e628817fabacf6db78",
+      "sha1": "8a3f948f8c505ee92dae915ec0a1593594eb2667",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "MIT"
     }
   ]
 }

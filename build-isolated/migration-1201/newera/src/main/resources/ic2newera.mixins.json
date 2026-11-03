@@ -7,6 +7,8 @@
     "Ic2StackedCellFluidViewMixin",
     "FarmerCookingPotMixin",
     "TopArmorMaterialMixin",
+    "UltraTerraServerPresetsMixin",
+    "UltraTerraExportBiomesMixin",
     "PetAirCurrentMixin",
     "MeowchanicsEventsMixin",
     "MeowchanicsHissingMixin",
