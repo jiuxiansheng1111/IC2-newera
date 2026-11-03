@@ -1,15 +1,23 @@
-Windows视觉最新版：IC2-New-Era-Windows-1.20.1-r50-Visuals.mrpack。
-在PCL导入为新实例，再选择Minecraft 1.20.1 + Forge 47.4.28启动；纯净26.1.1无法连接本服务器。
-包含r49全部31个模组（FTB Ultimine连锁采集、AE2仓储/自动合成等），追加Complementary Reimagined r5.9.3中档与Bare Bones 1.1.7平滑材质。
-视觉资源由PCL按Modrinth清单联网下载原始ZIP；未重新上传第三方光影和材质。
-来源：https://www.complementary.dev/ 、https://modrinth.com/resourcepack/bare-bones 。
-本机已安装并启用配置；本轮未启动游戏验收光影、材质或FPS。服务器继续r49。
+IC2：新纪元 Minecraft 1.20.1 / Forge 47.4.28 / Java17 最新交付：r61
 
-以下r49为基础无光影客户端与当前服务端：
-r49：新纪元独立科技树已移至原版「进度」的「IC2：新纪元」分页，只列本模组33个关键里程碑。
-客户端：IC2-New-Era-1.20.1-Forge-47.4.28-r49.mrpack，使用PCL导入。
-服务端：IC2-New-Era-Server-1.20.1-r49-Full.zip，包含Forge核心与25个模组。
-已有服务器只替换mods内的新纪元JAR。请先停服备份，不要覆盖world、config、server.properties、unix_args.txt等现场文件。
-客户端与服务器必须同时更新新纪元JAR（主协议34）。
-Linux-Fixed-Voice-r48-20261028.zip仍是当前固定语音附件，兼容r49，此次未改语音；它不包含翻唱，不是旧整合包，不删除。
-本轮构建与归档校验完成。实际安装与服务器启动状态见项目docs/delivery-r49-native-advancements-2026-10-29.md。
+Windows客户端：IC2-New-Era-Windows-1.20.1-r61-Grove.mrpack
+用PCL导入，首次导入需联网下载清单。共38个模组；默认Soartex Grove 1.0.4（舒适细致），保留ITT 3.2光影。Grove和光影只装客户端，服务器没有安装这些资源。
+
+完整服务器：IC2-New-Era-Server-1.20.1-r61-UltraTerra-Voice.zip
+含27个服务端模组、Forge运行文件和128段固定问候语音，原语音参数已内置。需要已有Java17；全新开服须自行阅读并确认EULA。默认新地图world-ultraterra-r61-20261103，生成器为UltraTerraForged 1.0.3+1.20.1 Forge。已有服务器不要直接覆盖世界、配置或内存设置。
+
+更新附件：IC2-New-Era-Server-1.20.1-r61-Update.zip
+仅含两个模组JAR、MIT通知和说明，不覆盖世界或配置。指定服务器已经由助手单独更新时，不用重复安装。其他现有服务器应先正常停服、完整备份，再替换JAR；石英EMC与新地图设置按附件说明合并。
+
+新纪元单独文件：ic2newera-0.2.0-migration1201-all.jar
+与r61客户端、服务器内相同。Java类、协议、工艺图和配方与r60保持；更新内置AI的地形、材质与EMC说明。
+
+石英改为94 EMC，直接水洗灵魂沙计入金粒后约5.18%平均利润。原水洗与沙子转灵魂沙配方按用户要求保留；联机数值由服务器配置决定，单次掉落仍随机。
+
+地形模组采用用户选定的后续维护版UltraTerraForged，注册ID为ultraterraforged，不是原版ReTerraForged。旧地图不会被安装JAR自动改造；本次服务器使用新地图，旧世界和完整回退备份保留。
+
+已构建并完成客户端文件安装和归档静态核对。指定服务器新地图已正常生成、保存并重开，list命令响应通过且UltraTerraForged预设数据包已启用。按用户要求未启动本地Minecraft、未运行自动化测试；材质画面、联机与玩法由用户验证。
+
+保留YSM2.6.3、Xaero小地图、Freecam、MC百科搜索和输入法修复。小地图通常只装客户端；独立小地图JAR仍在本目录。固定语音单独JAR是当前附件，无需重复装进已整合语音的服务器。
+
+详细记录：docs/delivery-r61-landscape-2026-11-03.md。

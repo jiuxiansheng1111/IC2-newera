@@ -1,0 +1,8 @@
+{
+  "minecraftInstance": "1.20.1-Forge_47.4.28",
+  "projecteVersionJar": "projecte-1201-PE1.0.1.jar",
+  "comment": "Pack configuration: quartz 94 EMC. Keep Create's soul-sand washing and sand haunting recipes unchanged. Expected washing output: 0.5 quartz + 0.02 gold nugget; at soul sand 49 and gold nugget 227 EMC this returns 51.54 EMC, about 5.18% average profit. This does not balance the separate cheap-sand route.",
+  "values": {
+    "minecraft:quartz": 94
+  }
+}

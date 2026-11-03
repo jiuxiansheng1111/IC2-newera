@@ -5,7 +5,7 @@
     "forge": "47.4.28",
     "java": 17
   },
-  "revision": "r53",
+  "revision": "r61",
   "runtimeVerification": "Metadata, official source hashes and API compatibility reviewed; full client/server and Linux play acceptance pending.",
   "mods": [
     {
@@ -250,6 +250,21 @@
       "sha512": "9c566a2b9537c37b438a38a060cc251187e6643e96522466c50c90c7fa747a4e4edc3a5fff0f31fb042e1eeefd047df2a57d1bbe6a3d741837cef8cdb6426a25",
       "environment": "client",
       "releaseChannel": "release"
+    },
+    {
+      "modId": "ultraterraforged",
+      "version": "1.0.3+1.20.1",
+      "file": "ultraterraforged-forge-1.0.3+1.20.1.jar",
+      "source": "https://raw.githubusercontent.com/Pandaismyname1/ultraterraforged/d50a181c2f4e018aa18e401c02fa6f43e8faeedb/com/pandaismyname1/ultraterraforged/ultraterraforged-forge/1.0.3+1.20.1/ultraterraforged-forge-1.0.3+1.20.1.jar",
+      "sourceVersionUrl": "https://github.com/Pandaismyname1/ultraterraforged/releases/tag/1.0.3%2B1.20.1",
+      "sizeBytes": 1884145,
+      "sha256": "E1F14634F13968EB14B12644E8D92932D26992EE44DADBB587A67C28164AFA82",
+      "sha1": "7cb3f07709053413f636703bfa487c939a1c509a",
+      "sha512": "fdf5641b03553ec085b3130dc33ce3eed52181553c777e758d1ef421454e93f958c21bae535810b446abc44cedf4f47993ccde513bc8c67184efdf36607186d8",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "MIT",
+      "upstreamMavenCommit": "d50a181c2f4e018aa18e401c02fa6f43e8faeedb"
     }
   ]
 }

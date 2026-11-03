@@ -28,6 +28,7 @@ TEMPLATE = ROOT / "scripts/server-pack-1201"
 BLUEPRINTS = ROOT / "build-isolated/migration-1201/newera/art/robot-blueprints"
 NOTICES = ROOT / "scripts/player-pack/THIRD-PARTY-NOTICES.txt"
 PROJECTE_BLACKLIST = ROOT / "build-isolated/migration-1201/newera/scripts/projecte-emc-1201-blacklist.json"
+PROJECTE_BALANCE = ROOT / "build-isolated/migration-1201/newera/scripts/projecte-emc-1201-balance.json"
 OUT_DIR = ROOT / "build-isolated/server-packaging/20261029-r49-advancements"
 ARCHIVE_STEM = "IC2-New-Era-Server-1.20.1-r49-Full"
 TAR_NAME = ARCHIVE_STEM + ".tar.gz"
@@ -412,9 +413,19 @@ def generated_projecte_config() -> bytes:
     if any(not isinstance(item, str) or not re.fullmatch(r"[a-z0-9_.-]+:[a-z0-9_./-]+", item)
            for item in item_ids):
         fail("ProjectE blacklist contains an invalid item ID")
+    balance = read_json(PROJECTE_BALANCE)
+    values = balance.get("values")
+    if (balance.get("minecraftInstance") != source["minecraftInstance"]
+            or balance.get("projecteVersionJar") != source["projecteVersionJar"]
+            or not isinstance(values, dict) or not values
+            or any(not re.fullmatch(r"[a-z0-9_.-]+:[a-z0-9_./-]+", item)
+                   or item in item_ids or type(value) is not int or value <= 0
+                   for item, value in values.items())):
+        fail("ProjectE positive balance values are invalid or conflict with the blacklist")
     generated = {
-        "__comment": "Generated from the IC2: New Era controlled-intermediate EMC blacklist; do not replace with player config.",
-        "entries": [{"item": item, "emc": 0} for item in sorted(item_ids)],
+        "__comment": "Generated from New Era intermediate blacklist and pack EMC balance manifests; preserve unrelated player overrides when updating an existing server.",
+        "entries": ([{"item": item, "emc": 0} for item in sorted(item_ids)]
+                    + [{"item": item, "emc": value} for item, value in sorted(values.items())]),
     }
     return (json.dumps(generated, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
 

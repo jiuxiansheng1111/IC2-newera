@@ -1,0 +1,43 @@
+{
+  "revision": "r61",
+  "target": {
+    "minecraft": "1.20.1",
+    "forge": "47.4.28",
+    "java": 17
+  },
+  "terrain": {
+    "modId": "ultraterraforged",
+    "version": "1.0.3+1.20.1",
+    "file": "ultraterraforged-forge-1.0.3+1.20.1.jar",
+    "source": "https://raw.githubusercontent.com/Pandaismyname1/ultraterraforged/d50a181c2f4e018aa18e401c02fa6f43e8faeedb/com/pandaismyname1/ultraterraforged/ultraterraforged-forge/1.0.3+1.20.1/ultraterraforged-forge-1.0.3+1.20.1.jar",
+    "sourceVersionUrl": "https://github.com/Pandaismyname1/ultraterraforged/releases/tag/1.0.3%2B1.20.1",
+    "sizeBytes": 1884145,
+    "sha256": "E1F14634F13968EB14B12644E8D92932D26992EE44DADBB587A67C28164AFA82",
+    "sha1": "7cb3f07709053413f636703bfa487c939a1c509a",
+    "sha512": "fdf5641b03553ec085b3130dc33ce3eed52181553c777e758d1ef421454e93f958c21bae535810b446abc44cedf4f47993ccde513bc8c67184efdf36607186d8",
+    "environment": "both",
+    "releaseChannel": "release",
+    "license": "MIT",
+    "upstreamMavenCommit": "d50a181c2f4e018aa18e401c02fa6f43e8faeedb"
+  },
+  "resourcepack": {
+    "kind": "resourcepack",
+    "title": "Soartex Grove",
+    "version": "1.0.4",
+    "file": "Soartex Grove 1.0.4.zip",
+    "upstreamFile": "Grove.zip",
+    "source": "https://mediafilez.forgecdn.net/files/5043/512/Grove.zip",
+    "versionUrl": "https://www.curseforge.com/minecraft/texture-packs/grove-vanilla/files/5043512",
+    "sizeBytes": 53102397,
+    "sha1": "333e6533d49ae9f15a5eb1625404f27ddb1953f2",
+    "sha256": "33CF7B9E47580A9138123F0377B4BBB4A031757E1B389E00485ECFD743547EAB",
+    "sha512": "6d5d1e198841c3e6d011b61fd8a5512faf6ccbc4ceae3a5d69bfc9af7013515109b904dc3beb0a408a03bc8e921b3162fb2c8ff8e61b7cbcf6011d2b56c6ae96",
+    "packFormat": 15,
+    "distribution": "Pinned original-author CDN download, unmodified ZIP"
+  },
+  "shader": "iterationT 3.2.0.zip",
+  "newServerWorld": "world-ultraterra-r61-20261103",
+  "oldWorldPolicy": "Keep the original world folder and a full stopped-server backup. Select a new level-name; do not erase old saves.",
+  "licenseFile": "scripts/licenses/UltraTerraForged-MIT.txt",
+  "gameAcceptance": "No local Minecraft launched and no automated tests run. Server deployment verification is recorded separately."
+}
