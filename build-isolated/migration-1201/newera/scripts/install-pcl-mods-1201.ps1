@@ -176,13 +176,38 @@ foreach ($mod in $lockedMods) {
     if (@(Get-DeclaredModIds $source) -notcontains $mod.modId) {
         throw ('Locked source does not declare expected mod ID: ' + $mod.modId)
     }
+    # Keep the upstream download/hash pinned separately from our language-only JAR.
+    # An explicit override prevents later installs from silently dropping zh_cn.
+    $installSha = $mod.sha256
+    $installSize = [int64]$mod.sizeBytes
+    if ($mod.PSObject.Properties.Name -contains 'localOverride') {
+        $overlay = $mod.localOverride
+        if ($overlay.relativePath -notmatch '^localized/[A-Za-z0-9._+-]+\.jar$' -or
+            $overlay.sha256 -notmatch '^[A-Fa-f0-9]{64}$' -or [int64]$overlay.sizeBytes -le 0) {
+            throw ('Invalid localization override: ' + $mod.modId)
+        }
+        $localizedRoot = [IO.Path]::GetFullPath((Join-Path $dependencyDirectory 'localized'))
+        $localizedSource = [IO.Path]::GetFullPath((Join-Path $dependencyDirectory $overlay.relativePath))
+        if (-not $localizedSource.StartsWith($localizedRoot + '\', [StringComparison]::OrdinalIgnoreCase) -or
+            -not (Test-Path -LiteralPath $localizedSource -PathType Leaf)) {
+            throw ('Build the missing pinned localization override: ' + $mod.modId)
+        }
+        if ((Get-Item -LiteralPath $localizedSource).Length -ne [int64]$overlay.sizeBytes -or
+            (Get-FileHash -LiteralPath $localizedSource -Algorithm SHA256).Hash -ne $overlay.sha256 -or
+            @(Get-DeclaredModIds $localizedSource) -notcontains $mod.modId) {
+            throw ('Localization override failed integrity verification: ' + $mod.modId)
+        }
+        $source = $localizedSource
+        $installSha = $overlay.sha256
+        $installSize = [int64]$overlay.sizeBytes
+    }
     $plan += [pscustomobject]@{
         modId = $mod.modId
         source = $source
         fileName = $mod.file
         destination = Join-Path $modsPath $mod.file
-        sha256 = $mod.sha256
-        sizeBytes = [int64]$mod.sizeBytes
+        sha256 = $installSha
+        sizeBytes = $installSize
     }
 }
 

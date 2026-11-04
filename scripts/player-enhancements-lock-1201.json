@@ -270,6 +270,13 @@
       "modId": "spawn",
       "version": "4.0.8-1.20.1",
       "file": "spawn-4.0.8-1.20.1.jar",
+      "localOverride": {
+        "relativePath": "localized/spawn-4.0.8-1.20.1.jar",
+        "sizeBytes": 83620413,
+        "sha256": "9E14980EF7F75511F0C9B73C14BC39A1B92467A5886D968EE906C3151B2B00FA",
+        "reason": "r63: add 947 zh_cn translations; all original members unchanged",
+        "builder": "scripts/localize-spawn-1201.py"
+      },
       "source": "https://cdn.modrinth.com/data/rex9wwpz/versions/Iw5SeMQX/spawn-4.0.8-1.20.1.jar",
       "sourceVersionUrl": "https://modrinth.com/mod/rex9wwpz/version/Iw5SeMQX",
       "sizeBytes": 83604580,
