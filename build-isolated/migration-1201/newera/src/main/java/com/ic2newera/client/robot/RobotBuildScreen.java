@@ -90,53 +90,59 @@ public final class RobotBuildScreen extends Screen {
 
         int tabGap = 6, tabWidth = (panelWidth - tabGap) / 2;
         int tabY = compact ? 24 : 38;
-        textTab = addRenderableWidget(new UiButton(left, tabY, tabWidth, 20, Component.literal("文字建造"), b -> switchTab(false)));
+        textTab = addRenderableWidget(new UiButton(left, tabY, tabWidth, 20, Component.literal("文字描述"), b -> switchTab(false),
+                Component.literal("用文字描述房屋或生产线；先生成并核对方案，再单独确认施工。")));
         blueprintTab = addRenderableWidget(new UiButton(left + tabWidth + tabGap, tabY, tabWidth, 20,
-                Component.literal("文件图纸 / 图片"), b -> switchTab(true)));
+                Component.literal("图纸或参考图片"), b -> switchTab(true),
+                Component.literal("从当前游戏的图纸目录导入图纸，或选择图片交给本机配置的视觉模型规划。导入/解析只生成待确认方案，不会自动施工。")));
         int workerY = compact ? 46 : 61;
-        workerMinus = addRenderableWidget(new UiButton(left, workerY, 26, 18, Component.literal("−"), b -> changeWorkers(-1)));
-        workerPlus = addRenderableWidget(new UiButton(left + 26 + 4, workerY, 26, 18, Component.literal("+"), b -> changeWorkers(1)));
+        workerMinus = addRenderableWidget(new UiButton(left, workerY, 26, 18, Component.literal("−"), b -> changeWorkers(-1),
+                Component.literal("减少本次方案中的协作机器人数量；范围为1至8台。协作时仅计入附近64格内、同一主人、空闲且有电的机器人。")));
+        workerPlus = addRenderableWidget(new UiButton(left + 26 + 4, workerY, 26, 18, Component.literal("+"), b -> changeWorkers(1),
+                Component.literal("增加本次方案中的协作机器人数量；范围为1至8台。协作时仅计入附近64格内、同一主人、空闲且有电的机器人。")));
 
         description = addRenderableWidget(new EditBox(font, left, height - 82, panelWidth, 20, Component.literal("房屋或生产线描述")));
+        description.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("写出建筑类型、尺寸、材料和供电要求。明确描述“生产线”会调用生产线规划；换线或改产请描述现有场站和目标。")));
         description.setMaxLength(1200);
         description.setValue(draft);
         description.moveCursorTo(cursor);
 
         int cell5 = (panelWidth - 16) / 5;
-        generate = rowButton(0, 0, cell5, "生成方案", b -> send(RobotBuildService.PREVIEW));
-        aiCreate = rowButton(1, 0, cell5, "AI创作", b -> planTextLocally());
-        start = rowButton(2, 0, cell5, "开始施工", b -> send(RobotBuildService.START));
-        pause = rowButton(3, 0, cell5, "暂停作业", b -> send(RobotBuildService.PAUSE));
-        resume = rowButton(4, 0, cell5, "继续作业", b -> send(RobotBuildService.RESUME));
+        generate = rowButton(0, 0, cell5, "生成方案", "让服务器按描述生成实际方块和材料方案；不会调用AI，也不会开始施工。", b -> send(RobotBuildService.PREVIEW));
+        aiCreate = rowButton(1, 0, cell5, "AI创作", "仅在点击时调用本机已配置的AI生成建筑草案；服务器仍会校验返回的方案。需要先配置并启动本机图纸服务。", b -> planTextLocally());
+        start = rowButton(2, 0, cell5, "开始施工", "按已确认的方案实际放置方块或改造生产线。启动需200 EU；材料按清单从机器人货物槽消耗。", b -> send(RobotBuildService.START));
+        pause = rowButton(3, 0, cell5, "暂停任务", "暂停施工或生产并保留任务进度、已放方块、设备和物料；可用“继续任务”恢复。", b -> send(RobotBuildService.PAUSE));
+        resume = rowButton(4, 0, cell5, "继续任务", "恢复已保存的施工、生产或改造记录；会重新核对方块、权限、材料和通路。", b -> send(RobotBuildService.RESUME));
         int cell4 = (panelWidth - 12) / 4;
-        cancel = rowButton(0, 1, cell4, "取消任务", b -> {
+        cancel = rowButton(0, 1, cell4, "取消任务", "再点一次确认。若尚未开工，只撤销待确认方案；普通施工/生产任务会清除任务记录，但已放建筑、机器、炉内物品和未消耗货物保留。部分改造不能取消，会保留恢复记录并要求继续修复。", b -> {
             if (cancelArmed) { send(RobotBuildService.CANCEL); cancelArmed = false; }
-            else { cancelArmed = true; status = "再点一次取消：停止任务，已放建筑和机器保留。"; }
+            else { cancelArmed = true; status = "再点一次确认取消：已放方块、机器、炉内物料和未消耗货物保留。"; }
             updateButtons();
         });
-        refresh = rowButton(1, 1, cell4, "检查与进度", b -> send(RobotBuildService.STATUS));
-        rowButton(2, 1, cell4, "复制清单", b -> {
+        refresh = rowButton(1, 1, cell4, "查看状态", "重新读取当前任务阶段、进度、材料和暂停原因。", b -> send(RobotBuildService.STATUS));
+        rowButton(2, 1, cell4, "复制清单", "复制当前显示的方案说明和材料清单到剪贴板。", b -> {
             Minecraft.getInstance().keyboardHandler.setClipboard(report);
-            status = "已复制当前显示的施工清单。";
+            status = "已复制当前显示的方案说明。";
         });
-        rowButton(3, 1, cell4, "返回", b -> onClose());
+        rowButton(3, 1, cell4, "返回", "关闭建造面板；正在执行的任务不会因此暂停。", b -> onClose());
 
         int folderY = compact ? 67 : 87;
         openInbox = addRenderableWidget(new UiButton(left + 6, folderY, 104, 19, Component.literal("打开图纸目录"), b -> openInbox(),
                 Component.literal("当前游戏目录下的 IC2-NewEra-blueprints/inbox")));
-        refreshInbox = addRenderableWidget(new UiButton(left + 114, folderY, 58, 19, Component.literal("刷新"), b -> refreshInbox()));
+        refreshInbox = addRenderableWidget(new UiButton(left + 114, folderY, 58, 19, Component.literal("刷新"), b -> refreshInbox(),
+                Component.literal("重新读取当前游戏目录 IC2-NewEra-blueprints/inbox 中的支持文件。")));
         int listWidth = Math.min(245, Math.max(150, panelWidth / 3));
         fileListToggle = addRenderableWidget(new UiButton(left + panelWidth - 82, workerY, 76, 18,
-                Component.literal("选择文件"), b -> toggleFileList()));
+                Component.literal("选择文件"), b -> toggleFileList(), Component.literal("展开或收起当前图纸文件列表。")));
         previousFilePage = addRenderableWidget(new UiButton(left + panelWidth - 60, workerY, 26, 18,
                 Component.literal("‹"), b -> changeFilePage(-1), Component.literal("上一页文件")));
         nextFilePage = addRenderableWidget(new UiButton(left + panelWidth - 30, workerY, 26, 18,
                 Component.literal("›"), b -> changeFilePage(1), Component.literal("下一页文件")));
         int paneLeft = left + listWidth + 18;
         infoView = addRenderableWidget(new UiButton(paneLeft + 6, folderY, 76, 19,
-                Component.literal("方案信息"), b -> setBlueprintView(false)));
+                Component.literal("方案信息"), b -> setBlueprintView(false), Component.literal("查看材料清单、方案说明和施工要求。")));
         blocksView = addRenderableWidget(new UiButton(paneLeft + 86, folderY, 76, 19,
-                Component.literal("方块预览"), b -> setBlueprintView(true)));
+                Component.literal("方块预览"), b -> setBlueprintView(true), Component.literal("查看服务器返回的实际施工方块布局；旋转或缩放仅影响预览。")));
         fileRowTop = compact ? 91 : 128;
         updateCompactGeometry();
         fileButtons.clear();
@@ -148,16 +154,17 @@ public final class RobotBuildScreen extends Screen {
             fileButtons.add(button);
         }
         importSelected = addRenderableWidget(new UiButton(left, height - 56, cell5, 20,
-                Component.literal("解析并预览"), b -> processSelectedFile()));
+                Component.literal("解析并预览"), b -> processSelectedFile(),
+                Component.literal("读取选中的图纸或图片并生成待确认方案。图纸会上传游戏服务器校验；图片只交给本机配置的视觉AI，服务器只接收最终方块计划。不会自动施工。")));
 
         if (blueprintTabSelected) refreshInbox();
         updateButtons();
         if (request == null && ticks == 0 && !blueprintTabSelected) send(RobotBuildService.STATUS);
     }
 
-    private Button rowButton(int col, int row, int cell, String label, Button.OnPress press) {
+    private Button rowButton(int col, int row, int cell, String label, String hint, Button.OnPress press) {
         return addRenderableWidget(new UiButton(left + col * (cell + 4), height - 56 + row * 24,
-                col == 4 ? panelWidth - col * (cell + 4) : cell, 20, Component.literal(label), press));
+                col == 4 ? panelWidth - col * (cell + 4) : cell, 20, Component.literal(label), press, Component.literal(hint)));
     }
 
     private void switchTab(boolean blueprint) {
@@ -388,7 +395,6 @@ public final class RobotBuildScreen extends Screen {
             Path path = inboxFiles.get(index);
             button.active = true;
             String name = path.getFileName().toString();
-            if (name.length() > 30) name = name.substring(0, 27) + "…";
             button.setMessage(Component.literal((path.equals(selectedFile) ? "› " : "") + name));
         }
     }
@@ -424,9 +430,9 @@ public final class RobotBuildScreen extends Screen {
         updateCompactGeometry();
         poseTitle(graphics);
         if (compact) {
-            graphics.drawString(font, UiText.fit(font, Component.literal("施工人数 " + workers + " / 8"), 100), left + 60, 50, 0xB9D5D9);
+            graphics.drawString(font, UiText.fit(font, Component.literal("协作机器人 " + workers + " / 8"), 100), left + 60, 50, 0xB9D5D9);
         } else {
-            graphics.drawString(font, UiText.fit(font, Component.literal("施工人数：" + workers + "（1人单独作业，2–8人协作）"), panelWidth - 70), left + 60, 65, 0xB9D5D9);
+            graphics.drawString(font, UiText.fit(font, Component.literal("协作机器人：" + workers + "台（1台单独施工，2–8台协作）"), panelWidth - 70), left + 60, 65, 0xB9D5D9);
             graphics.drawString(font, UiText.fit(font, Component.literal(remote ? "手机远程建造" : "现场建造"), 130),
                     left + panelWidth - 132, 65, 0xAAC8CE);
         }
@@ -441,6 +447,10 @@ public final class RobotBuildScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
         if (!hideCompactFileMeta && mouseX >= left && mouseX < left + panelWidth && mouseY >= height - 109 && mouseY < height - 96)
             graphics.renderTooltip(font, font.split(Component.literal(status), Math.min(300, panelWidth)), mouseX, mouseY);
+        if (mouseX >= left && mouseX < left + panelWidth && mouseY >= (compact ? 5 : 9) && mouseY < (compact ? 20 : 25))
+            graphics.renderTooltip(font, font.split(title, Math.min(320, panelWidth)), mouseX, mouseY);
+        if (mouseX >= left + 60 && mouseX < left + 160 && mouseY >= (compact ? 48 : 63) && mouseY < (compact ? 63 : 78))
+            graphics.renderTooltip(font, font.split(Component.literal("协作机器人 " + workers + "/8。多机施工仅会选择附近64格内、同一主人、空闲且有电的机器人。"), 300), mouseX, mouseY);
     }
 
     private void poseTitle(GuiGraphics graphics) {

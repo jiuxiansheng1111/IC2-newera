@@ -49,19 +49,27 @@ public final class PhoneMusicScreen extends Screen {
         query = addRenderableWidget(new EditBox(font, left, 26, queryWidth, 20, Component.literal("歌名、歌手或自然语言点歌")));
         query.setMaxLength(240); query.setValue(draft);
         query.moveCursorTo(caret); if (queryFocused) setInitialFocus(query);
-        addRenderableWidget(new UiButton(left + queryWidth + 4, 26, sourceWidth, 20,
+        var source = addRenderableWidget(new UiButton(left + queryWidth + 4, 26, sourceWidth, 20,
                 Component.literal(audius ? "Audius" : "网易云"), b -> { audius = !audius; rebuildWidgets(); }));
-        addRenderableWidget(new UiButton(left + panelWidth - searchWidth, 26, searchWidth, 20,
-                Component.literal("搜索"), b -> search())).active = !MusicController.busy();
+        source.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(audius
+                ? "当前搜索 Audius 公开曲目；切换可改用网易云目录。" : "当前搜索网易云曲目；可输入歌名、歌手或自然语言点歌。")));
+        var searchButton = addRenderableWidget(new UiButton(left + panelWidth - searchWidth, 26, searchWidth, 20,
+                Component.literal("搜索"), b -> search()));
+        searchButton.active = !MusicController.busy();
+        searchButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(query.getValue().isBlank()
+                ? "先输入歌名、歌手或点歌描述。" : MusicController.busy() ? "媒体请求处理中，请等待或使用停止/取消。" : "搜索所选曲库。")));
         int libraryWidth = (panelWidth - 64) / 2;
-        addRenderableWidget(new UiButton(left, 50, libraryWidth, 18, Component.literal("我的歌单"), b -> {
+        var playlistButton = addRenderableWidget(new UiButton(left, 50, libraryWidth, 18, Component.literal("我的歌单"), b -> {
             view = View.PLAYLIST; page = 0; selected = ""; rebuildWidgets();
         }));
-        addRenderableWidget(new UiButton(left + libraryWidth + 4, 50, libraryWidth, 18,
-                Component.literal("我喜欢的音乐"), b -> { view = View.LIKED; requestLikedPage(0, 0); }))
-                .active = !MusicController.busy();
-        addRenderableWidget(new UiButton(left + 2 * libraryWidth + 8, 50, panelWidth - 2 * libraryWidth - 8, 18,
+        playlistButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("查看并管理保存在游戏中的歌单。")));
+        var likedButton = addRenderableWidget(new UiButton(left + libraryWidth + 4, 50, libraryWidth, 18,
+                Component.literal("我喜欢的音乐"), b -> { view = View.LIKED; requestLikedPage(0, 0); }));
+        likedButton.active = !MusicController.busy();
+        likedButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("只读浏览房主授权的网易云红心歌单；需要房主先扫码登录。")));
+        var moreButton = addRenderableWidget(new UiButton(left + 2 * libraryWidth + 8, 50, panelWidth - 2 * libraryWidth - 8, 18,
                 Component.literal("更多"), b -> minecraft.setScreen(new MusicMoreScreen(this))));
+        moreButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("导入或刷新歌单，管理房主网易云登录。")));
         addRenderableWidget(new UiButton(left + panelWidth - 44, 4, 44, 18, Component.literal("返回"), b -> onClose()));
 
         if (view == View.LIKED && pendingLikedOffset >= 0 && MusicController.likedReady() && MusicController.likedOffset() == pendingLikedOffset) {
@@ -72,31 +80,51 @@ public final class PhoneMusicScreen extends Screen {
         if (selected() == null) selected = tracks.isEmpty() ? "" : tracks.get(Math.min(page * rows, tracks.size() - 1)).id();
         for (int row = 0; row < rows && page * rows + row < tracks.size(); row++) {
             MusicTrack track = tracks.get(page * rows + row);
-            addRenderableWidget(new UiButton(left, LIST_TOP + row * ROW_HEIGHT, panelWidth, 20,
+            var trackButton = addRenderableWidget(new UiButton(left, LIST_TOP + row * ROW_HEIGHT, panelWidth, 20,
                     UiText.fit(font, Component.literal((track.id().equals(selected) ? "› " : "") + track.displayTitle()
                             + (track.needsCatalogVerification() ? "" : " — " + track.artist())), panelWidth - 8),
                     b -> { selected = track.id(); rebuildWidgets(); }));
+            trackButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(track.needsCatalogVerification()
+                    ? "待核实条目：" + track.title() + (track.artist().isBlank() ? "" : " · " + track.artist())
+                    : track.title() + " — " + track.artist() + " · 来源：" + track.source())));
         }
         int pageY = LIST_TOP + rows * ROW_HEIGHT + 2;
-        addRenderableWidget(new UiButton(left, pageY, 52, 18, Component.literal("上一页"), b -> changePage(-1)))
-                .active = !MusicController.busy() && (page > 0 || view == View.LIKED && MusicController.likedOffset() > 0);
-        addRenderableWidget(new UiButton(left + 56, pageY, 52, 18, Component.literal("下一页"), b -> changePage(1)))
-                .active = !MusicController.busy() && (page < lastPage() || view == View.LIKED && MusicController.likedHasMore());
+        var previousPage = addRenderableWidget(new UiButton(left, pageY, 52, 18, Component.literal("上一页"), b -> changePage(-1)));
+        previousPage.active = !MusicController.busy() && (page > 0 || view == View.LIKED && MusicController.likedOffset() > 0);
+        previousPage.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(view == View.LIKED && page == 0 && MusicController.likedOffset() > 0
+                ? "读取上一批 100 首云端红心曲目。" : "返回本视图上一页。")));
+        var nextPage = addRenderableWidget(new UiButton(left + 56, pageY, 52, 18, Component.literal("下一页"), b -> changePage(1)));
+        nextPage.active = !MusicController.busy() && (page < lastPage() || view == View.LIKED && MusicController.likedHasMore());
+        nextPage.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(view == View.LIKED && page == lastPage() && MusicController.likedHasMore()
+                ? "读取下一批 100 首云端红心曲目。" : "前往本视图下一页。")));
 
         IndustrialMobileAccess.Device robot = selectedRobot();
         int sideWidth = Math.min(94, (panelWidth - 8) / 3), voiceWidth = panelWidth - 2 * sideWidth - 8;
-        addRenderableWidget(new UiButton(left, height - 92, voiceWidth, 18,
-                Component.literal(robot == null ? "声线：无机器人" : "声线：" + RobotCharacter.byId(robot.character()).chineseName), b -> cycleVoice()))
-                .active = !robots.isEmpty();
-        addRenderableWidget(new UiButton(left + voiceWidth + 4, height - 92, sideWidth, 18,
+        var voiceButton = addRenderableWidget(new UiButton(left, height - 92, voiceWidth, 18,
+                Component.literal(robot == null ? "声线：无机器人" : "声线：" + RobotCharacter.byId(robot.character()).chineseName), b -> cycleVoice()));
+        voiceButton.active = !robots.isEmpty();
+        voiceButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(robots.isEmpty()
+                ? "没有可用且有控制权限的机器人；无法生成翻唱。" : "点击切换用于翻唱的机器人声线。")));
+        var coverButton = addRenderableWidget(new UiButton(left + voiceWidth + 4, height - 92, sideWidth, 18,
                 Component.literal("生成翻唱"), b -> {
             if (selectionReady() && !selected().needsCatalogVerification() && robot != null && !MusicController.busy())
                 MusicController.cover(selected(), list(), robot.id(), robot.character());
-        })).active = selectionReady() && !selected().needsCatalogVerification() && robot != null && !MusicController.busy();
-        addRenderableWidget(new UiButton(left + panelWidth - sideWidth, height - 92, sideWidth, 18,
+        }));
+        coverButton.active = selectionReady() && !selected().needsCatalogVerification() && robot != null && !MusicController.busy();
+        coverButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(selected() == null
+                ? "先选择一首曲目。" : !selectionReady() ? "云端列表尚未加载完成；刷新后再选择。"
+                : selected().needsCatalogVerification() ? "旧版手工条目尚未核实为真实曲目；重新导入并核实后才能翻唱。"
+                : robot == null ? "没有可用机器人。" : MusicController.busy() ? "媒体请求处理中，请先停止或等待。"
+                : "使用所选机器人声线生成并播放翻唱；需要可用的语音运行时及翻唱资源。")));
+        var favoriteButton = addRenderableWidget(new UiButton(left + panelWidth - sideWidth, height - 92, sideWidth, 18,
                 Component.literal(view == View.PLAYLIST ? "移出歌单" : "加入歌单"), b -> {
             if (selectionReady()) { if (view == View.PLAYLIST) MusicController.remove(selected); else MusicController.favorite(selected); }
-        })).active = selectionReady() && !MusicController.busy();
+        }));
+        favoriteButton.active = selectionReady() && !MusicController.busy();
+        favoriteButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(selected() == null
+                ? "先选择一首曲目。" : !selectionReady() ? "请等待云端列表加载完成。"
+                : MusicController.busy() ? "媒体请求处理中，请等待。"
+                : view == View.PLAYLIST ? "仅从游戏内歌单移除，不会改动网易云收藏。" : "将曲目保存到游戏内歌单，不会改动网易云红心。")));
 
         int smallWidth = Math.min(62, (panelWidth - 16) / 5), playWidth = panelWidth - smallWidth * 4 - 16;
         String[] labels = {"上一首", MusicController.paused() ? "继续" : "暂停", "下一首",
@@ -110,6 +138,15 @@ public final class PhoneMusicScreen extends Screen {
                         case 3 -> { if (selectionReady()) MusicController.play(selected(), list()); } default -> MusicController.cancel();
                     } }));
             if (i == 3) button.active = selectionReady() && !MusicController.busy();
+            button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(switch (action) {
+                case 0 -> "切换到当前播放队列的上一首。";
+                case 1 -> MusicController.paused() ? "从暂停位置继续播放。" : "暂停播放并保留当前位置。";
+                case 2 -> "切换到当前播放队列的下一首。";
+                case 3 -> selected() == null ? "先从列表选择一首歌。"
+                        : selected().needsCatalogVerification() ? "先按歌名和歌手核实导入条目；核实通过后才播放。"
+                        : "播放所选曲目。";
+                default -> "停止当前播放，并尝试取消仍在处理中的媒体请求。若导入或其他操作已经完成，停止不会撤销结果。";
+            })));
             controlX += controlWidth + 4;
         }
         seenRevision = MusicController.revision();
@@ -185,13 +222,18 @@ public final class PhoneMusicScreen extends Screen {
         pose.drawString(font, UiText.fit(font, Component.literal(view == View.LIKED ? "加入歌单仅保存到游戏，不修改网易云红心。" : "网易云搜索默认理解点歌；未配置模型时使用普通搜索。"), panelWidth), left, height - 16, 0x91ABB9);
         super.render(pose, x, y, partial);
         renderTrackTooltip(pose, x, y);
+        if (x >= left && x < left + panelWidth && y >= 71 && y < 82)
+            pose.renderTooltip(font, Component.literal(listTitle()), x, y);
+        int pageY = LIST_TOP + rows * ROW_HEIGHT + 7;
+        if (x >= left + 116 && x < left + panelWidth && y >= pageY && y < pageY + font.lineHeight)
+            pose.renderTooltip(font, Component.literal(pageLabel()), x, y);
         int sideWidth = Math.min(94, (panelWidth - 8) / 3), coverLeft = left + panelWidth - 2 * sideWidth - 4;
         if (x >= coverLeft && x < coverLeft + sideWidth && y >= height - 92 && y < height - 74) {
             String reason = selected() == null ? "请先选择一首公开歌曲。"
                     : !selectionReady() ? "请重新加载云端歌单后选择歌曲。"
                     : selected().needsCatalogVerification() ? "旧版手工条目需重新导入并核实为真实歌曲，才能生成翻唱。"
                     : selectedRobot() == null ? "需要选择自己可用机器人的声线。"
-                    : MusicController.busy() ? "正在处理媒体请求，可用“停止/取消”中止。" : "提交歌曲和声线后，生成完成会在游戏内播放。";
+                : MusicController.busy() ? "正在处理媒体请求；“停止/取消”会尝试中止仍在进行的请求，已完成的操作不会回滚。" : "提交歌曲和声线后，生成完成会在游戏内播放。";
             pose.renderTooltip(font, font.split(Component.literal(reason + "\n需本机或服主语音运行时、人声分离和 RVC 资源；原曲仍可直接播放。"), Math.min(360, width - 24)), x, y);
         }
         if (x >= left && x < left + panelWidth && y >= height - 48 && y < height - 19)

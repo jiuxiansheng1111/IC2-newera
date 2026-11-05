@@ -67,7 +67,7 @@ public final class RobotScreen extends Screen {
         stopWorkButton = tabs.add(RobotControlTabs.Page.WORK, "停止工作", "结束当前工作并回到待命；炉内已投入物料继续由炉体处理。", b -> action(2, 0));
         tabs.add(RobotControlTabs.Page.WORK, "指定采集", "指定目标物品和数量，再由机器人实际采集。", b ->
                 minecraft.setScreen(new RobotCollectionScreen(this, view.robot(), RobotCharacter.byId(view.character()).chineseName, false)));
-        combatButton = tabs.add(RobotControlTabs.Page.WORK, "杀戮：关", "默认攻击敌对生物；开启后额外攻击动物。始终保护玩家、宠物和机器人；指定采集时优先限制攻击。", b -> action(7, 0));
+        combatButton = tabs.add(RobotControlTabs.Page.WORK, "攻击动物：关", "关闭时仍会防御敌对生物；开启后也会攻击动物。不会攻击玩家、机器人或已驯服的动物。", b -> action(7, 0));
         workTypeButton = tabs.add(RobotControlTabs.Page.WORK, "工作类型", "点击切换：伐木、采矿、烹饪、烧矿、种地；下方显示准备要求。", b -> {
             workChoice = workChoice.next(); status = workChoice.hint; voiceStatusFocused = false; updateControls();
         });
@@ -129,7 +129,7 @@ public final class RobotScreen extends Screen {
         send.setMessage(Component.literal(busy() ? "取消请求" : "发送"));
         send.active = busy() || !input.getValue().isBlank();
         followButton.setMessage(Component.literal(view.following() ? "改为待命" : "跟随主人"));
-        combatButton.setMessage(Component.literal("杀戮：" + (view.combat() ? "开" : "关")));
+        combatButton.setMessage(Component.literal("攻击动物：" + (view.combat() ? "开" : "关")));
         workTypeButton.setMessage(Component.literal("类型：" + workChoice.title));
         startWorkButton.setMessage(Component.literal("开始" + workChoice.title));
         voiceButton.setMessage(Component.literal("语音：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
@@ -240,12 +240,19 @@ public final class RobotScreen extends Screen {
             pose.drawString(font, UiText.fit(font, Component.literal(voiceStatus), panelWidth), left, statusY + font.lineHeight, 0xBBE5FF);
         super.render(pose, mouseX, mouseY, partial);
         tabs.render(pose, font);
+        if (page != RobotControlTabs.Page.CHAT && mouseX >= left && mouseX < left + panelWidth
+                && mouseY >= 80 && mouseY < 94)
+            pose.renderTooltip(font, font.split(Component.literal(page.description), Math.min(300, panelWidth)), mouseX, mouseY);
         Component hint = tabs.hoveredHint(mouseX, mouseY);
         if (hint != null && (workTypeButton.isHoveredOrFocused() || startWorkButton.isHoveredOrFocused()))
             hint = Component.literal(workChoice.hint + " 点击左侧类型可切换工作。");
         if (hint != null) pose.renderTooltip(font, font.split(hint, Math.min(300, panelWidth)), mouseX, mouseY);
         if (mouseX >= left && mouseX < left + panelWidth && mouseY >= 25 && mouseY < 38)
             pose.renderTooltip(font, font.split(Component.literal(view.status() + "；网络：" + view.network()), Math.min(300, panelWidth)), mouseX, mouseY);
+        if (mouseX >= left && mouseX < left + panelWidth && mouseY >= 36 && mouseY < 48)
+            pose.renderTooltip(font, font.split(Component.literal("生命 " + Math.round(view.health()) + "/" + Math.round(view.maxHealth())
+                    + "；饱食 " + view.hunger() + "/200；剩余寿命 " + (5 - view.deaths()) + "/5；电量 " + view.energy() + " EU"),
+                    Math.min(300, panelWidth)), mouseX, mouseY);
         if (mouseX >= left && mouseX < left + panelWidth && mouseY >= statusY && mouseY < statusY + statusCapacity() * font.lineHeight)
             pose.renderTooltip(font, font.split(Component.literal(displayedStatus), Math.min(300, panelWidth)), mouseX, mouseY);
     }

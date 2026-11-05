@@ -3,11 +3,13 @@ package com.ic2newera.client.ui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 
 /** Vanilla button skin tiled inside its borders, including widths beyond the 200px atlas cell. */
 public final class UiButton extends Button {
-    private final Component hoverTooltip;
+    private Tooltip automaticTooltip;
+    private Component automaticMessage;
 
     public UiButton(int x, int y, int width, int height, Component message, OnPress onPress) {
         this(x, y, width, height, message, onPress, null);
@@ -15,7 +17,7 @@ public final class UiButton extends Button {
 
     public UiButton(int x, int y, int width, int height, Component message, OnPress onPress, Component hoverTooltip) {
         super(Button.builder(message, onPress).bounds(x, y, width, height));
-        this.hoverTooltip = hoverTooltip;
+        if (hoverTooltip != null) setTooltip(Tooltip.create(hoverTooltip));
     }
 
     @Override
@@ -40,8 +42,22 @@ public final class UiButton extends Button {
             dy += sliceHeight;
         }
         Minecraft client = Minecraft.getInstance();
+        // Let Screen draw help after all controls. Drawing here can bury it under
+        // later buttons; a clipped label must also remain readable in full.
+        if (getTooltip() == null || getTooltip() == automaticTooltip) {
+            if (client.font.width(getMessage()) > width - 8) {
+                if (automaticTooltip == null || !getMessage().equals(automaticMessage)) {
+                    automaticMessage = getMessage().copy();
+                    automaticTooltip = Tooltip.create(automaticMessage);
+                }
+                setTooltip(automaticTooltip);
+            } else {
+                setTooltip(null);
+                automaticTooltip = null;
+                automaticMessage = null;
+            }
+        }
         pose.drawCenteredString(client.font, UiText.fit(client.font, getMessage(), width - 8),
-                x + width / 2, y + (height - 8) / 2, active ? 0xFFFFFF : 0xA0A0A0);
-        if (hoverTooltip != null && isHovered()) pose.renderTooltip(client.font, hoverTooltip, mouseX, mouseY);
+                x + width / 2, y + (height - 8) / 2, active ? 0xFFFFFF : 0xC0C0C0);
     }
 }

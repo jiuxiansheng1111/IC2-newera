@@ -31,11 +31,18 @@ public final class NetEaseLoginScreen extends Screen {
         int panelWidth = Math.min(340, width - 20), left = (width - panelWidth) / 2, y = height - 29;
         int half = (panelWidth - 4) / 2;
         UiButton rememberButton = addRenderableWidget(new UiButton(left, y, half, 20,
-                Component.literal("记住登录：" + (remember ? "开" : "关")), b -> toggleRemember()));
+                Component.literal("登录后记住：" + (remember ? "开" : "关")), b -> toggleRemember()));
         rememberButton.active = !changing && !pending && (!loggedIn || remember);
+        rememberButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(remember
+                ? "登录状态保存在服主本机；再次点击可请求清除已保存的登录状态。"
+                : "登录状态只保留在本次运行内存；再次点击可选择保存到服主本机。")));
         UiButton loginButton = addRenderableWidget(new UiButton(left + half + 4, y, panelWidth - half - 4,
                 20, Component.literal(pending || loggedIn ? "退出登录" : "开始扫码"), b -> { if (pending || loggedIn) logout(); else begin(); }));
         loginButton.active = !changing;
+        loginButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(pending
+                ? "退出并清除当前登录状态。扫码期间也可取消。"
+                : loggedIn ? "清除服主本机的网易云登录状态。"
+                : "向服务器申请官方登录二维码；使用网易云音乐扫码并在手机上确认。")));
         if (!pending && !loggedIn && !checkedOnce) { checkedOnce = true; checkLoginState(); }
     }
     private void checkLoginState() {
@@ -147,11 +154,15 @@ public final class NetEaseLoginScreen extends Screen {
             for (int x = 0; x < matrix.getWidth(); x++) for (int y = 0; y < matrix.getHeight(); y++)
                 if (matrix.get(x, y)) pose.fill( x0 + x * pixel, top + y * pixel, x0 + (x + 1) * pixel, top + (y + 1) * pixel, 0xFF101010);
         }
-        pose.drawString(font, UiText.fit(font, Component.literal(status), width - 28), 14, height - 52, 0xDAE6EE);
-        String storage = remember ? "登录状态只保存在本机，退出登录可清除。" : "登录状态只保存在本次运行内存。";
+        String visibleStatus = qrUrl.isBlank() || matrix != null ? status : "二维码生成失败；请返回后重试扫码。";
+        pose.drawString(font, UiText.fit(font, Component.literal(visibleStatus), width - 28), 14, height - 52, 0xDAE6EE);
+        String storage = remember ? "登录状态保存在服主本机；退出登录可请求清除。" : "登录状态只保留在本次运行内存。";
         pose.drawString(font, UiText.fit(font, Component.literal(storage), width - 28), 14, height - 40, 0xBCEFE8);
         super.render(pose, mouseX, mouseY, partial);
-        if (mouseY >= height - 54 && mouseY < height - 42) pose.renderTooltip(font, Component.literal(status), mouseX, mouseY);
+        if (mouseX >= 14 && mouseX <= width - 14 && mouseY >= height - 54 && mouseY < height - 42)
+            pose.renderTooltip(font, font.split(Component.literal(visibleStatus), Math.min(340, width - 24)), mouseX, mouseY);
+        if (mouseX >= 14 && mouseX <= width - 14 && mouseY >= height - 42 && mouseY < height - 30)
+            pose.renderTooltip(font, Component.literal(storage), mouseX, mouseY);
     }
     @Override public void onClose() { requestGeneration++; if (minecraft != null) minecraft.setScreen(parent); }
     @Override public boolean isPauseScreen() { return false; }

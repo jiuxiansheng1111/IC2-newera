@@ -53,25 +53,48 @@ public final class ProcessorScreen extends AbstractContainerScreen<ProcessorMenu
     @Override
     protected void renderLabels(GuiGraphics poseStack, int mouseX, int mouseY) {
         Component heading = Component.literal(menu.kind().displayName());
-        poseStack.drawString(font, UiText.fit(font, heading, imageWidth - 16), 8, 6, IndustrialPalette.TEXT);
-        String eu = "EU " + menu.energy() + "/" + menu.energyCapacity();
-        String progress = menu.duration() > 0 ? "  进度 " + (menu.progress() / 10) + "%" : "";
-        poseStack.drawString(font, UiText.fit(font, Component.literal(eu + progress), imageWidth - 20),
-                10, 21, IndustrialPalette.TEXT);
-        poseStack.drawString(font, UiText.fit(font, statusText(), imageWidth - 20), 10, 31, statusColor());
-        poseStack.drawString(font, Component.literal("物品栏"), inventoryLabelX, inventoryLabelY, IndustrialPalette.TEXT);
+        poseStack.drawString(font, UiText.fit(font, heading, imageWidth - 16), 8, 6, IndustrialPalette.TEXT, false);
+        String eu = "储能：" + menu.energy() + "/" + menu.energyCapacity() + " EU";
+        poseStack.drawString(font, UiText.fit(font, Component.literal(eu), imageWidth - 20),
+                10, 21, IndustrialPalette.TEXT, false);
+        poseStack.drawString(font, statusText(), 10, 31, statusColor(), false);
+        String progress = menu.duration() > 0 ? "进度：" + progressPercent() + "%" : "未开始";
+        poseStack.drawString(font, progress, 98, 70, IndustrialPalette.TEXT, false);
+        poseStack.drawString(font, Component.literal("物品栏"), inventoryLabelX, inventoryLabelY, IndustrialPalette.TEXT, false);
     }
 
     private Component statusText() {
         return switch (menu.statusOrdinal()) {
-            case 0 -> Component.literal("状态：正常");
-            case 1 -> Component.literal("状态：等待匹配输入物品");
-            case 2 -> Component.literal("状态：输出槽已满");
-            case 3 -> Component.literal("状态：无 EU 供电，请连接 IC2 电缆");
-            case 4 -> Component.literal("状态：EU 不足，等待能量");
-            case 7 -> Component.literal("状态：自动加工已暂停");
-            default -> Component.literal("状态：设备错误，请检查配方与方块状态");
+            case 0 -> Component.literal(menu.duration() > 0 ? "正在加工" : "等待机器状态");
+            case 1 -> Component.literal("原料不匹配 · 悬停查看");
+            case 2 -> Component.literal("出料受阻 · 悬停查看");
+            case 3 -> Component.literal("没有电量 · 悬停查看");
+            case 4 -> Component.literal("电量不足 · 悬停查看");
+            case 7 -> Component.literal("加工已暂停 · 悬停查看");
+            default -> Component.literal("状态异常 · 悬停查看");
         };
+    }
+
+    private int progressPercent() {
+        return menu.duration() <= 0 ? 0 : Math.min(100, Math.max(0, menu.progress() * 100 / menu.duration()));
+    }
+
+    private Component statusHelp() {
+        return Component.literal(switch (menu.statusOrdinal()) {
+            case 0 -> menu.duration() > 0 ? "原料与供电符合当前配方，机器正在加工。进度满后消耗本批原料并产出成品。" : "正在等待服务器同步加工状态。";
+            case 1 -> "没有匹配的完整配方。请在JEI查看本机配方，核对原料种类、数量和槽位顺序；将鼠标移到输入槽可查看该槽接受的物品。";
+            case 2 -> "输出槽中有不同产物，或剩余空间放不下本批成品。取走输出槽的物品后继续加工。";
+            case 3 -> "机器储能为0 EU。请连接IC2电源与电缆，并检查电源有电、线路连通；本机最高接受" + menu.kind().sinkTier() + "级电压。";
+            case 4 -> "剩余EU不足以完成当前配方的一次加工刻。保持IC2供电，补足电量后继续；若反复停顿，请检查供电能力。";
+            case 7 -> "机器被工业控制暂停。若是缺料、缺电或出料受阻导致的自动暂停，排除原因后会继续；手动暂停请由有配置权限的玩家到工业服务器“联网设备”页选择“继续加工”。";
+            default -> "收到的设备状态无法正常显示。请重新打开界面；若持续出现，请提供设备名称和游戏日志。";
+        });
+    }
+
+    private void help(GuiGraphics graphics, List<Component> lines, int mouseX, int mouseY) {
+        var wrapped = new java.util.ArrayList<net.minecraft.util.FormattedCharSequence>();
+        for (Component line : lines) wrapped.addAll(font.split(line, Math.max(1, Math.min(280, width - 20))));
+        graphics.renderTooltip(font, wrapped, mouseX, mouseY);
     }
 
     private int statusColor() {
@@ -94,10 +117,18 @@ public final class ProcessorScreen extends AbstractContainerScreen<ProcessorMenu
             java.util.Set<String> names=new java.util.LinkedHashSet<>();
             for (var input:ProcessorSlotRoles.acceptedInputs(minecraft.level,menu.kind(),hoveredSlot.index))
                 for (var stack:input.ingredient().getItems()) names.add(stack.getHoverName().getString()+"（配方需要 "+input.count()+"）");
-            names.stream().limit(8).forEach(name->lines.add(Component.literal("可放入："+name)));
-            if (names.size()>8) lines.add(Component.literal("更多候选原料请查看JEI；按配方槽位顺序放置。"));
-            lines.add(statusText());
-            poseStack.renderTooltip(font, lines, java.util.Optional.empty(), mouseX, mouseY);
+            names.stream().limit(4).forEach(name->lines.add(Component.literal("可放入："+name)));
+            if (names.size()>4) lines.add(Component.literal("其余候选请查看JEI，按配方槽位放置。"));
+            lines.add(statusHelp());
+            help(poseStack, lines, mouseX, mouseY);
+        } else if (mouseX >= leftPos + 8 && mouseX < leftPos + imageWidth - 8
+                && mouseY >= topPos + 20 && mouseY < topPos + 40) {
+            help(poseStack, List.of(Component.literal("储能：" + menu.energy() + " / " + menu.energyCapacity()
+                    + " EU；最高接受" + menu.kind().sinkTier() + "级电压。"), statusHelp()), mouseX, mouseY);
+        } else if (mouseX >= leftPos + 8 && mouseX < leftPos + imageWidth - 8
+                && mouseY >= topPos + 70 && mouseY < topPos + 87) {
+            help(poseStack, List.of(Component.literal("本批加工进度：" + progressPercent() + "%"),
+                    Component.literal("缺少电量、出料受阻或被控制器暂停时，进度不再推进。")), mouseX, mouseY);
         } else renderTooltip(poseStack,mouseX,mouseY);
     }
 }

@@ -145,6 +145,16 @@ public final class RobotCompanionshipScreen extends Screen {
             graphics.drawString(font, UiText.fit(font, Component.literal(status), panelWidth), left, height - 18, 0xD6E5E9);
         }
         super.render(graphics, mouseX, mouseY, partialTick);
+        if (snapshot == null || !snapshot.hasStatus()) {
+            if (mouseX >= left && mouseX < left + panelWidth && mouseY >= 30 && mouseY < 44)
+                graphics.renderTooltip(font, font.split(Component.literal(status), Math.min(300, panelWidth)), mouseX, mouseY);
+        } else if (mouseX >= left && mouseX < left + panelWidth && mouseY >= 42 && mouseY < 57) {
+            graphics.renderTooltip(font, font.split(Component.literal("状态：" + (snapshot.petting() ? "摸头中" : snapshot.holdingHands() ? "牵手中" : "陪伴待命")
+                    + " · 小游戏：" + gameName(snapshot.game()) + (snapshot.game() == 1 ? " · 剩余尝试 " + snapshot.attemptsRemaining() : "")),
+                    Math.min(300, panelWidth)), mouseX, mouseY);
+        } else if (mouseX >= left && mouseX < left + panelWidth && mouseY >= height - 20) {
+            graphics.renderTooltip(font, font.split(Component.literal(status), Math.min(300, panelWidth)), mouseX, mouseY);
+        }
     }
 
     @Override public void tick() {

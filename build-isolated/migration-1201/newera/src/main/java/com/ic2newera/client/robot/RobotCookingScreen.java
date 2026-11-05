@@ -24,7 +24,7 @@ public final class RobotCookingScreen extends Screen {
     private Button submit, candidatePicker;
     private final List<Item> candidates = new ArrayList<>();
     private Item selected;
-    private String queryDraft = "", amountDraft = "1", status = "选择已安装物品并填写数量；服务器会验证可用配方。";
+    private String queryDraft = "", amountDraft = "1", status = "选择成品和目标件数；食材、餐具等需放在机器人的货物槽，附近还要有已加载并加热的原生料理锅。";
     private int left, panelWidth, rows, ticks, queryY, candidateY, amountY, actionY, statusY;
     private boolean compactLayout, tinyLayout, focusQuery;
     private UUID pending;
@@ -80,25 +80,33 @@ public final class RobotCookingScreen extends Screen {
             queryY = 27; candidateY = 51; amountY = 75; actionY = height - 25;
             rows = 0;
             query = addRenderableWidget(new EditBox(font, left, queryY, panelWidth - 58, 20, Component.literal("物品名或注册ID")));
+            query.setTooltip(Tooltip.create(Component.literal("搜索当前已安装的物品；输入成品中文名或完整注册ID。")));
             query.setMaxLength(128); query.setValue(queryDraft);
-            addRenderableWidget(new UiButton(left + panelWidth - 54, queryY, 54, 20, Component.literal("查找"), b -> search()));
+            addRenderableWidget(new UiButton(left + panelWidth - 54, queryY, 54, 20, Component.literal("查找"), b -> search(),
+                    Component.literal("在本机已安装物品中查找成品名称或注册ID。")));
             candidatePicker = addRenderableWidget(new UiButton(left, candidateY, panelWidth, 20,
                     Component.literal(candidateLabel()), b -> cycleCandidate()));
             amount = addRenderableWidget(new EditBox(font, left + 30, amountY, 42, 20, Component.literal("1至256")));
+            amount.setTooltip(Tooltip.create(Component.literal("目标成品件数，范围为1至256；原生完整批次制作，最后一批可能超出目标。")));
             amount.setMaxLength(3); amount.setFilter(s -> s.matches("[0-9]*")); amount.setValue(amountDraft);
             submit = addRenderableWidget(new UiButton(left + 76, amountY, Math.max(1, panelWidth - 76), 20,
-                    Component.literal("开始/继续"), b -> startFreeCooking()));
-            addRenderableWidget(new UiButton(left, actionY, panelWidth / 3 - 3, 18, Component.literal("派单"), b -> dispatch(false)));
-            addRenderableWidget(new UiButton(left + panelWidth / 3, actionY, panelWidth / 3 - 3, 18, Component.literal("取消"), b -> dispatch(true)));
+                    Component.literal("继续烹饪"), b -> startFreeCooking(),
+                    Component.literal("恢复已保存的烹饪订单或批次；没有订单时会尝试使用货物槽食材，在附近原生料理锅自由烹饪。需要可用电量。")));
+            addRenderableWidget(new UiButton(left, actionY, panelWidth / 3 - 3, 18, Component.literal("派单"), b -> dispatch(false),
+                    Component.literal("按所选成品与数量创建烹饪订单；食材、餐具和原生料理锅需准备在机器人附近。最后一批可能超出目标件数。")));
+            addRenderableWidget(new UiButton(left + panelWidth / 3, actionY, panelWidth / 3 - 3, 18, Component.literal("取消"), b -> dispatch(true),
+                    Component.literal("取消订单或烹饪批次；可安全核对时，尚未投入锅内的暂存食材退回货物槽，已投入的食材和锅内成品留在原锅。若无法安全核对，任务与实物会保留并报告原因。")));
             addRenderableWidget(new UiButton(left + 2 * panelWidth / 3, actionY, panelWidth - 2 * panelWidth / 3, 18,
                     Component.literal("返回"), b -> onClose()));
-            statusY = -1;
+            statusY = amountY + 25;
         } else {
             rows = Math.max(1, Math.min(6, (height - 174) / 22));
             queryY = 48; candidateY = 76; amountY = height - 72; actionY = height - 46;
             query = addRenderableWidget(new EditBox(font, left, queryY, panelWidth - 70, 20, Component.literal("物品名或注册ID")));
+            query.setTooltip(Tooltip.create(Component.literal("搜索当前已安装的物品；输入成品中文名或完整注册ID。")));
             query.setMaxLength(128); query.setValue(queryDraft);
-            addRenderableWidget(new UiButton(left + panelWidth - 66, queryY, 66, 20, Component.literal("查找物品"), b -> search()));
+            addRenderableWidget(new UiButton(left + panelWidth - 66, queryY, 66, 20, Component.literal("查找物品"), b -> search(),
+                    Component.literal("在本机已安装物品中查找成品名称或注册ID。")));
             int visibleCount = Math.min(rows, candidates.size());
             int selectedIndex = candidates.indexOf(selected);
             int visibleStart = selectedIndex < 0 ? 0 : Math.max(0, Math.min(selectedIndex, candidates.size() - visibleCount));
@@ -109,14 +117,18 @@ public final class RobotCookingScreen extends Screen {
                         UiText.fit(font, Component.literal(label), panelWidth - 8), b -> { selected = item; rebuildWidgets(); }));
             }
             amount = addRenderableWidget(new EditBox(font, left + 30, amountY, 50, 20, Component.literal("数量1至256")));
+            amount.setTooltip(Tooltip.create(Component.literal("目标成品件数，范围为1至256；使用原生完整批次，最后一批可能超出目标。")));
             amount.setMaxLength(3); amount.setFilter(s -> s.matches("[0-9]*")); amount.setValue(amountDraft);
             int bw = (panelWidth - 8) / 3;
-            submit = addRenderableWidget(new UiButton(left, actionY, bw, 20, Component.literal("派发烹饪"), b -> dispatch(false)));
-            addRenderableWidget(new UiButton(left + bw + 4, actionY, bw, 20, Component.literal("取消派单"), b -> dispatch(true)));
+            submit = addRenderableWidget(new UiButton(left, actionY, bw, 20, Component.literal("派发烹饪"), b -> dispatch(false),
+                    Component.literal("按所选成品与数量建立订单。食材、餐具及配方所需物品要放在机器人货物槽；附近需有对应已加载的原生料理锅。已有订单或锅内批次时不能覆盖。")));
+            addRenderableWidget(new UiButton(left + bw + 4, actionY, bw, 20, Component.literal("取消烹饪"), b -> dispatch(true),
+                    Component.literal("取消订单或烹饪批次；可安全核对时，尚未投入锅内的暂存食材退回货物槽，已投入的食材和锅内成品留在原锅。若无法安全核对，任务与实物会保留并报告原因。")));
             addRenderableWidget(new UiButton(left + 2 * (bw + 4), actionY, panelWidth - 2 * (bw + 4), 20,
                     Component.literal("返回"), b -> onClose()));
             addRenderableWidget(new UiButton(left, height - 22, panelWidth, 18,
-                    Component.literal("开始／继续烹饪（无订单时自由烹饪）"), b -> startFreeCooking()));
+                    Component.literal("继续烹饪／自由烹饪"), b -> startFreeCooking(),
+                    Component.literal("恢复已保存的订单或批次；没有订单时，使用货物槽中的食材、餐具及附近料理锅继续自由烹饪。所有投入锅内的物料由原锅保管。")));
             int listBottom = candidates.isEmpty() ? candidateY : candidateY + Math.min(rows, candidates.size()) * 22 - 2;
             statusY = Math.max(listBottom + 4, height - 98);
         }
@@ -212,10 +224,14 @@ public final class RobotCookingScreen extends Screen {
         pose.fill( left - 2, 4, left + panelWidth + 2, height - 2, 0xEF152631);
         pose.drawCenteredString(font, UiText.fit(font, title, panelWidth), width / 2, compactLayout ? 6 : 10, 0xFFFFFF);
         if (compactLayout) {
-            pose.drawString(font, UiText.fit(font, Component.literal("目标与数量由服务器验证。"), panelWidth), left, 17, 0xBCEFE8);
+            pose.drawString(font, UiText.fit(font, Component.literal("选成品与数量；材料放货物槽，服务器核验原生配方。"), panelWidth), left, 17, 0xBCEFE8);
             pose.drawString(font, "数量", left, amountY + 6, 0xBCEFE8);
+            int availableLines = Math.max(0, Math.min(2, (actionY - statusY - 3) / font.lineHeight));
+            var compactStatus = font.split(Component.literal(status), panelWidth);
+            for (int i = 0; i < Math.min(availableLines, compactStatus.size()); i++)
+                pose.drawString(font, compactStatus.get(i), left, statusY + i * (font.lineHeight + 1), 0xD6E5E9);
         } else {
-            pose.drawString(font, UiText.fit(font, Component.literal("选择目标物品和数量；配方验证在服务器完成。"), panelWidth), left, 28, 0xBCEFE8);
+            pose.drawString(font, UiText.fit(font, Component.literal("选择成品和目标件数；配方验证在服务器完成。"), panelWidth), left, 28, 0xBCEFE8);
             var lines = font.split(Component.literal(status), panelWidth);
             int visibleLines = statusY < amountY ? Math.max(0, Math.min(2, (amountY - statusY - 3) / font.lineHeight)) : 0;
             for (int i = 0; i < Math.min(visibleLines, lines.size()); i++) pose.drawString(font, lines.get(i), left, statusY + i * font.lineHeight, 0xD6E5E9);

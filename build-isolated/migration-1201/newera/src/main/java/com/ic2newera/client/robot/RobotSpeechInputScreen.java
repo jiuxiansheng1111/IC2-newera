@@ -68,6 +68,8 @@ public final class RobotSpeechInputScreen extends Screen {
         var lines = font.split(Component.literal(notice), panelWidth);
         for (int i = 0; i < Math.min(3, lines.size()); i++) g.drawString(font, lines.get(i), left, height - 66 + i * 11, 0xDAE6EE);
         super.render(g, x, y, partial);
+        if (x >= left && x < left + panelWidth && y >= height - 68 && y < height - 31)
+            g.renderTooltip(font, font.split(Component.literal(notice), Math.min(300, panelWidth)), x, y);
     }
     @Override public void removed() {
         if (recording != null) { recording.cancel(true); RobotSpeechInput.cancel(); recording = null; }

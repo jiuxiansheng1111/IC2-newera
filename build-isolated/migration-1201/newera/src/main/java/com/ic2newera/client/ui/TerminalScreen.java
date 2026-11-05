@@ -3,6 +3,7 @@ package com.ic2newera.client.ui;
 import com.ic2newera.industrial.TerminalMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,10 +25,12 @@ public final class TerminalScreen extends AbstractContainerScreen<TerminalMenu> 
     @Override
     protected void init() {
         super.init();
-        addRenderableWidget(new UiButton(leftPos + 80, topPos + 92, 24, 16,
+        UiButton previous = addRenderableWidget(new UiButton(leftPos + 80, topPos + 92, 24, 16,
                 Component.literal("◀"), button -> switchPage(menu.getPage() - 1)));
-        addRenderableWidget(new UiButton(leftPos + 140, topPos + 92, 24, 16,
+        previous.setTooltip(Tooltip.create(Component.literal("查看上一页旧库存；页数循环切换。需要此终端的管理权限。")));
+        UiButton next = addRenderableWidget(new UiButton(leftPos + 140, topPos + 92, 24, 16,
                 Component.literal("▶"), button -> switchPage(menu.getPage() + 1)));
+        next.setTooltip(Tooltip.create(Component.literal("查看下一页旧库存；页数循环切换。需要此终端的管理权限。")));
     }
 
     private void switchPage(int requestedPage) {
@@ -59,9 +62,9 @@ public final class TerminalScreen extends AbstractContainerScreen<TerminalMenu> 
     @Override
     protected void renderLabels(GuiGraphics poseStack, int mouseX, int mouseY) {
         super.renderLabels(poseStack, mouseX, mouseY);
-        poseStack.drawString(font, "仅取回旧库存，不能存入", 8, 23, IndustrialPalette.ACCENT);
+        poseStack.drawString(font, "仅取回旧库存，不能存入", 8, 23, IndustrialPalette.ACCENT, false);
         poseStack.drawString(font, "页 " + (menu.getPage() + 1) + " / " + TerminalMenu.PAGE_COUNT,
-                108, 96, IndustrialPalette.TEXT);
+                108, 96, IndustrialPalette.TEXT, false);
     }
 
     @Override
@@ -83,8 +86,10 @@ public final class TerminalScreen extends AbstractContainerScreen<TerminalMenu> 
             if (hoveredSlot.hasItem()) lines.addAll(hoveredSlot.getItem().getTooltipLines(minecraft.player,
                     minecraft.options.advancedItemTooltips ? net.minecraft.world.item.TooltipFlag.Default.ADVANCED
                             : net.minecraft.world.item.TooltipFlag.Default.NORMAL));
-            lines.add(Component.literal("旧库存：仅可取出；可按住 Shift 快捷取回。"));
-            lines.add(Component.literal(menu.canManage() ? "禁止存入：此设备已停用。" : "无法取回：没有管理权限。"));
+            lines.add(Component.literal("旧库存仅供取回，不能存入。左键取出；按住 Shift 可快速取回。"));
+            lines.add(Component.literal(menu.canManage()
+                    ? "当前有管理权限，可以取回此页物品。"
+                    : "当前无管理权限，无法翻页或取回。请联系设备所有者或管理员。"));
             poseStack.renderTooltip(font, lines, java.util.Optional.empty(), mouseX, mouseY);
         } else renderTooltip(poseStack, mouseX, mouseY);
     }

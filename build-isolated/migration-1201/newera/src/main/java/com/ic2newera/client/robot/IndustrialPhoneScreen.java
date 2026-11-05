@@ -52,6 +52,13 @@ public final class IndustrialPhoneScreen extends Screen {
     private IndustrialMobileAccess.Device selected() {
         return snapshot.devices().stream().filter(row -> row.id().equals(selected)).findFirst().orElse(null);
     }
+    private static String phoneLabel(String text) {
+        return text.replace("杀戮模式开启", "攻击动物：开")
+                .replace("杀戮模式关闭", "攻击动物：关")
+                .replace("已开启杀戮模式：", "已开启攻击动物：")
+                .replace("已关闭杀戮模式，仍会默认攻击敌对生物。", "已关闭攻击动物；仍会防御敌对生物。")
+                .replace("杀戮模式", "攻击动物设置");
+    }
     private List<IndustrialMobileAccess.Device> visibleDevices() {
         return snapshot.devices().stream().filter(row -> !attentionOnly || !row.attention().isBlank()).toList();
     }
@@ -65,18 +72,24 @@ public final class IndustrialPhoneScreen extends Screen {
             selected = visible.isEmpty() ? null : visible.get(0).id(); detailScroll = 0;
         }
         int pending = (int)snapshot.devices().stream().filter(row -> !row.attention().isBlank()).count();
-        addRenderableWidget(new UiButton(left, 40, listWidth, 18,
+        var filterButton = addRenderableWidget(new UiButton(left, 40, listWidth, 18,
                 UiText.fit(font, Component.literal((attentionOnly ? "待处理" : "全部") + " / 提醒 " + pending), listWidth - 8), b -> {
             attentionOnly = !attentionOnly; page = 0; detailScroll = 0; rebuildWidgets();
         }));
+        filterButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(attentionOnly
+                ? "当前仅显示有提醒的设备；点击查看全部设备。提醒数：" + pending
+                : "当前显示全部设备；点击只看需要处理的提醒。提醒数：" + pending)));
         page = Math.min(page, Math.max(0, (visible.size() - 1) / rows));
         for (int i = 0; i < rows && page * rows + i < visible.size(); i++) {
             var row = visible.get(page * rows + i);
-            addRenderableWidget(new UiButton(left, 62 + i * 22, listWidth, 20,
+            var deviceButton = addRenderableWidget(new UiButton(left, 62 + i * 22, listWidth, 20,
                     UiText.fit(font, Component.literal((row.id().equals(selected) ? "› " : "")
                             + (row.attention().isBlank() ? "" : "! ") + row.name()), listWidth - 8), button -> {
                 selected = row.id(); detailScroll = 0; rebuildWidgets();
             }));
+            deviceButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(row.name()
+                    + " · " + row.status() + (row.attention().isBlank() ? "" : "\n待处理：" + row.attention())
+                    + "\n位置：" + row.dimension() + " " + row.pos().toShortString())));
         }
         int listBottom = 62 + rows * 22;
         var previous = addRenderableWidget(new UiButton(left, listBottom, listWidth / 2 - 2, 18, Component.literal("上一页"), b -> { page = Math.max(0, page - 1); rebuildWidgets(); }));
@@ -103,26 +116,43 @@ public final class IndustrialPhoneScreen extends Screen {
             }));
             button.active = device != null && device.controllable() && device.kind() != 5 && device.kind() != 6
                     && (device.kind() != 1 || Arrays.stream(RobotCharacter.values()).anyMatch(c -> c.id.equals(device.character())));
+            String actionHint = device == null ? "先选择设备。"
+                    : !device.controllable() ? "没有该设备的控制权限。"
+                    : device.kind() == 5 || device.kind() == 6 ? "此设备类型不支持从手机发送该命令。"
+                    : device.kind() == 1 ? (action == -1 ? "打开与所选机器人的远程聊天。" : "打开远程工作与管理操作；服务器会再次校验权限和电量。")
+                    : motor && action == 20 ? "设置机械转速为 " + speed + " RPM。需要设备在线且可控制。"
+                    : switch (names[i]) {
+                        case "启动", "启用/启动" -> "请求设备启动或启用；具体操作由设备类型决定。服务器会校验权限和电量。";
+                        case "暂停", "关闭/暂停" -> "请求设备暂停或关闭；具体操作由设备类型决定。服务器会校验权限和电量。";
+                        case "反转" -> "以当前转速大小反向运行机械设备。";
+                        default -> "发送所选设备命令；服务器会再次校验权限和电量。";
+                    };
+            button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(actionHint)));
         }
         if (device != null && device.kind() == 5) {
             networkName = addRenderableWidget(new EditBox(font, left + listWidth + 10, height - 106, Math.max(40, panelWidth - listWidth - 94), 18, Component.literal("网络名")));
             if (!device.id().equals(networkDraftDevice)) { networkDraftDevice = device.id(); networkDraft = snapshot.network(); }
             networkName.setMaxLength(32); networkName.setValue(networkDraft == null ? snapshot.network() : networkDraft);
+            networkName.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("为所选交换机设置网络名。留空时由服务器按默认网络处理；输入最长 32 个字符。")));
             var rename = addRenderableWidget(new UiButton(left + panelWidth - 80, height - 106, 80, 18, Component.literal("设置网络名"), b -> command(12, networkName.getValue())));
             rename.active = device.controllable();
+            rename.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(device.controllable()
+                    ? "提交输入的网络名，服务端会验证交换机权限。" : "无法操作：当前玩家没有这台交换机的控制权限。")));
         }
         detailBottom = device != null && device.kind() == 5 ? height - 111 : height - 87;
         detailVisibleLines = Math.max(1, (detailBottom - 54) / 11);
         int footerWidth = (panelWidth - 12) / 4;
         addRenderableWidget(new UiButton(left, height - 24, footerWidth, 20, Component.literal("刷新状态"), b -> command(0, "")));
-        addRenderableWidget(new UiButton(left + footerWidth + 4, height - 24, footerWidth, 20, Component.literal("手机音乐"), b -> {
+        var music = addRenderableWidget(new UiButton(left + footerWidth + 4, height - 24, footerWidth, 20, Component.literal("手机音乐"), b -> {
             List<IndustrialMobileAccess.Device> voiceRobots = snapshot.devices().stream()
                     .filter(candidate -> candidate.kind() == 1 && candidate.controllable()
                             && Arrays.stream(RobotCharacter.values()).anyMatch(character -> character.id.equals(candidate.character())))
                     .toList();
             minecraft.setScreen(new com.ic2newera.client.media.PhoneMusicScreen(this, voiceRobots));
         }));
-        addRenderableWidget(new UiButton(left + 2 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("虫洞"), b -> minecraft.setScreen(new WormholeScreen(this))));
+        music.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("搜索、播放和管理游戏内音乐歌单。")));
+        var wormhole = addRenderableWidget(new UiButton(left + 2 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("虫洞"), b -> minecraft.setScreen(new WormholeScreen(this))));
+        wormhole.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("查看手机虫洞模块、供能装置和服务器提供的传送目的地。")));
         addRenderableWidget(new UiButton(left + 3 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("关闭"), b -> onClose()));
     }
     private void command(int action, String value) { RobotPackets.CHANNEL.sendToServer(new RobotPackets.PhoneAction(selected == null ? new UUID(0, 0) : selected, action, value)); }
@@ -140,9 +170,9 @@ public final class IndustrialPhoneScreen extends Screen {
         var device = selected();
         int detailX = left + listWidth + 10, detailWidth = Math.max(40, panelWidth - listWidth - 12);
         if (device != null) {
-            String text = device.name() + (device.attention().isBlank() ? "" : "\n待处理：" + device.attention())
+            String text = device.name() + (device.attention().isBlank() ? "" : "\n待处理：" + phoneLabel(device.attention()))
                     + "\n" + device.status() + "\n位置：" + device.pos().toShortString()
-                    + (device.kind() == 1 ? "\n剩余寿命：" + device.lives() + "/5" : "") + "\n" + device.details();
+                    + (device.kind() == 1 ? "\n剩余寿命：" + device.lives() + "/5" : "") + "\n" + phoneLabel(device.details());
             var lines = font.split(Component.literal(text), detailWidth);
             detailLineCount = lines.size();
             detailScroll = Math.max(0, Math.min(detailScroll, detailLineCount - detailVisibleLines));
@@ -154,9 +184,11 @@ public final class IndustrialPhoneScreen extends Screen {
             if (detailLineCount > detailVisibleLines)
                 pose.drawString(font, Component.literal("滚轮查看 " + (detailScroll + 1) + "–" + Math.min(detailLineCount, detailScroll + detailVisibleLines) + "/" + detailLineCount), detailX, detailBottom - 10, 0x9FB6C3);
         } else pose.drawString(font, UiText.fit(font, Component.literal(attentionOnly ? "暂无待处理提醒" : "暂无设备"), detailWidth), detailX, 42, 0xDAE6EE);
-        pose.drawString(font, UiText.fit(font, Component.literal(snapshot.message()), panelWidth), left, height - 36, 0xA9CACF);
+        String message = phoneLabel(snapshot.message());
+        pose.drawString(font, UiText.fit(font, Component.literal(message), panelWidth), left, height - 36, 0xA9CACF);
         super.render(pose, x, y, partial);
-        if (y >= height - 38 && y < height - 25) pose.renderTooltip(font, font.split(Component.literal(snapshot.message()), Math.min(320, panelWidth)), x, y);
+        if (x >= left && x < left + panelWidth && y >= height - 38 && y < height - 25)
+            pose.renderTooltip(font, font.split(Component.literal(message), Math.min(320, panelWidth)), x, y);
     }
     @Override public boolean mouseScrolled(double x, double y, double delta) {
         if (x >= left + listWidth + 10 && x < left + panelWidth && y >= 40 && y < detailBottom) {

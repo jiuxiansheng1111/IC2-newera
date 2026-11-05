@@ -44,9 +44,9 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
         networkNameField = null;
         if (menu.isSwitchMenu() && menu.canManage()) {
             networkNameField = field(10, 34, 216, "网络名称", network, 32);
-            addRenderableWidget(new UiButton(leftPos + 232, topPos + 33, 58, 20, Component.literal("保存"), button -> {
+            addRenderableWidget(new UiButton(leftPos + 232, topPos + 33, 58, 20, Component.literal("保存名称"), button -> {
                 if (!networkNameField.getValue().isBlank()) menu.setNetworkName(networkNameField.getValue());
-            }));
+            }, Component.literal("保存此交换机的网络名称。适配器会自动连接最近的交换机；跨区连接仍需要光纤。")));
         }
         if (menu.isMotorMenu() && menu.canManage()) {
             int[] speeds = menu.isAdvancedMotor() ? new int[]{64, 128, 256} : new int[]{32, 64, 128};
@@ -54,12 +54,15 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
                 int speed = speeds[i];
                 addRenderableWidget(new UiButton(leftPos + 10 + i * 47, topPos + 30, 43, 20,
                         Component.literal(speed + "转"), button -> menu.setMotorSettings(
-                        menu.getMotorTargetRpm() < 0 ? -speed : speed, menu.isMotorEnabled())));
+                        menu.getMotorTargetRpm() < 0 ? -speed : speed, menu.isMotorEnabled()),
+                        Component.literal("目标转速设为" + speed + " RPM（转/分钟），保持当前旋转方向。档位越高，额定耗电越高；实际转速还取决于供电和机械负载。")));
             }
             addRenderableWidget(new UiButton(leftPos + 154, topPos + 30, 58, 20, Component.literal("反转"),
-                    button -> menu.setMotorSettings(-menu.getMotorTargetRpm(), menu.isMotorEnabled())));
+                    button -> menu.setMotorSettings(-menu.getMotorTargetRpm(), menu.isMotorEnabled()),
+                    Component.literal("切换正转与反转，目标转速大小不变。转速前的负号表示反向旋转。")));
             motorEnableButton = addRenderableWidget(new UiButton(leftPos + 217, topPos + 30, 72, 20,
-                    Component.literal("停止"), button -> menu.setMotorSettings(menu.getMotorTargetRpm(), !menu.isMotorEnabled())));
+                    Component.literal("停止电机"), button -> menu.setMotorSettings(menu.getMotorTargetRpm(), !menu.isMotorEnabled()),
+                    Component.literal("开启或停止本机的EU驱动。开启后仍需足够电量；有红石信号、控制器暂停或机械过载时不能正常驱动。")));
         }
         if (menu.isGeneratorMenu() && menu.canManage()) {
             int first = menu.getGeneratorMinimumTier();
@@ -67,14 +70,16 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
             for (int i = 0; i < count; i++) {
                 int tier = first + i;
                 addRenderableWidget(new UiButton(leftPos + 10 + i * 70, topPos + 30, 66, 20,
-                        Component.literal(tier + "级输出"), button -> menu.setGeneratorTier(tier)));
+                        Component.literal(tier + "级输出"), button -> menu.setGeneratorTier(tier),
+                        Component.literal("将EU输出电压上限设为" + tier + "级。前端接Create转轴，背面接IC2电缆；输出端电缆和设备须能承受所选电压。")));
             }
         }
         if (menu.isTransformerMenu() && menu.canManage()) {
             for (int tier = 1; tier <= 4; tier++) {
                 int selectedTier = tier;
                 addRenderableWidget(new UiButton(leftPos + 10 + (tier - 1) * 70, topPos + 30, 66, 20,
-                        Component.literal(tier + "级输出"), button -> menu.setTransformerTier(selectedTier)));
+                        Component.literal(tier + "级输出"), button -> menu.setTransformerTier(selectedTier),
+                        Component.literal("将输出电压上限设为" + tier + "级。标记面输出，其余五面输入。升压会降低传输速率，剩余EU留在缓冲中；降压不限速。")));
             }
         }
         if (!menu.isServerMenu()) return;
@@ -95,12 +100,12 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
         }
         if (page == ServerPage.DEVICES) {
             if (menu.canManage()) controlButton = addRenderableWidget(new UiButton(leftPos + 166, topPos + 27, 82, 18,
-                    Component.literal("启用控制"), button -> menu.setServerControlEnabled(!menu.isServerControlEnabled())));
+                    Component.literal("开启控制"), button -> menu.setServerControlEnabled(!menu.isServerControlEnabled())));
             List<ServerDeviceView> devices = menu.getServerDevices();
             for (int i = 0; i < 3 && firstDevice() + i < devices.size(); i++) {
                 ServerDeviceView device = devices.get(firstDevice() + i);
                 Button action = addRenderableWidget(new UiButton(leftPos + 175, topPos + 49 + i * 20, 73, 18,
-                        Component.literal(device.controllable() ? (device.paused() ? "启动" : "停止") : "只读"),
+                        Component.literal(device.controllable() ? (device.paused() ? "继续加工" : "暂停加工") : "仅查看"),
                         button -> menu.commandMachine(device.id(), device.paused())));
                 action.active = menu.canManage() && lastControlAvailable && device.controllable();
             }
@@ -132,9 +137,9 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
 
     private String accessLabel() {
         return switch (menu.getAccessMode()) {
-            case 1 -> "权限:配置";
-            case 2 -> "权限:房主";
-            default -> "权限:查看";
+            case 1 -> "配置：所有人";
+            case 2 -> "配置：房主";
+            default -> "配置：授权";
         };
     }
 
@@ -183,34 +188,37 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
 
     @Override
     protected void renderLabels(GuiGraphics poseStack, int mouseX, int mouseY) {
-        poseStack.drawString(font, UiText.fit(font, title, menu.isServerMenu() ? 140 : 230), 8, 8, IndustrialPalette.TEXT);
-        poseStack.drawString(font, "背包", IndustrialMenu.INVENTORY_X, 127, IndustrialPalette.MUTED);
+        poseStack.drawString(font, UiText.fit(font, title, menu.isServerMenu() ? 140 : 230), 8, 8, IndustrialPalette.TEXT, false);
+        poseStack.drawString(font, "背包", IndustrialMenu.INVENTORY_X, 127, IndustrialPalette.MUTED, false);
         if (menu.isServerMenu()) {
-            poseStack.drawString(font, "AI核心", 259, 31, IndustrialPalette.ACCENT);
-            if (!menu.canManage()) poseStack.drawString(font, "只读", 184, 32, IndustrialPalette.MUTED);
+            poseStack.drawString(font, "AI核心", 259, 31, IndustrialPalette.ACCENT, false);
+            if (!menu.canManage()) poseStack.drawString(font, "只读", 184, 32, IndustrialPalette.MUTED, false);
             if (page == ServerPage.DEVICES) {
                 List<ServerDeviceView> devices = menu.getServerDevices();
-                if (devices.isEmpty()) poseStack.drawString(font, "暂无已接入的机器", 12, 57, IndustrialPalette.MUTED);
+                if (devices.isEmpty()) {
+                    poseStack.drawString(font, "尚未发现联网设备", 12, 57, IndustrialPalette.MUTED, false);
+                    poseStack.drawString(font, "在机器旁放适配器，并接入交换机", 12, 72, IndustrialPalette.MUTED, false);
+                }
                 for (int i = 0; i < 3 && firstDevice() + i < devices.size(); i++) {
                     ServerDeviceView device = devices.get(firstDevice() + i);
                     poseStack.drawString(font, clip("#" + device.number() + " " + device.displayName().getString(), 157),
-                            12, 49 + i * 20, IndustrialPalette.TEXT);
+                            12, 49 + i * 20, IndustrialPalette.TEXT, false);
                     poseStack.drawString(font, clip(device.statusText() + " · " + device.connection(), 157),
-                            12, 59 + i * 20, device.faulty() ? 0xFFAA3030 : IndustrialPalette.MUTED);
+                            12, 59 + i * 20, device.faulty() ? 0xFFAA3030 : IndustrialPalette.MUTED, false);
                 }
                 poseStack.drawString(font, "第" + (devicePage + 1) + "/" + (maxDevicePage() + 1) + "页 · " + devices.size() + "台机器",
-                        80, 112, IndustrialPalette.MUTED);
+                        80, 112, IndustrialPalette.MUTED, false);
                 return;
             }
-        } else poseStack.drawString(font, "滚轮滚动", imageWidth - 61, 8, IndustrialPalette.MUTED);
-        if (menu.isSwitchMenu()) poseStack.drawString(font, "增幅器", 260, 59, IndustrialPalette.ACCENT);
+        } else poseStack.drawString(font, "滚轮滚动", imageWidth - 61, 8, IndustrialPalette.MUTED, false);
+        if (menu.isSwitchMenu()) poseStack.drawString(font, "增幅器", 260, 59, IndustrialPalette.ACCENT, false);
         List<String> lines = visibleRows();
         int visible = visibleCount();
         int first = Math.max(0, Math.min(scrollOffset, Math.max(0, lines.size() - visible)));
         for (int i = 0; i < visible && first + i < lines.size(); i++)
-            poseStack.drawString(font, clip(lines.get(first + i), rowWidth()), 12, rowY() + i * 10, IndustrialPalette.TEXT);
+            poseStack.drawString(font, clip(lines.get(first + i), rowWidth()), 12, rowY() + i * 10, IndustrialPalette.TEXT, false);
         if (menu.isServerMenu() && page == ServerPage.STATUS && lines.size() > visible)
-            poseStack.drawString(font, "滚轮查看全部状态", 12, 115, IndustrialPalette.MUTED);
+            poseStack.drawString(font, "滚轮查看全部状态", 12, 115, IndustrialPalette.MUTED, false);
     }
 
     private List<String> visibleRows() {
@@ -249,9 +257,9 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
             accessButton.setMessage(Component.literal(accessLabel()));
             accessButton.active = menu.isControllerOwner();
         }
-        if (motorEnableButton != null) motorEnableButton.setMessage(Component.literal(menu.isMotorEnabled() ? "停止" : "启动"));
+        if (motorEnableButton != null) motorEnableButton.setMessage(Component.literal(menu.isMotorEnabled() ? "停止电机" : "开启电机"));
         if (controlButton != null) {
-            controlButton.setMessage(Component.literal(menu.isServerControlEnabled() ? "关闭控制" : "启用控制"));
+            controlButton.setMessage(Component.literal(menu.isServerControlEnabled() ? "关闭控制" : "开启控制"));
             controlButton.active = menu.canManage() && (menu.isServerControlEnabled() || menu.hasAiCore());
         }
         renderBackground(poseStack);
@@ -262,14 +270,14 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
                 && mouseY >= topPos + 58 && mouseY < topPos + 98)
             poseStack.renderTooltip(font, font.split(Component.literal("WiFi增幅器升级槽：只接受1个WiFi增幅器；水平覆盖40×40格，上下各16格。无需额外设置，不可叠加。只读玩家不能放入或取出。"), tooltipWidth()), mouseX, mouseY);
         else if (accessButton != null && accessButton.isMouseOver(mouseX, mouseY))
-            poseStack.renderTooltip(font, font.split(Component.literal("仅房主/服主可切换：所有人查看（房主和授权名单可配置）→所有人配置→仅房主配置。所有模式均允许查看；授权玩家不能改权限或授权别人。"), tooltipWidth()), mouseX, mouseY);
+            poseStack.renderTooltip(font, font.split(Component.literal("当前：" + accessLabel() + "。此项决定谁能配置工业服务器，不限制查看。仅房主/已绑定服主可点击切换：授权名单与房主→所有玩家→仅房主。普通OP身份不等于工业服务器管理权限。"), tooltipWidth()), mouseX, mouseY);
         else if (menu.isServerMenu() && page == ServerPage.DEVICES && mouseX >= leftPos + 10 && mouseX < leftPos + 248
                 && mouseY >= topPos + 49 && mouseY < topPos + 109) {
             int row = (mouseY - topPos - 49) / 20;
             if (firstDevice() + row < menu.getServerDevices().size()) {
                 ServerDeviceView device = menu.getServerDevices().get(firstDevice() + row);
-                String reason = !menu.canManage() ? "当前权限仅允许查看。" : !device.controllable() ? "设备未提供启动/停止接口。"
-                        : !menu.hasAiCore() ? "请先安装工业 AI 核心。" : !menu.isServerControlEnabled() ? "请先启用服务器控制。" : "点击右侧按钮启动或停止该设备。";
+                String reason = !menu.canManage() ? "你目前只能查看，请让有配置权限的玩家操作。" : !device.controllable() ? "本设备仅能读取状态，不能在此远程启停；请操作机器本身。"
+                        : !menu.hasAiCore() ? "先将工业AI核心放入右侧槽位。" : !menu.isServerControlEnabled() ? "先点击上方“开启控制”。" : "右侧按钮改变加工暂停状态；继续加工仍需原料、供电和输出空间。自动故障暂停会在问题排除后解除。";
                 poseStack.renderTooltip(font, font.split(Component.literal("#" + device.number() + " " + device.displayName().getString()
                         + "\n连接：" + device.connection() + "\n状态：" + device.statusText() + "\n" + reason), tooltipWidth()), mouseX, mouseY);
             }
@@ -296,7 +304,8 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
     private void renderAiCoreTooltip(GuiGraphics poseStack, int mouseX, int mouseY) {
         List<Component> text = List.of(Component.literal("工业 AI 核心槽 · 最多 1 个"),
                 Component.literal("仅接受工业 AI 核心；其他物品会被服务端拒绝。"),
-                Component.literal("安装后可启用授权机器的自动控制；无核心或控制关闭时仍可查看状态和询问AI。"),
+                Component.literal("放入后，可点击“开启控制”：远程启停受支持机器，并在缺料、缺电、堵塞等故障时暂停加工、恢复后继续。"),
+                Component.literal("没有核心时仍能查看状态、询问AI；控制功能不会自动安排整条生产线。"),
                 Component.literal("放入、取出和启用控制均遵循服务器当前权限模式；只读玩家不能操作。"));
         var wrapped = new ArrayList<net.minecraft.util.FormattedCharSequence>();
         for (Component line : text) wrapped.addAll(font.split(line, tooltipWidth()));
@@ -306,10 +315,10 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
     private void renderFieldTooltip(GuiGraphics poseStack, int mouseX, int mouseY) {
         String text = null;
         if (menu.isSwitchMenu() && networkNameField != null && networkNameField.isMouseOver(mouseX, mouseY))
-            text = "网络名称：最多 32 个字符；填写名称后点保存。";
+            text = "此交换机的网络名称，最多32个字符；填写后点“保存名称”。适配器自动连接最近的交换机，不需要手动输入地址。";
         else if (menu.isServerMenu() && page == ServerPage.DEVICES) {
             if (controlButton != null && controlButton.isMouseOver(mouseX, mouseY))
-                text = menu.hasAiCore() ? "启用或关闭服务器自动控制；只作用于支持操作的授权设备。" : "无法启用：请先在右侧槽位安装工业 AI 核心。";
+                text = menu.hasAiCore() ? "开启后可远程启停，并自动暂停有故障的受支持加工机；故障排除后继续。关闭控制会解除自动暂停，手动暂停仍保留。电动机自行处理供电和红石状态。" : "无法开启控制：先在右侧槽位放入1个工业AI核心。";
         }
         if (text != null) poseStack.renderTooltip(font, font.split(Component.literal(text), tooltipWidth()), mouseX, mouseY);
     }

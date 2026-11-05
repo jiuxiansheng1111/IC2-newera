@@ -5,6 +5,7 @@ import com.ic2newera.integration.llm.KnowledgeSource;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -31,8 +32,9 @@ public final class KnowledgeSourcesScreen extends Screen {
     @Override
     protected void init() {
         int panelWidth = Math.max(1, width - MARGIN * 2);
-        addRenderableWidget(new UiButton(MARGIN, Math.max(0, height - 24), panelWidth, 20,
+        UiButton back = addRenderableWidget(new UiButton(MARGIN, Math.max(0, height - 24), panelWidth, 20,
                 Component.literal("返回对话"), button -> minecraft.setScreen(parent)));
+        back.setTooltip(Tooltip.create(Component.literal("回到聊天记录。此页展示本轮收集到的资料来源，与 AI 生成的回答分开展示。")));
         scroll = Math.max(0, Math.min(scroll, maxScroll(panelWidth)));
     }
 
@@ -67,8 +69,9 @@ public final class KnowledgeSourcesScreen extends Screen {
         poseStack.fill( 0, 0, width, height, IndustrialPalette.BACKGROUND);
         poseStack.fill( MARGIN, CONTENT_TOP, right, bottom, IndustrialPalette.CANVAS);
         super.render(poseStack, mouseX, mouseY, partialTick);
-        poseStack.drawString(font, UiText.fit(font, title, panelWidth), MARGIN, 8, IndustrialPalette.TEXT);
-        poseStack.drawString(font, UiText.fit(font, Component.literal(report.summary()), panelWidth), MARGIN, 34, IndustrialPalette.MUTED);
+        poseStack.drawString(font, UiText.fit(font, title, panelWidth), MARGIN, 8, IndustrialPalette.TEXT, false);
+        poseStack.drawString(font, UiText.fit(font, Component.literal(report.summary()), panelWidth), MARGIN, 34, IndustrialPalette.MUTED, false);
+        poseStack.drawString(font, UiText.fit(font, Component.literal("网页来源仅 HTTPS 公网链接可点击；摘录可能已截短。"), panelWidth), MARGIN, 46, IndustrialPalette.ACCENT, false);
         scroll = Math.max(0, Math.min(scroll, maxScroll(panelWidth)));
         UiScissor.enable(minecraft, MARGIN + 1, CONTENT_TOP + 1, right - 1, bottom - 1);
         int y = CONTENT_TOP + 5 - scroll;
@@ -96,11 +99,14 @@ public final class KnowledgeSourcesScreen extends Screen {
             poseStack.fill( right - 3, CONTENT_TOP, right, bottom, IndustrialPalette.BORDER);
             poseStack.fill( right - 3, thumbY, right, thumbY + thumbHeight, IndustrialPalette.ACCENT);
         }
+        if (mouseX >= MARGIN && mouseX < right && mouseY >= 32 && mouseY < 32 + font.lineHeight) {
+            poseStack.renderTooltip(font, font.split(Component.literal(report.summary()), panelWidth), mouseX, mouseY);
+        }
     }
 
     private int drawLines(GuiGraphics poseStack, String value, int x, int y, int width, int color) {
         for (var line : font.split(Component.literal(value), width)) {
-            poseStack.drawString(font, line, x, y, color);
+            poseStack.drawString(font, line, x, y, color, false);
             y += font.lineHeight + 1;
         }
         return y;

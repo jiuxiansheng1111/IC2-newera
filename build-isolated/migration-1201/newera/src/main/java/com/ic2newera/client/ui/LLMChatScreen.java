@@ -13,6 +13,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
@@ -82,6 +83,7 @@ public final class LLMChatScreen extends Screen {
         int inputWidth = Math.max(1, panelWidth - 82);
         promptInput = new EditBox(font, left, inputY, inputWidth, 20, Component.literal("输入问题"));
         promptInput.setMaxLength(1200);
+        promptInput.setTooltip(Tooltip.create(Component.literal("输入最多 1200 个字符的问题。按 Enter 发送；请求期间可取消，问题会先保留在对话记录中。")));
         promptInput.setValue(draft);
         addRenderableWidget(promptInput);
         sendButton = addRenderableWidget(new UiButton(left + inputWidth + 6, inputY,
@@ -92,6 +94,16 @@ public final class LLMChatScreen extends Screen {
                 "朗读：" + (RobotVoiceSettings.enabled() ? "开" : "关"), "朗读上一条",
                 RobotVoiceClient.paused() ? "继续朗读" : "暂停朗读", "停止朗读"};
         Button[] controls = new Button[labels.length];
+        String[] help = {
+                "返回上一级界面；若当前有请求，会先取消请求。",
+                "取消当前资料查询或 AI 请求；已收到的部分回复会标记为未完成。",
+                "查看本轮实际收集到的本机/网页资料与摘录。没有来源时按钮不可用。",
+                "打开模型设置；离开聊天前会取消当前请求。",
+                "当前朗读" + (RobotVoiceSettings.enabled() ? "已开启" : "已关闭") + "。点击切换；开启后完整回复会自动排队朗读。",
+                "重新朗读最近一条完整 AI 回复。需先开启朗读且已有完整回复。",
+                RobotVoiceClient.paused() ? "朗读当前暂停。点击继续播放队列。" : "暂停或恢复语音队列；不影响 AI 文字回复。",
+                "停止当前语音并清空待播队列；不影响文字对话。"
+        };
         for (int i = 0; i < controls.length; i++) {
             final int action = i;
             int column = i % columns;
@@ -109,6 +121,7 @@ public final class LLMChatScreen extends Screen {
                     case 7 -> { RobotVoiceClient.stopVoice(); voiceStatus = "已停止当前语音并清空待播队列。"; }
                 }
             }));
+            controls[i].setTooltip(Tooltip.create(Component.literal(help[i])));
         }
         cancelButton = controls[1];
         sourcesButton = controls[2];
@@ -224,6 +237,10 @@ public final class LLMChatScreen extends Screen {
         if (sendButton != null && promptInput != null) {
             sendButton.active = !waiting && !promptInput.getValue().isBlank();
             sendButton.setMessage(Component.literal(waiting ? "等待…" : "发送"));
+            sendButton.setTooltip(Tooltip.create(Component.literal(waiting
+                    ? "正在准备资料或等待 AI 回复；可用“取消请求”停止。"
+                    : promptInput.getValue().isBlank() ? "先输入问题，再发送给当前配置的 AI 服务。"
+                    : "发送问题；会按模型设置读取本机资料和/或检索公开网页。")));
         }
         if (cancelButton != null) cancelButton.active = waiting;
         if (sourcesButton != null) sourcesButton.active = !waiting && !knowledgeReport.sources().isEmpty();
@@ -231,10 +248,27 @@ public final class LLMChatScreen extends Screen {
     }
 
     private void updateVoiceControls() {
-        if (voiceToggleButton != null) voiceToggleButton.setMessage(Component.literal("朗读：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
-        if (readLatestButton != null) readLatestButton.active = !latestReply.isBlank() && RobotVoiceSettings.enabled();
-        if (pauseVoiceButton != null) pauseVoiceButton.setMessage(Component.literal(RobotVoiceClient.paused() ? "继续朗读" : "暂停朗读"));
+        if (voiceToggleButton != null) {
+            voiceToggleButton.setMessage(Component.literal("朗读：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
+            voiceToggleButton.setTooltip(Tooltip.create(Component.literal("朗读当前" + (RobotVoiceSettings.enabled() ? "已开启。点击关闭" : "已关闭。点击开启")
+                    + (RobotVoiceSettings.enabled() ? "自动回复朗读。" : "自动回复朗读；不会影响文字回复。"))));
+        }
+        if (readLatestButton != null) {
+            readLatestButton.active = !latestReply.isBlank() && RobotVoiceSettings.enabled();
+            readLatestButton.setTooltip(Tooltip.create(Component.literal(!RobotVoiceSettings.enabled()
+                    ? "朗读已关闭；先开启朗读，再播放最近一条完整回复。"
+                    : latestReply.isBlank() ? "还没有完整 AI 回复；发送问题并收到回复后即可播放。"
+                    : "朗读最近一条完整 AI 回复；再次点击会重新排队。")));
+        }
+        if (pauseVoiceButton != null) {
+            pauseVoiceButton.setMessage(Component.literal(RobotVoiceClient.paused() ? "继续朗读" : "暂停朗读"));
+            pauseVoiceButton.setTooltip(Tooltip.create(Component.literal(RobotVoiceClient.paused()
+                    ? "继续播放已暂停的语音队列；不影响文字回复。"
+                    : "暂停当前语音队列；点击后可继续播放，不影响 AI 请求。")));
+        }
         if (stopVoiceButton != null) stopVoiceButton.active = RobotVoiceSettings.enabled();
+        if (stopVoiceButton != null) stopVoiceButton.setTooltip(Tooltip.create(Component.literal(RobotVoiceSettings.enabled()
+                ? "停止当前语音并清空待播队列；文字回复仍保留。" : "朗读已关闭，无待播放的语音任务。")));
     }
 
     private void toggleVoice() {
@@ -336,12 +370,12 @@ public final class LLMChatScreen extends Screen {
         poseStack.fill( left - 5, 0, right + 5, height, IndustrialPalette.BACKGROUND);
         poseStack.fill( left, transcriptTop, right, transcriptBottom, IndustrialPalette.CANVAS);
         super.render(poseStack, mouseX, mouseY, partialTick);
-        poseStack.drawString(font, UiText.fit(font, title, panelWidth), left, 7, IndustrialPalette.TEXT);
+        poseStack.drawString(font, UiText.fit(font, title, panelWidth), left, 7, IndustrialPalette.TEXT, false);
         Component notice = Component.literal(factoryServer == null
                 ? "按模型设置发送资料 · 悬停查看说明"
                 : "网络状态与库存摘要将发送给当前模型");
-        poseStack.drawString(font, UiText.fit(font, notice, panelWidth), left, noticeY(), IndustrialPalette.ACCENT);
-        poseStack.drawString(font, UiText.fit(font, Component.literal("语音：" + voiceStatus), panelWidth), left, voiceStatusY(), IndustrialPalette.ACCENT);
+        poseStack.drawString(font, UiText.fit(font, notice, panelWidth), left, noticeY(), IndustrialPalette.ACCENT, false);
+        poseStack.drawString(font, UiText.fit(font, Component.literal("语音：" + voiceStatus), panelWidth), left, voiceStatusY(), IndustrialPalette.ACCENT, false);
 
         int maxWidth = Math.max(1, panelWidth - 12);
         List<DrawLine> lines = new ArrayList<>();
@@ -368,7 +402,7 @@ public final class LLMChatScreen extends Screen {
         int y = transcriptTop + 5;
         for (int index = first; index < last; index++) {
             DrawLine line = lines.get(index);
-            poseStack.drawString(font, line.text(), left + 6, y, line.color());
+            poseStack.drawString(font, line.text(), left + 6, y, line.color(), false);
             y += lineStep;
         }
         RenderSystem.disableScissor();
@@ -379,7 +413,7 @@ public final class LLMChatScreen extends Screen {
             FormattedCharSequence line = statusLines.size() > statusCount && index == statusCount - 1
                     ? UiText.fit(font, Component.literal("… 悬停查看完整提示"), panelWidth).getVisualOrderText()
                     : statusLines.get(index);
-            poseStack.drawString(font, line, left, statusLineY, statusColor);
+            poseStack.drawString(font, line, left, statusLineY, statusColor, false);
             statusLineY += font.lineHeight;
         }
         updateSendButton();

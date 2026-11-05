@@ -21,12 +21,20 @@ public final class RobotInventoryScreen extends AbstractContainerScreen<RobotMen
         pose.drawString(font, title, 8, 6, 0xFFFFFF);
         String[] names = {"电池", "主手", "副手", "头盔", "胸甲", "护腿", "靴子"};
         for (int i = 0; i < names.length; i++) pose.drawString(font, names[i], 8 + i * 23, 19, 0xC6E7EA);
-        pose.drawString(font, "货物（满载暂停工作）", 8, 55, 0xC6E7EA);
+        pose.drawString(font, "货物（9格；满载时暂停工作）", 8, 55, 0xC6E7EA);
         pose.drawString(font, playerInventoryTitle, 8, 94, 0xC6E7EA);
     }
     @Override public void render(GuiGraphics pose, int x, int y, float partial) {
         renderBackground(pose); super.render(pose, x, y, partial); renderTooltip(pose, x, y);
         if (hoveredSlot != null && hoveredSlot.index < 16 && menu.robot() != null)
-            pose.renderTooltip(font, font.split(Component.literal(menu.robot().inventory().hint(hoveredSlot.index)), 245), x, y + 14);
+            pose.renderTooltip(font, font.split(Component.literal(slotHint(hoveredSlot.index)), 245), x, y + 14);
+        if (x >= leftPos + 8 && x < leftPos + 8 + font.width("货物（9格；满载时暂停工作）")
+                && y >= topPos + 53 && y < topPos + 65)
+            pose.renderTooltip(font, font.split(Component.literal("货物栏共9格，可放施工材料、食材、燃料、工具和可自动补电的充电宝；采集到的物品及工作成品也会放在这里。满载或目标物品无空位时，相关工作会暂停并报告原因。"), 260), x, y);
+    }
+
+    private String slotHint(int slot) {
+        if (slot == 0) return "电池槽：仅接受机器人电池。需要用 IC2 HV（等级3）或更高等级的充电设备充电；货物格中的高级/核能充电宝可自动补电。机器人死亡时电池会销毁。";
+        return menu.robot().inventory().hint(slot);
     }
 }

@@ -6,6 +6,8 @@
 
 ## 地形和材质
 
+r63的Spawn 4.0.8汉化JAR新增947条简体中文，仍为同一模组版本，不改变玩法。玩家需要在自己的mods替换同名Spawn JAR并选择简体中文；仅服务器安装语言资源不会让所有客户端自动汉化。r64同步改善新纪元UI按钮、状态和悬停说明，操作细节读取随包ui_operations_zh.md；逐界面实机验收状态以交付记录为准。
+
 2026-11-03用户选择采用ReTerraForged的后续维护版UltraTerraForged，目标构件为1.0.3+1.20.1 Forge，注册ID为ultraterraforged，不能与原版ReTerraForged混称或混装。新建单人世界可在Terrain页面选择预设；服务器新世界使用level-type=ultraterraforged:ultraterraforged。旧地图不会因安装JAR自动变成新地形；用户已允许新建服务器地图，交付过程保留旧地图供回退。客户端默认材质为Soartex Grove 1.0.4（1.20.1格式15），沿用原有ITT光影。只完成文件安装和服务器启动不等于玩家已验收地形、材质或多人玩法。
 
 ## r62 全地形均衡与新增模组

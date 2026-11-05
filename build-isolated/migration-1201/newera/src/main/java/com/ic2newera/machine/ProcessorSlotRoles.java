@@ -26,12 +26,12 @@ public final class ProcessorSlotRoles {
 
     public static Component description(ProcessorKind kind, int slot) {
         return switch (role(kind, slot)) {
-            case OUTPUT -> Component.literal("产物输出槽：只能取出加工产物，不能放入物品。");
+            case OUTPUT -> Component.literal("成品输出槽：取走加工结果；不能手动放入物品。空间不足或有不同产物时会暂停加工。");
             case INPUT -> switch (kind) {
-                case NON_METAL -> Component.literal("非金属原料输入槽：仅接受已登记的非金属处理配方在此槽要求的物品。");
-                case ELECTRONIC -> Component.literal("电子元件输入槽：仅接受已登记的电子加工配方在此槽要求的物品。");
-                case ALLOY -> Component.literal("合金原料输入槽：按配方规定的槽位分别放入原料；不接受未登记配方物品。");
-                case ADVANCED -> Component.literal("高级熔炼原料输入槽：仅接受工艺图批准的高级熔炼原料。");
+                case NON_METAL -> Component.literal("非金属原料槽：放入JEI本机配方所需原料，数量必须足够；可接受的物品见下方。");
+                case ELECTRONIC -> Component.literal("电子加工原料槽 " + (slot + 1) + "：从左到右、从上到下对应JEI配方；种类和数量都要匹配。");
+                case ALLOY -> Component.literal("合金配料槽 " + (slot + 1) + "：按JEI配方从左到右放置不同原料，数量必须足够。");
+                case ADVANCED -> Component.literal("高级熔炼原料槽：放入JEI本机配方中的原料；本槽不接受其他炉子的专用配方原料。");
             };
         };
     }

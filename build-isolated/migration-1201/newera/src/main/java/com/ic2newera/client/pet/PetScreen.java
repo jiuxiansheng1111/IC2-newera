@@ -51,9 +51,12 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
         }
         pageButton = addRenderableWidget(Button.builder(Component.empty(), button -> advancePage())
                 .bounds(leftPos + 194, topPos + 7, 98, 20).build());
+        updatePageButtonTooltip();
         if (!isDog) {
             nativeProfileButton = addNativeButton(15, "screen.ic2newera.pet.native_profile", x, y + 69);
             nativeLogisticsButton = addNativeButton(16, "screen.ic2newera.pet.native_logistics", x + 142, y + 69);
+            nativeProfileButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("打开老吴档案与饰品管理。")));
+            nativeLogisticsButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("打开物流地址与包裹管理；需要先装备箱子。")));
         }
         menu.setInventoryPage(false);
     }
@@ -68,10 +71,17 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
     private void advancePage() {
         boolean wasInventory = page == 2;
         page = (page + 1) % 3;
+        updatePageButtonTooltip();
         boolean inventory = page == 2;
         menu.setInventoryPage(inventory);
         if (wasInventory != inventory && minecraft != null && minecraft.gameMode != null)
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, 14);
+    }
+
+    private void updatePageButtonTooltip() {
+        if (pageButton == null) return;
+        pageButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(page == 0
+                ? "点击切换到卖萌动作。" : page == 1 ? "点击切换到物品与装备。" : "点击切换到日常互动。")));
     }
 
     private void addCommand(int id, String key, int x, int y, int width) {
@@ -80,6 +90,28 @@ public final class PetScreen extends AbstractContainerScreen<PetMenu> {
             if (minecraft != null && minecraft.gameMode != null)
                 minecraft.gameMode.handleInventoryButtonClick(menu.containerId, buttonId);
         }).bounds(x, y, width, 20).build());
+        commandButtons[id].setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(commandHint(id))));
+    }
+
+    private String commandHint(int id) {
+        String action = switch (id) {
+            case 0 -> "切换宠物的跟随或待命状态。";
+            case 1 -> "让宠物做出抚摸回应。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 2 -> "让宠物跳跃；需要有电量、站在地面上，且跳跃冷却已结束。";
+            case 3 -> "让宠物点头。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 4 -> "让宠物摇头。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 5 -> "切换和平状态；猫饼状态下也可使用。";
+            case 6 -> "播放或停止狗的语音。仅机械狗可用，需要有电量。";
+            case 7 -> "让宠物跳舞。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 8 -> "让宠物歪头。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 9 -> "让宠物抬爪。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 10 -> "让宠物伸懒腰。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 11 -> "让宠物打滚；需要有电量、平坦地面，且宠物当前未在执行其他互动动作。";
+            case 12 -> "让宠物鞠躬。需要有电量，且宠物当前未在执行其他互动动作。";
+            case 13 -> "让宠物打哈欠。需要有电量，且宠物当前未在执行其他互动动作。";
+            default -> "宠物主人可在附近操作。";
+        };
+        return action + "仅宠物主人可操作，且须在8格内；猫饼状态仅能跟随或切换和平状态，压扁/复原期间需等待动画结束。";
     }
 
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {

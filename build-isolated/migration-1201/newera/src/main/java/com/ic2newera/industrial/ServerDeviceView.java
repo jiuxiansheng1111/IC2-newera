@@ -14,8 +14,8 @@ public record ServerDeviceView(UUID id, int number, String nameKey, String conne
             case "RUNNING" -> "运行中";
             case "EXTERNAL" -> "外部动力驱动";
             case "PAUSED" -> "已暂停";
-            case "IDLE" -> "停止/待机";
-            default -> "运行状态未知";
+            case "IDLE" -> "待机（未在加工）";
+            default -> "暂未读到运行状态";
         };
     }
     CompoundTag write() {

@@ -199,8 +199,12 @@ public final class RobotPackets {
                 if (robot.energy() < 200) { reply(player, p, false, "机器人需要至少200 EU才能接收任务。"); return; }
                 RobotCollectionTask.Result result;
                 if (p.action == 1) {
-                    if (robot.collectionTask() == null) result = new RobotCollectionTask.Result(false, "当前没有指定采集任务，模式与电量不变。");
-                    else { robot.stay(); result = new RobotCollectionTask.Result(true, "已取消采集任务并待命。"); }
+                    if (robot.collectionTask() == null && !robot.hasPausedCollectionTask())
+                        result = new RobotCollectionTask.Result(false, "当前没有指定采集任务，模式与电量不变。");
+                    else {
+                        robot.cancelCollection("指定采集已取消，已收集物品保留在货物栏。");
+                        result = new RobotCollectionTask.Result(true, "已取消采集任务并待命；已收集物品保留在货物栏。");
+                    }
                 }
                 else result = RobotCollectionOrders.assign(player, robot, p.remote, false, p.item, p.amount, p.kind);
                 if (result.accepted() && p.action == 1) {

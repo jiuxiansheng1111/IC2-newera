@@ -3,6 +3,7 @@ package com.ic2newera.client.ui;
 import com.ic2newera.integration.llm.LLMConfig;
 import com.ic2newera.menu.AssistantMenu;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.advancements.AdvancementsScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -22,13 +23,15 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         imageHeight = Math.max(1, Math.min(340, height - 24));
         super.init();
         int buttonWidth = Math.max(1, (imageWidth - 32) / 3);
-        addRenderableWidget(new UiButton(leftPos + 12, topPos + 30, buttonWidth, 20,
+        UiButton settings = addRenderableWidget(new UiButton(leftPos + 12, topPos + 30, buttonWidth, 20,
                 UiText.fit(font, Component.literal("模型设置"), buttonWidth - 8),
                 button -> minecraft.setScreen(new LLMSettingsScreen(this))));
-        addRenderableWidget(new UiButton(leftPos + 16 + buttonWidth, topPos + 30, buttonWidth, 20,
+        settings.setTooltip(Tooltip.create(Component.literal("设置模型服务地址、模型 ID、密钥和检索选项；也可保存后打开测试对话。")));
+        UiButton chat = addRenderableWidget(new UiButton(leftPos + 16 + buttonWidth, topPos + 30, buttonWidth, 20,
                 UiText.fit(font, Component.literal("与 AI 对话"), buttonWidth - 8),
                 button -> minecraft.setScreen(new LLMChatScreen(this))));
-        addRenderableWidget(new UiButton(leftPos + 20 + buttonWidth * 2, topPos + 30, buttonWidth, 20,
+        chat.setTooltip(Tooltip.create(Component.literal("打开聊天页。发送问题前可查看本页列出的服务状态和资料范围。")));
+        UiButton advancementsButton = addRenderableWidget(new UiButton(leftPos + 20 + buttonWidth * 2, topPos + 30, buttonWidth, 20,
                 UiText.fit(font, Component.translatable("gui.advancements"), buttonWidth - 8), button -> {
                     if (minecraft.player != null && minecraft.getConnection() != null) {
                         var advancements = minecraft.getConnection().getAdvancements();
@@ -36,6 +39,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
                         minecraft.setScreen(new AdvancementsScreen(advancements));
                     }
                 }));
+        advancementsButton.setTooltip(Tooltip.create(Component.literal("打开原版进度页面；新纪元里程碑位于“IC2：新纪元”分页。")));
     }
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics);
@@ -48,7 +52,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         graphics.fill(leftPos + 8, topPos + 58, leftPos + imageWidth - 8, topPos + imageHeight - 8, IndustrialPalette.PANEL);
     }
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, Component.literal("新纪元 · AI 助手"), 12, 12, IndustrialPalette.TEXT);
+        graphics.drawString(font, Component.literal("新纪元 · AI 助手"), 12, 12, IndustrialPalette.TEXT, false);
         LLMConfig config = LLMConfig.current();
         List<Component> paragraphs = List.of(
                 Component.literal("新纪元里程碑已移至「进度」中的「IC2：新纪元」分页。也可按进度快捷键或从暂停菜单打开。"),
@@ -59,7 +63,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
                 Component.literal("联网检索：" + (config.webSearchEnabled() ? "开启" : "关闭")
                         + "；本机模组资料：" + (config.modInspectionEnabled() ? "开启" : "关闭")
                         + "；静态代码资料：" + (config.codeInspectionEnabled() ? "开启" : "关闭")),
-                Component.literal("会把本轮对话、相关公开模组版本/ID/配方/静态代码摘要及网页摘录发送给对应检索服务和模型；不读取背包、存档或配置密钥供检索。"),
+                Component.literal("发送问题后，会按已开启的选项读取相关模组版本、注册 ID、配方与静态代码摘要，并可检索公开网页；整理出的相关资料和本轮对话会发给所配置的 AI 服务。不会把背包或存档内容交给检索。"),
                 Component.translatable("screen.ic2newera.settings.cost_warning_1"),
                 Component.translatable("screen.ic2newera.settings.cost_warning_2"));
         int textWidth = imageWidth - 24;
@@ -70,7 +74,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         int y = 66 - (int)scroll;
         for (Component paragraph : paragraphs) {
             for (var line : font.split(paragraph, textWidth)) {
-                graphics.drawString(font, line, 12, y, IndustrialPalette.TEXT);
+                graphics.drawString(font, line, 12, y, IndustrialPalette.TEXT, false);
                 y += font.lineHeight + 1;
             }
             y += 8;

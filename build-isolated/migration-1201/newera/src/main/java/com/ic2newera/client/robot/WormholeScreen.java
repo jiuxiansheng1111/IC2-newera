@@ -48,8 +48,13 @@ public final class WormholeScreen extends Screen {
         int gap = 4, tabWidth = (panelWidth - gap * 2) / 3;
         String[] titles = {"信标目的地", "机器人互传", "模块管理"};
         for (int i = 0; i < 3; i++) { int nextTab = i;
-            addRenderableWidget(new UiButton(left + i * (tabWidth + gap), 30, tabWidth, 20,
+            var tabButton = addRenderableWidget(new UiButton(left + i * (tabWidth + gap), 30, tabWidth, 20,
                     Component.literal((tab == i ? "› " : "") + titles[i]), b -> { tab = nextTab; page = 0; rebuildWidgets(); }));
+            tabButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(switch (i) {
+                case 0 -> "选择已绑定的原版信标作为目的地。";
+                case 1 -> "选择机器人，明确选择玩家或机器人进行互传。";
+                default -> "取回手机或所选角色上安装的虫洞模块。";
+            })));
         }
         if (snapshot == null) { if (pending == null) refresh(); }
         else {
@@ -74,7 +79,7 @@ public final class WormholeScreen extends Screen {
                     else selectedRobot = snapshot.robots().get(index).id();
                     rebuildWidgets();
                 }));
-                row.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(hint)));
+                    row.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(label + "\n" + hint)));
             }
             if (count > rows) {
                 int y = height - 83;
@@ -86,21 +91,37 @@ public final class WormholeScreen extends Screen {
         if (tab == 0) {
             var go = addRenderableWidget(new UiButton(left, height - 60, panelWidth, 20, Component.literal("传送到所选信标"), b -> confirm(0, "传送到这个信标？")));
             go.active = pending == null && snapshot != null && selectedBeacon >= 0 && snapshot.moduleInstalled();
+            go.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(snapshot == null ? "等待服务器读取状态。"
+                    : !snapshot.moduleInstalled() ? "手机尚未安装虫洞模块。"
+                    : selectedBeacon < 0 ? "先选择一个信标目的地。"
+                    : pending != null ? "正在等待服务器回执。" : "传送前服务器会重新核验信标、权限、供能和冷却。")));
         } else if (tab == 1) {
             var to = addRenderableWidget(new UiButton(left, height - 60, half, 20, Component.literal("我去角色身边"), b -> confirm(1, "传送到所选角色身边？")));
             var here = addRenderableWidget(new UiButton(left + half + 4, height - 60, panelWidth - half - 4, 20, Component.literal("传送角色到我身边"), b -> confirm(2, "把所选角色传送到身边？")));
             to.active = here.active = pending == null && snapshot != null && selectedRobot != null && snapshot.moduleInstalled();
+            String travelReason = snapshot == null ? "等待服务器读取状态。" : !snapshot.moduleInstalled() ? "手机尚未安装虫洞模块。"
+                    : selectedRobot == null ? "先选择一个机器人。" : pending != null ? "正在等待服务器回执。"
+                    : "服务器会核验机器人在线状态、权限、供能和冷却；不通过时不会传送。";
+            to.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(travelReason)));
+            here.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(travelReason)));
         } else {
             var phone = addRenderableWidget(new UiButton(left, height - 60, half, 20, Component.literal("卸下手机模块"), b -> confirm(3, "卸下手机虫洞模块？")));
             var robot = addRenderableWidget(new UiButton(left + half + 4, height - 60, panelWidth - half - 4, 20, Component.literal("卸下所选角色模块"), b -> confirm(4, "取回角色虫洞模块？需在身边。")));
             phone.active = pending == null && snapshot != null && snapshot.moduleInstalled();
             robot.active = pending == null && selectedRobot != null;
+            phone.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(snapshot == null ? "等待服务器读取状态。"
+                    : !snapshot.moduleInstalled() ? "手机当前没有安装虫洞模块。" : pending != null ? "正在等待服务器回执。"
+                    : "将手机模块取回背包；传送绑定目的地记录会保留。")));
+            robot.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(selectedRobot == null ? "先选择一个机器人。"
+                    : pending != null ? "正在等待服务器回执。" : "取回所选角色上的模块需要角色在身边；绑定记录会保留。")));
         }
         int third = (panelWidth - 8) / 3;
         var reload = addRenderableWidget(new UiButton(left, height - 24, third, 20, Component.literal("刷新"), b -> { refresh(); rebuildWidgets(); })); reload.active = pending == null;
-        addRenderableWidget(new UiButton(left + third + 4, height - 24, third, 20, Component.literal("使用方法"), b -> {
+        reload.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("重新向服务器读取模块、供能装置和目的地状态。")));
+        var instructions = addRenderableWidget(new UiButton(left + third + 4, height - 24, third, 20, Component.literal("使用方法"), b -> {
             notice = "模块对角色右键安装；模块主手、手机副手可安装手机。手机潜行点装置绑定供能，点原版信标绑定目的地。";
         }));
+        instructions.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("角色：手持模块右键安装。手机：模块主手、手机副手时打开此页；潜行并点击装置绑定供能，再点击原版信标绑定目的地。传送或卸载须主动点击并经服务器核验。")));
         addRenderableWidget(new UiButton(left + (third + 4) * 2, height - 24, panelWidth - (third + 4) * 2, 20, Component.literal("返回"), b -> onClose()));
     }
     @Override public void tick() {

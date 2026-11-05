@@ -69,7 +69,7 @@ final class PhoneRobotChatScreen extends Screen {
         work("停止工作", "结束当前工作，机器人回到待命。", b -> command(2));
         work("指定采集", "远程指定目标物品和数量；服务端仍会检查连接、权限和电量。", b ->
                 minecraft.setScreen(new RobotCollectionScreen(this, robot, RobotCharacter.byId(character).chineseName, true)));
-        combat = work("杀戮：关", "默认攻击敌对生物；开启后额外攻击动物。始终保护玩家、宠物和机器人；指定采集时优先限制攻击。", b -> command(device != null && device.details().contains("杀戮模式开启") ? 8 : 7));
+        combat = work("攻击动物：关", "关闭时仍会防御敌对生物；开启后会额外攻击动物。不会攻击玩家、机器人或已驯服的动物；指定采集时优先限制攻击。", b -> command(device != null && device.details().contains("杀戮模式开启") ? 8 : 7));
         workTypeButton = tabs.add(RobotControlTabs.Page.WORK, "工作类型", "点击切换：伐木、采矿、烹饪、烧矿、种地；下方显示准备要求。", b -> {
             workChoice = workChoice.next(); status = workChoice.hint; voiceStatusFocused = false; updateControls();
         });
@@ -118,6 +118,7 @@ final class PhoneRobotChatScreen extends Screen {
     }
     private Button work(String label, String hint, Button.OnPress action) {
         Button button = tabs.add(RobotControlTabs.Page.WORK, label, hint, action);
+        button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(hint + "；远程操作需手机有可用电量，服务器还会校验权限与设备状态。")));
         onlineControls.add(button); return button;
     }
     private boolean following() { return device != null && device.status().startsWith("跟随"); }
@@ -137,13 +138,21 @@ final class PhoneRobotChatScreen extends Screen {
         if (send != null) {
             send.active = pending != null || phonePower && device.energy() >= 2000 && !input.getValue().isBlank();
             send.setMessage(Component.literal(pending != null ? "取消请求" : "发送"));
+            String reason = pending != null ? "取消当前文字请求；取消后会把问题放回输入框。"
+                    : !heldPhone() ? "手持或副手持手机后才能远程聊天。"
+                    : device == null || !device.controllable() ? "机器人离线或当前玩家没有控制权限；返回设备列表刷新。"
+                    : !IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.COMMAND_COST) ? "手机电量不足，无法发送远程命令。"
+                    : device.energy() < 2000 ? "机器人储能低于 2000 EU，服务端不会接收本次聊天请求。"
+                    : input.getValue().isBlank() ? "输入消息后再发送，也可按回车提交。"
+                    : "发送给所选机器人；等待期间可点“取消请求”中止。";
+            send.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(reason)));
         }
         if (follow != null) follow.setMessage(Component.literal(following() ? "改为待命" : "跟随主人"));
         if (workTypeButton != null) workTypeButton.setMessage(Component.literal("类型：" + workChoice.title));
         if (startWorkButton != null) startWorkButton.setMessage(Component.literal("开始" + workChoice.title));
         if (voice != null) voice.setMessage(Component.literal("语音：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
         for (Button b : onlineControls) b.active = phonePower;
-        if (combat != null) combat.setMessage(Component.literal("杀戮：" + (device != null && device.details().contains("杀戮模式开启") ? "开" : "关")));
+        if (combat != null) combat.setMessage(Component.literal("攻击动物：" + (device != null && device.details().contains("杀戮模式开启") ? "开" : "关")));
     }
     private void command(int action) {
         if (!online()) return;
