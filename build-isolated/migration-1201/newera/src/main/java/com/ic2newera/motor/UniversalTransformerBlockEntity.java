@@ -16,6 +16,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -34,9 +35,12 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     private volatile int outputTier = 1;
     private boolean registered;
     private Direction registeredFacing;
+    // Read by IC2's asynchronous network as well as the server thread.
+    private volatile Direction inputDirection;
 
     public UniversalTransformerBlockEntity(BlockPos pos, BlockState state) {
         super(MotorBlocks.UNIVERSAL_TRANSFORMER_TYPE.get(), pos, state);
+        inputDirection = state.getValue(UniversalTransformerBlock.FACING).getOpposite();
     }
 
     public int getOutputTier() { return outputTier; }
@@ -52,6 +56,7 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     private void registerEnergy() {
         if (!registered && level != null && !level.isClientSide && EnergyNet.instance != null) {
             registeredFacing = outputFace();
+            inputDirection = registeredFacing.getOpposite();
             EnergyNet.instance.addBlockEntityTile(this);
             registered = true;
         }
@@ -94,6 +99,28 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     public void claim(Player player) { access.claim(this, player); }
     public boolean canManage(Player player) { return access.canManage(this, player); }
 
+    /** Either wrench selects the input; retain the saved FACING as the opposite output. */
+    public boolean setInputFace(Player player, Direction input) {
+        if (level == null || level.isClientSide || input == null || !canManage(player)) return false;
+        BlockState previous = level.getBlockState(worldPosition);
+        if (!(previous.getBlock() instanceof UniversalTransformerBlock)
+                || previous.getValue(UniversalTransformerBlock.FACING).getOpposite() == input) return false;
+
+        // Drain the previous asynchronous network calculation before moving the port.
+        // No transfer may see an updated direction under the old graph registration.
+        if (registered && EnergyNet.instance != null) EnergyThreading.awaitTransfers(this);
+        unregisterEnergy();
+        BlockState replacement = previous.setValue(UniversalTransformerBlock.FACING, input.getOpposite());
+        boolean changed = level.setBlock(worldPosition, replacement, Block.UPDATE_ALL);
+        BlockState actual = level.getBlockState(worldPosition);
+        if (!actual.is(previous.getBlock()) || level.getBlockEntity(worldPosition) != this) return false;
+        inputDirection = actual.getValue(UniversalTransformerBlock.FACING).getOpposite();
+        registerEnergy();
+        if (!changed) return false;
+        setChanged();
+        return true;
+    }
+
     public boolean setOutputTier(Player player, int tier) {
         if (level == null || level.isClientSide || !canManage(player) || tier < 1 || tier > 4) return false;
         if (tier != outputTier) {
@@ -114,11 +141,11 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
     @Override public int getSourceTier() { return outputTier; }
     @Override public boolean sendMultipleEnergyPackets() { return true; }
     @Override public int getMultipleEnergyPacketAmount() { return (int) (tierLimit(4) / tierLimit(outputTier)); }
-    @Override public boolean acceptsEnergyFrom(IEnergyEmitter emitter, Direction direction) { return direction != outputFace(); }
-    @Override public boolean emitsEnergyTo(IEnergyAcceptor acceptor, Direction direction) { return direction == outputFace(); }
+    @Override public boolean acceptsEnergyFrom(IEnergyEmitter emitter, Direction direction) { return direction == inputDirection; }
+    @Override public boolean emitsEnergyTo(IEnergyAcceptor acceptor, Direction direction) { return direction != null && direction != inputDirection; }
     @Override public double getDemandedEnergy() { return Math.max(0, CAPACITY - stored()); }
     @Override public double injectEnergy(Direction direction, double amount, double voltage) {
-        if (level == null || level.isClientSide || direction == outputFace() || !Double.isFinite(amount) || amount <= 0
+        if (level == null || level.isClientSide || direction != inputDirection || !Double.isFinite(amount) || amount <= 0
                 || !Double.isFinite(voltage) || voltage > 4) return amount;
         int index = Math.max(1, Math.min(4, (int) Math.ceil(voltage))) - 1;
         double accepted;
@@ -165,7 +192,9 @@ public final class UniversalTransformerBlockEntity extends BlockEntity implement
                 "一级→四级10%；二级→四级25%；三级→四级50%",
                 "升高一级50%、两级25%、三级10%；降压100%",
                 "未立即输送的电量保存在缓冲中",
-                "标记的一面输出EU，其余五面输入EU",
+                "五点面输入EU，其余五个单点面输出EU",
+                "IC2或Create扳手右击指定输入面",
+                "IC2扳手潜行右击指定对面",
                 "所选高电压需积累电包；接线须匹配电缆及机器承压");
     }
     @Override public Component getDisplayName() { return Component.literal("万能变压器"); }

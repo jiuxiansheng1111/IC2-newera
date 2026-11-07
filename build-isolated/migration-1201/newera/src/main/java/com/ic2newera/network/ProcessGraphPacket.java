@@ -62,6 +62,7 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
             material.grindingInputs().forEach(item -> buffer.writeUtf(item.toString(), 256));
             buffer.writeVarInt(material.impureVariants().size());
             material.impureVariants().forEach(item -> buffer.writeUtf(item.toString(), 256));
+            buffer.writeBoolean(material.directDust());
         }
         buffer.writeVarInt(graph.routes().size());
         for (ProcessGraph.Route route : graph.routes()) {
@@ -101,8 +102,10 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
             List<ResourceLocation> variants = readIds(buffer, 16);
             List<ResourceLocation> grindingInputs = readIds(buffer, 8);
             List<ResourceLocation> impureVariants = readIds(buffer, 8);
+            boolean directDust = buffer.readBoolean();
             validateMaterial(stages, variants, grindingInputs, impureVariants);
-            if (materials.putIfAbsent(id, new ProcessGraph.Material(id, advanced, Map.copyOf(stages), variants, grindingInputs, impureVariants)) != null)
+            if (materials.putIfAbsent(id, new ProcessGraph.Material(id, advanced, Map.copyOf(stages), variants,
+                    grindingInputs, impureVariants, directDust)) != null)
                 throw new IllegalArgumentException("Duplicate process material");
         }
         int routeCount = bounded(buffer.readVarInt(), 0, MAX_ROUTES, "route count");
@@ -186,7 +189,7 @@ public record ProcessGraphPacket(long revision, ProcessGraph.Snapshot snapshot) 
             for (ResourceLocation id : material.rawVariants()) size += utfSize(requiredId(id));
             for (ResourceLocation id : material.grindingInputs()) size += utfSize(requiredId(id));
             for (ResourceLocation id : material.impureVariants()) size += utfSize(requiredId(id));
-            size += 16;
+            size += 17;
         }
         for (ProcessGraph.Route route : graph.routes()) {
             size += utfSize(route.id().toString()) + utfSize(route.material()) + utfSize(route.classification().name());

@@ -10,6 +10,8 @@ import com.ic2newera.IC2NewEra;
 
 /** One discoverable creative inventory category for IC2: New Era content. */
 public final class ModCreativeTabs {
+    private static final java.util.Set<String> RETIRED_ITEMS = java.util.Set.of(
+            "terminal", "mechanical_cat_pancake", "impure_diamond_dust", "washed_diamond_dust");
     public static final DeferredRegister<CreativeModeTab> TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, IC2NewEra.MOD_ID);
     public static final RegistryObject<CreativeModeTab> IC2_NEW_ERA = TABS.register("ic2newera", () ->
@@ -30,7 +32,7 @@ public final class ModCreativeTabs {
                                 com.ic2newera.furniture.MirrorContent.ITEMS,
                                 com.ic2newera.robot.RobotRegistry.ITEMS)
                                 .flatMap(register -> register.getEntries().stream())
-                                .filter(entry -> !entry.getId().getPath().equals("terminal") && !entry.getId().getPath().equals("mechanical_cat_pancake"))
+                                .filter(entry -> !RETIRED_ITEMS.contains(entry.getId().getPath()))
                                 .forEach(entry -> output.accept(entry.get()));
                     }).build());
 

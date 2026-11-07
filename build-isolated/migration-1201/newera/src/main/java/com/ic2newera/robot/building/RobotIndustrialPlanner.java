@@ -486,9 +486,10 @@ public final class RobotIndustrialPlanner {
             return route.format().equals("splashing") && route.output().equals(material == null ? null
                     : material.items().get(ProcessGraph.Stage.WASHED_DUST));
         if (stage == ProcessGraph.Stage.CLEAN_DUST) {
-            return route.format().equals("centrifuge")
-                    && route.machines().contains(CENTRIFUGE)
-                    && route.output().equals(material == null ? null : material.items().get(ProcessGraph.Stage.CLEAN_DUST));
+            if (material == null || !route.output().equals(material.items().get(stage))) return false;
+            if (route.format().equals("macerator"))
+                return material.directDust() && route.machines().contains(MACERATOR);
+            return route.format().equals("centrifuge") && route.machines().contains(CENTRIFUGE);
         }
         if (stage == ProcessGraph.Stage.FINAL_METAL) {
             if (route.format().equals("mixing_furnace")) return true;
@@ -597,9 +598,11 @@ public final class RobotIndustrialPlanner {
     /** Keeps graph priority ahead of the canonical-raw tie-break, then retains stable route-ID order. */
     private static Comparator<ProcessGraph.Route> routeOrder(ResourceLocation output, ProcessGraph.Material material,
                                                               boolean preferLowYieldCentrifuge) {
-        ResourceLocation canonicalRaw = material == null || material.stage(output) != ProcessGraph.Stage.IMPURE_DUST
-                ? null : material.items().get(ProcessGraph.Stage.RAW);
-        return Comparator.comparingInt(RobotIndustrialPlanner::routeRank)
+        boolean directDust = material != null && material.directDust() && material.stage(output) == ProcessGraph.Stage.CLEAN_DUST;
+        ResourceLocation canonicalRaw = directDust && !material.grindingInputs().isEmpty() ? material.grindingInputs().get(0)
+                : material != null && material.stage(output) == ProcessGraph.Stage.IMPURE_DUST ? material.items().get(ProcessGraph.Stage.RAW) : null;
+        return Comparator.<ProcessGraph.Route>comparingInt(route -> directDust && route.format().equals("macerator") ? 0 : 1)
+                .thenComparingInt(RobotIndustrialPlanner::routeRank)
                 .thenComparingInt(route -> preferLowYieldCentrifuge
                         && material != null && material.stage(output) == ProcessGraph.Stage.CLEAN_DUST
                         && route.format().equals("centrifuge") ? -route.priority() : route.priority())

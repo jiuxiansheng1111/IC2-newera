@@ -70,14 +70,29 @@ block("advanced_kinetic_generator", {
     box([6, 4, 14], [10, 6, 16], "frame"), box([6, 10, 14], [10, 12, 16], "frame"),
     box([5, 4, 0], [11, 12, 2], "port")])
 
-block("universal_transformer", {
-    "shell": "industrial_control_server_shell", "coil": "eu_motor_coil", "frame": "alloy_smelter_trim",
-    "vent": "industrial_control_server_mesh", "port": "industrial_network_switch_ports",
-    "output": "alloy_smelter_hearth"}, [
-    box([0, 0, 0], [16, 2, 16], "frame"), box([1, 2, 1], [15, 12, 15], "shell"),
-    box([0, 3, 3], [1, 11, 13], "coil"), box([15, 3, 3], [16, 11, 13], "coil"),
-    box([2, 12, 2], [14, 14, 14], "vent"), box([4, 14, 4], [12, 16, 12], "frame"),
-    box([4, 4, 15], [12, 10, 16], "output"), box([5, 4, 0], [11, 10, 1], "port")])
+def write_transformer_model() -> None:
+    model = "ic2newera:block/universal_transformer"
+    texture = "ic2:block/wiring/transformer/"
+    cube = box([0, 0, 0], [16, 16, 16], "side")
+    for face, data in cube["faces"].items():
+        data["cullface"] = face
+    cube["faces"]["north"]["texture"] = "#input"
+    for face in ("up", "down"):
+        cube["faces"][face]["texture"] = "#end"
+    write("assets/ic2newera/models/block/universal_transformer.json", {
+        "parent": "minecraft:block/block",
+        "textures": {"particle": "#side", "input": texture + "ev_transformer_front",
+                     "side": texture + "mv_transformer_leftrightback", "end": texture + "mv_transformer_bottomtop"},
+        "elements": [cube]})
+    # Local north is the input, opposite the FACING already stored in old worlds.
+    rotations = {"south": {}, "north": {"y": 180}, "east": {"y": 270}, "west": {"y": 90},
+                 "down": {"x": 270}, "up": {"x": 90}}
+    write("assets/ic2newera/blockstates/universal_transformer.json", {"variants": {
+        "facing=" + direction: {"model": model, **rotation} for direction, rotation in rotations.items()}})
+    write("assets/ic2newera/models/item/universal_transformer.json", {"parent": model})
+
+
+write_transformer_model()
 
 # Preserve the buffered EU and rate credits when the transformer itself drops.
 copied_fields = ["OutputTier"] + [f"Input{tier}{suffix}" for tier in range(1, 5) for suffix in ("EU", "Credit")]

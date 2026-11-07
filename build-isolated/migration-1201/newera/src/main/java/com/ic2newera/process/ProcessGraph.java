@@ -29,7 +29,7 @@ public final class ProcessGraph {
     public enum Classification { LEGACY_PROCESS, APPROVED_INDUSTRIAL_PROCESS, BLOCKED_BYPASS }
     public record Material(String id, boolean advanced, Map<Stage, ResourceLocation> items,
                            List<ResourceLocation> rawVariants, List<ResourceLocation> grindingInputs,
-                           List<ResourceLocation> impureVariants) {
+                           List<ResourceLocation> impureVariants, boolean directDust) {
         public Stage stage(ResourceLocation item) {
             for (var entry : items.entrySet()) if (entry.getValue().equals(item)) return entry.getKey();
             return rawVariants.contains(item) ? Stage.RAW : impureVariants.contains(item) ? Stage.IMPURE_DUST : null;
@@ -131,7 +131,8 @@ public final class ProcessGraph {
                                 || (!stages.containsKey(Stage.FINAL_METAL) && grindingInputs.isEmpty()))
                             throw new IllegalArgumentException("Incomplete or oversized mineral stages " + name);
                         if (materials.putIfAbsent(name, new Material(name, object.get("advanced").getAsBoolean(),
-                                Map.copyOf(stages), rawVariants, grindingInputs, impureVariants)) != null)
+                                Map.copyOf(stages), rawVariants, grindingInputs, impureVariants,
+                                object.has("direct_dust") && object.get("direct_dust").getAsBoolean())) != null)
                             throw new IllegalArgumentException("Duplicate material " + name);
                     }
                     for (JsonElement value : array(root, "routes")) {
@@ -213,7 +214,11 @@ public final class ProcessGraph {
             ResourceLocation source=id(input.item);
             Stage stage=material.stage(source);
             if (material.grindingInputs.contains(source) && java.util.Set.of("macerator","crushing").contains(route.format)) {
-                if (!route.output.equals(material.items.get(Stage.IMPURE_DUST)) || route.outputCount>input.count*2)
+                ResourceLocation expected = material.directDust
+                        ? material.items.get(Stage.CLEAN_DUST) : material.items.get(Stage.IMPURE_DUST);
+                int maxOutput = material.directDust ? input.count : input.count*2;
+                if ((material.directDust && route.classification != Classification.APPROVED_INDUSTRIAL_PROCESS)
+                        || !route.output.equals(expected) || route.outputCount>maxOutput)
                     throw new IllegalArgumentException("Unwashed resource grinding " + route.id);
                 continue;
             }
@@ -222,8 +227,10 @@ public final class ProcessGraph {
                 case RAW -> route.classification==Classification.LEGACY_PROCESS
                         ? java.util.Set.of("smelting","blasting").contains(route.format)
                           && route.output.equals(material.legacyOutput()) && route.outputCount==1 && input.count==1
-                        : java.util.Set.of("macerator","crushing").contains(route.format)
-                          && route.output.equals(material.items.get(Stage.IMPURE_DUST)) && route.outputCount<=input.count*2;
+                        : (!material.directDust || route.classification==Classification.APPROVED_INDUSTRIAL_PROCESS)
+                          && java.util.Set.of("macerator","crushing").contains(route.format)
+                          && route.output.equals(material.items.get(material.directDust ? Stage.CLEAN_DUST : Stage.IMPURE_DUST))
+                          && route.outputCount<=input.count*2;
                 case IMPURE_DUST -> route.classification == Classification.APPROVED_INDUSTRIAL_PROCESS && (
                         route.format.equals("splashing") && route.output.equals(material.items.get(Stage.WASHED_DUST))
                                 && route.outputCount == input.count

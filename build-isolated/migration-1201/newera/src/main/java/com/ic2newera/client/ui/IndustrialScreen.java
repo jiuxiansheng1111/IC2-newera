@@ -79,7 +79,7 @@ public final class IndustrialScreen extends AbstractContainerScreen<IndustrialMe
                 int selectedTier = tier;
                 addRenderableWidget(new UiButton(leftPos + 10 + (tier - 1) * 70, topPos + 30, 66, 20,
                         Component.literal(tier + "级输出"), button -> menu.setTransformerTier(selectedTier),
-                        Component.literal("将输出电压上限设为" + tier + "级。标记面输出，其余五面输入。升压会降低传输速率，剩余EU留在缓冲中；降压不限速。")));
+                        Component.literal("将五个单点面的输出电压上限设为" + tier + "级。电源接五点面，负载接单点面。用扳手右击供电面可转向。升压时传输变慢，多余EU保存在缓冲中。")));
             }
         }
         if (!menu.isServerMenu()) return;

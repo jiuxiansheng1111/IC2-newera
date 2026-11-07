@@ -5,6 +5,7 @@ import argparse
 import json
 import runpy
 from pathlib import Path
+from zipfile import ZipFile
 
 from PIL import Image, ImageChops, ImageDraw, ImageFont
 
@@ -22,11 +23,29 @@ MACHINES = [
     ("wormhole_device", "虫洞装置")]
 
 
-def main(stage: str) -> None:
+def prepare_renderer():
     module = runpy.run_path(str(ROOT / "art/sources/render-machine-preview.py"))
     render = module["render_model"]
     render.__globals__["ASSET_ROOT"] = ASSETS
     render.__globals__["BLOCK_TEXTURES"] = ASSETS / "textures/block"
+    # Resolve the same IC2 textures used by the game. Keep native PNGs in the private render cache.
+    cache = ROOT / "build-isolated/model-preview-cache/ic2/textures/block"
+    model = json.loads((ASSETS / "models/block/universal_transformer.json").read_text("utf-8"))
+    with ZipFile(ROOT / "build-isolated/migration-1201/dependencies/ic2-forge-2.10.33-ex120.jar") as ic2:
+        for value in set(model["textures"].values()):
+            if value.startswith("ic2:block/"):
+                relative = Path(value.removeprefix("ic2:block/") + ".png")
+                if relative.is_absolute() or ".." in relative.parts:
+                    raise ValueError(f"Invalid block texture {value}")
+                destination = cache / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(ic2.read("assets/ic2/textures/block/" + relative.as_posix()))
+    render.__globals__["EXTERNAL_BLOCK_TEXTURES"] = {"ic2": cache}
+    return render
+
+
+def main(stage: str) -> None:
+    render = prepare_renderer()
     destination = BASE / stage
     destination.mkdir(parents=True, exist_ok=True)
     for name, _ in MACHINES:
@@ -51,7 +70,7 @@ def main(stage: str) -> None:
     for i, (name, label) in enumerate(MACHINES):
         x, y = (i % columns) * width, (i // columns) * height
         # View the marked/front side of the converter models; other blocks use their north front.
-        view = "south" if name in {"eu_motor", "advanced_eu_motor", "kinetic_generator", "advanced_kinetic_generator", "universal_transformer"} else "north"
+        view = "south" if name in {"eu_motor", "advanced_eu_motor", "kinetic_generator", "advanced_kinetic_generator"} else "north"
         rendered = Image.open(destination / f"{name}-{view}.png").convert("RGBA")
         sheet.alpha_composite(rendered, (x + 38, y + 4))
         draw.text((x + 18, y + 229), label, font=font, fill="#e2ece8")

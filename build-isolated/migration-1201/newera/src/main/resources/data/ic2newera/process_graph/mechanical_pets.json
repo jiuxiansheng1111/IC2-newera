@@ -71,5 +71,6 @@
       "format": "crafting",
       "recipe_serializer": "ic2newera:pet_assembly"
     }
-  ]
+  ],
+  "mineral_policy_revision": "2026-10-23-optional-washing-1-to-3"
 }

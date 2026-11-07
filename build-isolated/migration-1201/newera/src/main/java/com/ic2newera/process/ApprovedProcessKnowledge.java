@@ -31,7 +31,7 @@ public final class ApprovedProcessKnowledge {
         addMaterial(query, selectedMaterials, "gold", "金粉", "金矿", "金锭", "gold");
         addMaterial(query, selectedMaterials, "copper", "铜", "copper");
         addMaterial(query, selectedMaterials, "coal", "煤", "coal");
-        addMaterial(query, selectedMaterials, "diamond", "钻石", "diamond");
+        addMaterial(query, selectedMaterials, "diamond", "钻石", "diamond", "能量水晶", "energium", "energy_crystal");
         addMaterial(query, selectedMaterials, "quartz", "石英", "quartz");
         if (query.matches("(?s).*\\btin\\b.*") || query.contains("锡") || query.contains("dust_tin")) selectedMaterials.add("tin");
         addMaterial(query, selectedMaterials, "silver", "银", "silver");
@@ -94,6 +94,17 @@ public final class ApprovedProcessKnowledge {
             ProcessGraph.Material material = graph.materials().get(id);
             if (material == null) continue;
             lines.add("材料路线：" + materialName(id) + (material.advanced() ? "（高级）" : ""));
+            if (material.directDust()) {
+                ResourceLocation powder = material.items().get(ProcessGraph.Stage.CLEAN_DUST);
+                lines.add("  直接粉碎获得普通粉 " + powder);
+                graph.routes().stream()
+                        .filter(route -> route.material().equals(id) && route.output().equals(powder)
+                                && route.classification() == ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS)
+                        .sorted(java.util.Comparator.<ProcessGraph.Route>comparingInt(route ->
+                                route.format().equals("centrifuge") ? 1 : 0).thenComparing(route -> route.id().toString()))
+                        .forEach(route -> lines.add((route.format().equals("centrifuge") ? "  旧库存回收 " : "  ") + routeLine(route)));
+                continue;
+            }
             graph.routes().stream().filter(route -> route.material().equals(id)
                             && route.format().equals("splashing")
                             && route.classification() == ProcessGraph.Classification.APPROVED_INDUSTRIAL_PROCESS)

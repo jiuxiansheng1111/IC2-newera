@@ -32,7 +32,7 @@ public final class MotorBlocks {
     public static final RegistryObject<Item> ADVANCED_KINETIC_GENERATOR_ITEM = ITEMS.register("advanced_kinetic_generator",
             () -> new BlockItem(ADVANCED_KINETIC_GENERATOR.get(), new Item.Properties()));
     public static final RegistryObject<UniversalTransformerBlock> UNIVERSAL_TRANSFORMER = BLOCKS.register("universal_transformer",
-            () -> new UniversalTransformerBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(4.5F, 8F).noOcclusion()));
+            () -> new UniversalTransformerBlock(Block.Properties.copy(Blocks.IRON_BLOCK).strength(4.5F, 8F)));
     public static final RegistryObject<Item> UNIVERSAL_TRANSFORMER_ITEM = ITEMS.register("universal_transformer",
             () -> new BlockItem(UNIVERSAL_TRANSFORMER.get(), new Item.Properties()));
     public static final RegistryObject<BlockEntityType<EUMotorBlockEntity>> EU_MOTOR_TYPE = TYPES.register("eu_motor",

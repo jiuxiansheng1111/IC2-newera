@@ -17,11 +17,11 @@
     },
     "facing=down": {
       "model": "ic2newera:block/universal_transformer",
-      "x": 90
+      "x": 270
     },
     "facing=up": {
       "model": "ic2newera:block/universal_transformer",
-      "x": 270
+      "x": 90
     }
   }
 }

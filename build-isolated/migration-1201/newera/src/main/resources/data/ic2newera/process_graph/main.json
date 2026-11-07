@@ -142,7 +142,8 @@
         "minecraft:diamond",
         "ic2:industrial_diamond"
       ],
-      "impure_variants": []
+      "impure_variants": [],
+      "direct_dust": true
     },
     {
       "id": "quartz",
@@ -2404,7 +2405,7 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
+        "item": "ic2:diamond_dust",
         "count": 2
       },
       "duration_ticks": 0,
@@ -2426,7 +2427,7 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
+        "item": "ic2:diamond_dust",
         "count": 2
       },
       "duration_ticks": 250,
@@ -2448,7 +2449,7 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
+        "item": "ic2:diamond_dust",
         "count": 2
       },
       "duration_ticks": 0,
@@ -2470,7 +2471,7 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
+        "item": "ic2:diamond_dust",
         "count": 2
       },
       "duration_ticks": 250,
@@ -2492,8 +2493,8 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
-        "count": 2
+        "item": "ic2:diamond_dust",
+        "count": 1
       },
       "duration_ticks": 0,
       "eu_per_tick": -1,
@@ -2514,8 +2515,8 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
-        "count": 2
+        "item": "ic2:diamond_dust",
+        "count": 1
       },
       "duration_ticks": 250,
       "eu_per_tick": -1,
@@ -2536,8 +2537,8 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
-        "count": 2
+        "item": "ic2:diamond_dust",
+        "count": 1
       },
       "duration_ticks": 0,
       "eu_per_tick": -1,
@@ -2558,35 +2559,13 @@
         }
       ],
       "output": {
-        "item": "ic2newera:impure_diamond_dust",
-        "count": 2
+        "item": "ic2:diamond_dust",
+        "count": 1
       },
       "duration_ticks": 250,
       "eu_per_tick": -1,
       "priority": 10,
       "format": "crushing"
-    },
-    {
-      "id": "ic2newera:diamond_wash",
-      "material": "diamond",
-      "classification": "APPROVED_INDUSTRIAL_PROCESS",
-      "machines": [
-        "create:encased_fan"
-      ],
-      "inputs": [
-        {
-          "item": "ic2newera:impure_diamond_dust",
-          "count": 1
-        }
-      ],
-      "output": {
-        "item": "ic2newera:washed_diamond_dust",
-        "count": 1
-      },
-      "duration_ticks": 0,
-      "eu_per_tick": -1,
-      "priority": 5,
-      "format": "splashing"
     },
     {
       "id": "ic2newera:diamond_diamond_ore_legacy_smelting",

@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOT = ROOT / "src/main/resources/assets/ic2newera"
 BLOCK_TEXTURES = ASSET_ROOT / "textures/block"
+EXTERNAL_BLOCK_TEXTURES: dict[str, Path] = {}
 MODEL_NAMES = (
     "terminal",
     "industrial_control_server",
@@ -104,15 +105,13 @@ def resolve_texture(model: dict[str, Any], ref: str) -> Path:
         if key not in textures:
             raise ValueError(f"Missing texture key #{key}")
         value = textures[key]
-    if ":" in value:
-        namespace, path = value.split(":", 1)
-        if namespace != "ic2newera":
-            raise ValueError(f"Unexpected external texture {value!r}")
-    else:
-        path = value
+    namespace, path = value.split(":", 1) if ":" in value else ("ic2newera", value)
+    root = BLOCK_TEXTURES if namespace == "ic2newera" else EXTERNAL_BLOCK_TEXTURES.get(namespace)
+    if root is None:
+        raise ValueError(f"Unexpected external texture {value!r}")
     path = path.removeprefix("textures/").removeprefix("block/")
-    candidate = (BLOCK_TEXTURES / f"{path}.png").resolve()
-    if not candidate.is_relative_to(BLOCK_TEXTURES.resolve()):
+    candidate = (root / f"{path}.png").resolve()
+    if not candidate.is_relative_to(root.resolve()):
         raise ValueError(f"Texture path escapes block textures: {value!r}")
     if not candidate.is_file():
         raise FileNotFoundError(candidate)

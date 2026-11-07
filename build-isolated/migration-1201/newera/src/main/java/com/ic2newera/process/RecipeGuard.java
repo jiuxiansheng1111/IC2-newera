@@ -426,7 +426,11 @@ public final class RecipeGuard {
                                     ForgeRegistries.RECIPE_SERIALIZERS.getKey(actual.getSerializer()));
                             if (!serializer.startsWith("minecraft:crafting")) return false;
                         } else if (target.stage == ProcessGraph.Stage.IMPURE_DUST) {
-                            if (!Set.of("macerator", "crushing").contains(route.format())) return false;
+                            if (source.material.directDust()
+                                    || !Set.of("macerator", "crushing").contains(route.format())) return false;
+                        } else if (target.stage == ProcessGraph.Stage.CLEAN_DUST) {
+                            if (!source.material.directDust()
+                                    || !Set.of("macerator", "crushing").contains(route.format())) return false;
                         } else return false;
                     }
                     case IMPURE_DUST -> {
