@@ -1,0 +1,145 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "particle": "ic2:block/machine/processing/basic/compressor_leftrightback",
+    "down": "ic2:block/machine/processing/basic/compressor_bottom",
+    "up": "ic2:block/machine/processing/basic/compressor_top",
+    "north": "ic2:block/machine/processing/basic/compressor_front_active",
+    "south": "ic2:block/machine/processing/basic/compressor_leftrightback",
+    "west": "ic2:block/machine/processing/basic/compressor_leftrightback",
+    "east": "ic2:block/machine/processing/basic/compressor_leftrightback",
+    "badge": "ic2newera:block/ic2newera_chip_badge"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#down",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#up",
+          "cullface": "up"
+        },
+        "south": {
+          "texture": "#south",
+          "cullface": "south"
+        },
+        "west": {
+          "texture": "#west",
+          "cullface": "west"
+        },
+        "east": {
+          "texture": "#east",
+          "cullface": "east"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        11,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        14,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        11,
+        0
+      ],
+      "to": [
+        2,
+        14,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        11,
+        0
+      ],
+      "to": [
+        16,
+        14,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#north",
+          "cullface": "north"
+        }
+      }
+    },
+    {
+      "from": [
+        2,
+        11,
+        0
+      ],
+      "to": [
+        7,
+        14,
+        0
+      ],
+      "faces": {
+        "north": {
+          "texture": "#badge",
+          "cullface": "north",
+          "uv": [
+            5,
+            6,
+            10,
+            9
+          ]
+        }
+      }
+    }
+  ]
+}

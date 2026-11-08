@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "ic2newera:block/electronic_fabricator"
     },
-    "facing=east": {
+    "facing=east,lit=false": {
       "model": "ic2newera:block/electronic_fabricator",
       "y": 90
     },
-    "facing=south": {
+    "facing=south,lit=false": {
       "model": "ic2newera:block/electronic_fabricator",
       "y": 180
     },
-    "facing=west": {
+    "facing=west,lit=false": {
       "model": "ic2newera:block/electronic_fabricator",
+      "y": 270
+    },
+    "facing=north,lit=true": {
+      "model": "ic2newera:block/electronic_fabricator_active"
+    },
+    "facing=east,lit=true": {
+      "model": "ic2newera:block/electronic_fabricator_active",
+      "y": 90
+    },
+    "facing=south,lit=true": {
+      "model": "ic2newera:block/electronic_fabricator_active",
+      "y": 180
+    },
+    "facing=west,lit=true": {
+      "model": "ic2newera:block/electronic_fabricator_active",
       "y": 270
     }
   }

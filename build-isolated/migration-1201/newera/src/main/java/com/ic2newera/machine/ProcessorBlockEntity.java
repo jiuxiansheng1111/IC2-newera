@@ -191,18 +191,23 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         if (level == null || level.isClientSide) return;
         EnergyThreading.flush(this, energyDirty);
         registerEnergyTile();
-        updateProblemAndCraft();
+        boolean running = updateProblemAndCraft();
+        BlockState state = getBlockState();
+        if (state.getValue(ProcessorBlock.LIT) != running) {
+            level.setBlock(worldPosition, state.setValue(ProcessorBlock.LIT, running),
+                    net.minecraft.world.level.block.Block.UPDATE_CLIENTS);
+        }
     }
 
-    private void updateProblemAndCraft() {
-        if (automationPaused) { setProblem("DISABLED"); return; }
+    private boolean updateProblemAndCraft() {
+        if (automationPaused) { setProblem("DISABLED"); return false; }
         ProcessorRecipe recipe = findMatchingRecipe();
         if (recipe == null) {
             activeRecipeId = null;
             progress = 0;
             progressDuration = 0;
             setProblem("WAITING_INPUT");
-            return;
+            return false;
         }
         if (!recipe.getId().equals(activeRecipeId)) {
             activeRecipeId = recipe.getId();
@@ -214,7 +219,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
                 || output.getCount() + result.getCount() > output.getMaxStackSize())) {
             progressDuration = recipe.durationTicks();
             setProblem("OUTPUT_FULL");
-            return;
+            return false;
         }
         progressDuration = recipe.durationTicks();
         double before;
@@ -224,7 +229,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
         }
         if (before < recipe.euPerTick()) {
             setProblem(before == 0 ? "NO_POWER" : "LOW_POWER");
-            return;
+            return false;
         }
         progress++;
         setProblem("NONE");
@@ -239,6 +244,7 @@ public final class ProcessorBlockEntity extends BlockEntity implements WorldlyCo
             if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
         }
         setChanged();
+        return true;
     }
 
     private ProcessorRecipe findMatchingRecipe() {

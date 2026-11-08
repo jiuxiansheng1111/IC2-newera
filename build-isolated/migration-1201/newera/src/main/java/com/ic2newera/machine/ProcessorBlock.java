@@ -31,6 +31,7 @@ import net.minecraftforge.network.NetworkHooks;
 
 public final class ProcessorBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final net.minecraft.world.level.block.state.properties.BooleanProperty LIT = BlockStateProperties.LIT;
     private static final VoxelShape SHAPE = Shapes.box(0, 0, 0, 1, 1, 1);
     private final ProcessorKind kind;
 
@@ -38,14 +39,14 @@ public final class ProcessorBlock extends BaseEntityBlock {
         super(Block.Properties.copy(Blocks.IRON_BLOCK).strength(4.0F, 6.0F)
                 .sound(SoundType.METAL).noOcclusion());
         this.kind = kind;
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
     public ProcessorKind kind() { return kind; }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 
     @Override

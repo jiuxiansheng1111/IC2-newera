@@ -97,6 +97,8 @@ public final class RobotScreen extends Screen {
         tabs.add(RobotControlTabs.Page.SETTINGS, "电池与装备", "管理电池、主副手、护甲和货物。", b -> action(8, 0));
         tabs.add(RobotControlTabs.Page.SETTINGS, "陪伴互动", "查看好感、摸头与牵手，或玩无奖励小游戏；回复语言在此设置。", b ->
                 minecraft.setScreen(new RobotCompanionshipScreen(this, view.robot(), view.character(), false)));
+        tabs.add(RobotControlTabs.Page.SETTINGS, "共同回忆", "看它记住的第一次。也可以在聊天里问：你还记得我们第一次见面吗？", b ->
+                minecraft.setScreen(new RobotMemoryScreen(this, view.robot(), view.character(), false)));
         tabs.add(RobotControlTabs.Page.SETTINGS, "模型设置", "单人游戏可在此设置模型；多人服的机器人模型由服主管理。", b -> {
             if (minecraft.getSingleplayerServer() != null) minecraft.setScreen(new com.ic2newera.client.ui.LLMSettingsScreen(this));
             else { voiceStatusFocused = false; status = "多人服的机器人模型由服主管理；个人助手设置在助手页面打开。"; }
@@ -148,18 +150,19 @@ public final class RobotScreen extends Screen {
         grant = 0;
         if (queued.isBlank()) return;
         String question = queued; queued = ""; input.setValue("");
-        messages.add(new RobotChatBridge.Message("user", question));
+        boolean memory = RobotMemoryClient.topic(question) != null;
+        messages.add(new RobotChatBridge.Message("user", question, memory));
         // Keep the local transcript bounded as well as the bridge request.
         if (messages.size() > 60) messages.subList(0, messages.size() - 60).clear();
-        scroll = 0; status = "模型正在回复……";
+        scroll = 0; status = memory ? "正在翻看我们的回忆……" : "模型正在回复……";
         int ticket = ++generation;
         pending = RobotChatBridge.send(view, List.copyOf(messages));
         pending.whenComplete((reply, error) -> minecraft.execute(() -> {
             if (generation != ticket || minecraft.screen != this) return;
             pending = null;
             if (error == null) {
-                messages.add(new RobotChatBridge.Message("assistant", reply.text())); status = "回复完成。";
-                if (RobotVoiceSettings.enabled()) {
+                messages.add(new RobotChatBridge.Message("assistant", reply.text(), memory)); status = memory ? "已读取共同回忆。" : "回复完成。";
+                if (!memory && RobotVoiceSettings.enabled()) {
                     status = "回复完成，已加入语音队列。";
                     RobotVoiceClient.enqueue(view.robot(), view.character(), reply.voiceReplyId(), reply.segments(), reply.text()).whenComplete((voiceStatus, voiceError) -> minecraft.execute(() -> {
                         if (generation != ticket || minecraft.screen != this) return;

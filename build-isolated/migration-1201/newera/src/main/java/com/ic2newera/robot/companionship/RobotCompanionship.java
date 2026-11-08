@@ -1,6 +1,7 @@
 package com.ic2newera.robot.companionship;
 
 import com.ic2newera.robot.RobotEntity;
+import com.ic2newera.robot.RobotMemory;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -133,6 +134,7 @@ public final class RobotCompanionship {
         pettingUntil = now + 40;
         robot.setPettingSignal(true);
         robot.smileAtOwner();
+        RobotMemory.record(robot, RobotMemory.Kind.FIRST_PET, "主人首次抚摸");
         return result(true, ResultCode.OK);
     }
 

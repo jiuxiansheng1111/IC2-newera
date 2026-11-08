@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /** Every action, including each chat grant, rechecks owner, loaded entity and distance on the server. */
 public final class RobotPackets {
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "14", "14"::equals, "14"::equals);
+            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "15", "15"::equals, "15"::equals);
     private static final java.util.Map<ServerPlayer, Long> PHONE_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> PHONE_READ_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> LOCAL_REQUESTS = new java.util.WeakHashMap<>();
@@ -35,6 +35,7 @@ public final class RobotPackets {
         CHANNEL.registerMessage(7, CookingAction.class, CookingAction::encode, CookingAction::decode, CookingAction::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(8, CookingReply.class, CookingReply::encode, CookingReply::decode, CookingReply::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
         com.ic2newera.robot.companionship.RobotCompanionshipPackets.register();
+        RobotMemoryPackets.register();
     }
     public record HomeGreeting(UUID robot, String character, UUID reply, boolean departure, String speech) {
         static void encode(HomeGreeting value, FriendlyByteBuf buf) {

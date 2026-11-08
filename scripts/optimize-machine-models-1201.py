@@ -21,6 +21,10 @@ MACHINES = ("alloy_smelter", "advanced_electric_furnace", "non_metal_processor",
             "eu_motor", "advanced_eu_motor", "kinetic_generator", "advanced_kinetic_generator", "universal_transformer",
             "machine_network_adapter", "industrial_network_switch", "industrial_control_server", "wormhole_device")
 FACES = ("north", "south", "west", "east", "up", "down")
+# These generated models intentionally reference upstream IC2 texture IDs and split
+# the north face around a small project-owned badge. Keep their authored UV partition intact.
+PROTECTED_IC2_REFERENCE_MODELS = frozenset(("alloy_smelter", "advanced_electric_furnace",
+                                            "non_metal_processor", "electronic_fabricator"))
 
 
 def texture(model: dict, ref: str) -> Path | None:
@@ -72,6 +76,10 @@ def main(apply: bool) -> None:
         path = ASSETS / "models/block" / (name + ".json")
         model = json.loads(path.read_text(encoding="utf-8"))
         elements = model.get("elements", [])
+        if name in PROTECTED_IC2_REFERENCE_MODELS:
+            report.append({"model": name, "cuboids": len(elements), "fullyHiddenFacesRemoved": 0,
+                           "protected": "IC2 direct texture refs and badge UV partition"})
+            continue
         for element in elements:
             if len(element.get("from", [])) != 3 or len(element.get("to", [])) != 3:
                 raise ValueError("Invalid cuboid: " + name)

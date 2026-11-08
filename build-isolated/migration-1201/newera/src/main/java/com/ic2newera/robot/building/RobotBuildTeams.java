@@ -2,6 +2,7 @@ package com.ic2newera.robot.building;
 
 import com.ic2newera.robot.RobotEntity;
 import com.ic2newera.robot.RobotInventory;
+import com.ic2newera.robot.RobotMemory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.saveddata.SavedData;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,8 @@ public final class RobotBuildTeams extends SavedData {
         UUID leader;
         final ResourceLocation dimension;
         final LinkedHashSet<UUID> members;
+        /** Entity UUID -> stable memory ID, only for members observed succeeding at a real placement. */
+        final LinkedHashMap<UUID, UUID> contributors = new LinkedHashMap<>();
         RobotBuildTask task;
         State state;
         Project(UUID id, UUID leader, UUID owner, ResourceLocation dimension, Set<UUID> members,
@@ -298,8 +302,8 @@ public final class RobotBuildTeams extends SavedData {
             robot.clearTeamBuild("团队项目已取消；保留剩余材料和已放置方块");
             return true;
         }
-        if (project.state == State.COMPLETE || project.task.completed()) {
-            project.state = State.COMPLETE;
+        if (project.state == State.COMPLETE || (project.state == State.ACTIVE && project.task.completed())) {
+            transitionComplete(level, project);
             boolean productionLeader = project.task.plan().kind().equals("production") && sourceId.equals(project.leader);
             if (project.task.plan().kind().equals("production") && !productionLeader)
                 robot.clearTeamBuild("团队生产线已建成；领队负责生产，协作成员恢复待命");
@@ -360,6 +364,20 @@ public final class RobotBuildTeams extends SavedData {
         }
     }
 
+    /** Called only after a native placement succeeded and matched the planned state. */
+    public static void recordSuccessfulPlacement(RobotEntity robot, RobotBuildTask task) {
+        if (robot == null || task == null || task.projectId() == null
+                || !(robot.level() instanceof ServerLevel level) || !RobotMemory.isRegistered(robot)) return;
+        RobotBuildTeams data = data(level);
+        Project project = data.projects.get(task.projectId());
+        if (project == null || project.state != State.ACTIVE || !project.members.contains(robot.getUUID())
+                || !project.owner.equals(robot.getOwnerUUID()) || !project.owner.equals(task.owner())
+                || !project.dimension.equals(level.dimension().location()) || !project.id.equals(task.projectId())) return;
+        // A doll may return to the team under a new entity UUID. Do not spend two contributor slots.
+        if (project.contributors.containsValue(robot.memoryId()) || project.contributors.size() >= project.members.size()) return;
+        if (project.contributors.putIfAbsent(robot.getUUID(), robot.memoryId()) == null) data.setDirty();
+    }
+
     public static boolean isDone(RobotEntity robot, RobotBuildTask task, int index) {
         RobotBuildTask authority = taskFor(robot, task);
         return authority != null && authority.done(index);
@@ -395,6 +413,7 @@ public final class RobotBuildTeams extends SavedData {
         }
         if (project.state == State.CANCELLED) { robot.clearTeamBuild("共享施工已取消"); return; }
         if (project.state == State.COMPLETE || project.task.completed()) {
+            transitionComplete(level, project);
             if (!local.completed() || robot.mode() == RobotEntity.BUILDING) completeMember(robot, project.task);
             return;
         }
@@ -408,11 +427,9 @@ public final class RobotBuildTeams extends SavedData {
     /** RobotEntity.completeBuild delegates here; only the project leader enters production. */
     public static boolean completeMember(RobotEntity robot, RobotBuildTask local) {
         Project project = projectFor(local, robot);
-        if (project == null || !project.task.completed()) return false;
-        if (project.state != State.COMPLETE) {
-            project.state = State.COMPLETE;
-            if (robot.level() instanceof ServerLevel level) { RobotBuildTeams data = data(level); data.releaseProject(project.id); data.setDirty(); }
-        }
+        if (project == null || !project.task.completed()
+                || project.state == State.CANCELLED || project.state == State.PAUSED) return false;
+        if (robot.level() instanceof ServerLevel level) transitionComplete(level, project);
         forEachLoadedMember((ServerLevel) robot.level(), project, member -> {
             boolean productionLeader = project.task.plan().kind().equals("production")
                     && member.getUUID().equals(project.leader);
@@ -424,6 +441,19 @@ public final class RobotBuildTeams extends SavedData {
             }
         });
         return true;
+    }
+
+    private static void transitionComplete(ServerLevel level, Project project) {
+        if (project.state != State.ACTIVE || !project.task.completed()) return;
+        project.state = State.COMPLETE;
+        RobotBuildTeams data = data(level);
+        data.releaseProject(project.id);
+        Set<UUID> memoryIds = new LinkedHashSet<>(project.contributors.values());
+        String subject = "团队建造完成：" + project.task.plan().title() + "（实际贡献 " + memoryIds.size() + " 台）";
+        for (UUID memoryId : memoryIds)
+            RobotMemory.recordProjectBuild(level, project.owner, memoryId, project.dimension,
+                    project.task.origin(), subject);
+        data.setDirty();
     }
 
     private static boolean matches(BlockState actual, BlockState expected, RobotBuildPlan.Part part) {
@@ -603,7 +633,14 @@ public final class RobotBuildTeams extends SavedData {
             entry.putString("State", project.state.name()); entry.put("Task", project.task.save());
             ListTag members = new ListTag();
             for (UUID member : project.members) { CompoundTag id = new CompoundTag(); id.putUUID("Id", member); members.add(id); }
-            entry.put("Members", members); list.add(entry);
+            entry.put("Members", members);
+            ListTag contributors = new ListTag();
+            project.contributors.forEach((entity, memory) -> {
+                CompoundTag contribution = new CompoundTag();
+                contribution.putUUID("Entity", entity); contribution.putUUID("MemoryId", memory);
+                contributors.add(contribution);
+            });
+            entry.put("Contributors", contributors); list.add(entry);
         }
         for (CompoundTag invalid : invalidProjectRecords) list.add(invalid.copy());
         tag.put("Projects", list); return tag;
@@ -630,6 +667,18 @@ public final class RobotBuildTeams extends SavedData {
             UUID id = entry.getUUID("Id");
             if (result.projects.containsKey(id)) { retainInvalid(result, entry); continue; }
             Project candidate = new Project(id, entry.getUUID("Leader"), entry.getUUID("Owner"), dimension, members, task, state);
+            ListTag contributors = entry.getList("Contributors", 10);
+            if (contributors.size() > members.size()) { retainInvalid(result, entry); continue; }
+            boolean invalidContributor = false;
+            for (int c = 0; c < contributors.size(); c++) {
+                CompoundTag contribution = contributors.getCompound(c);
+                if (!contribution.hasUUID("Entity") || !contribution.hasUUID("MemoryId")
+                        || candidate.contributors.containsKey(contribution.getUUID("Entity"))) {
+                    invalidContributor = true; break;
+                }
+                candidate.contributors.put(contribution.getUUID("Entity"), contribution.getUUID("MemoryId"));
+            }
+            if (invalidContributor) { retainInvalid(result, entry); continue; }
             boolean overlapsAuthority = (state == State.ACTIVE || state == State.PAUSED)
                     && result.projects.values().stream().anyMatch(existing ->
                     (existing.state == State.ACTIVE || existing.state == State.PAUSED)

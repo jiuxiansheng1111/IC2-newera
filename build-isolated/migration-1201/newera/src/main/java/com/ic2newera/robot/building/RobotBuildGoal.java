@@ -3,6 +3,7 @@ package com.ic2newera.robot.building;
 import com.mojang.authlib.GameProfile;
 import com.ic2newera.robot.RobotEntity;
 import com.ic2newera.robot.RobotInventory;
+import com.ic2newera.robot.RobotMemory;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -573,7 +574,12 @@ public final class RobotBuildGoal extends Goal {
         }
         BlockState placed = level.getBlockState(target);
         if (failure == null && result.consumesAction() && matches(placed, expected, part)) {
-            RobotBuildTeams.markDone(robot, task, index); scanCursor = index + 1; nextPlacement = level.getGameTime() + 10; blockedReason = "";
+            RobotBuildTeams.markDone(robot, task, index);
+            if (task.projectId() == null) {
+                if (task.completed()) RobotMemory.recordBuild(robot, task.origin(), task.dimension(),
+                        "独立建造完成：" + task.plan().title());
+            } else RobotBuildTeams.recordSuccessfulPlacement(robot, task);
+            scanCursor = index + 1; nextPlacement = level.getGameTime() + 10; blockedReason = "";
             robot.workStatus("施工完成：" + task.finished() + "/" + task.plan().parts().size());
         } else if (failure != null) {
             logNativePlacementFailure(level, target, part, expected, support, face, result, placed, remainingHandCount);

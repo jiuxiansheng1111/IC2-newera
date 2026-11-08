@@ -23,6 +23,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 import com.ic2newera.robot.companionship.RobotCompanionship;
+import java.util.UUID;
 
 /** Server-authoritative portable machine. Recall preserves state; death consumes one of five lives. */
 public final class RobotEntity extends TamableAnimal {
@@ -56,6 +57,8 @@ public final class RobotEntity extends TamableAnimal {
     private final RobotInventory inventory = new RobotInventory(this);
     private final RobotHomeGreeting homeGreeting = new RobotHomeGreeting();
     private final RobotCompanionship companionship = new RobotCompanionship(this);
+    /** Stable across doll recovery; deliberately separate from Minecraft's per-entity UUID. */
+    private UUID memoryId = UUID.randomUUID();
     private long nextChat;
     private boolean deathHandled;
     private boolean workTaskActive;
@@ -447,6 +450,8 @@ public final class RobotEntity extends TamableAnimal {
             setMode(PRODUCTION); workStatus("设备搭建完成，检查供能、水洗与物流；尚未确认试产");
         } else { setMode(STAY); workStatus("房屋施工完成：" + buildTask.plan().title()); }
     }
+    public UUID memoryId() { return memoryId; }
+    void setMemoryId(UUID value) { if (value != null) memoryId = value; }
     /** Keeps a loaded team's shared plan while stopping only this entity's active goal. */
     public void setTeamBuildState(int mode, String status) {
         if (level().isClientSide) return;
@@ -545,6 +550,7 @@ public final class RobotEntity extends TamableAnimal {
         cookingOrder = cookingOrder.advanced(count);
         if (!cookingOrder.complete()) { workStatus("烹饪进度：" + cookingOrder.summary()); return; }
         String completed = cookingOrder.summary();
+        RobotMemory.record(this, RobotMemory.Kind.FIRST_COOKING, completed);
         cookingOrder = null;
         setMode(STAY);
         workStatus("烹饪完成：" + completed);
@@ -605,6 +611,7 @@ public final class RobotEntity extends TamableAnimal {
         collectionTask.record(count);
         if (collectionTask.complete()) {
             String completed = collectionTask.target().getHoverName().getString() + "×" + collectionTask.requested();
+            RobotMemory.record(this, RobotMemory.Kind.FIRST_COLLECTION, completed);
             collectionTask = null; setMode(STAY); workStatus = "指定采集已完成";
             if (level() instanceof ServerLevel server && getOwnerUUID() != null) {
                 ServerPlayer owner = server.getServer().getPlayerList().getPlayer(getOwnerUUID());
@@ -763,6 +770,7 @@ public final class RobotEntity extends TamableAnimal {
         state.putBoolean("HomeInitialized", homeInitialized);
         state.putBoolean("NewEraWormholeModule", getPersistentData().getBoolean("NewEraWormholeModule"));
         state.putUUID("RobotSourceUUID", getUUID());
+        state.putUUID("RobotMemoryId", memoryId);
         if (getOwnerUUID() != null) state.putUUID("Owner", getOwnerUUID());
         if (buildTask != null) state.put("BuildTask", buildTask.save());
         else if (!invalidBuildTaskRecord.isEmpty()) state.put("InvalidBuildTask", invalidBuildTaskRecord.copy());
@@ -785,6 +793,9 @@ public final class RobotEntity extends TamableAnimal {
     public void restoreDoll(ItemStack doll) {
         if (!doll.hasTag()) return;
         CompoundTag tag = doll.getTag(), state = tag.getCompound("RobotState");
+        if (state.hasUUID("RobotMemoryId")) memoryId = state.getUUID("RobotMemoryId");
+        else if (state.hasUUID("RobotSourceUUID")) memoryId = state.getUUID("RobotSourceUUID");
+        else memoryId = getUUID();
         entityData.set(DEATHS, Math.max(0, Math.min(MAX_DEATHS, state.getInt("Deaths"))));
         if (state.hasUUID("Owner")) setOwnerUUID(state.getUUID("Owner"));
         companionship.loadFromDoll(state.getCompound("Companionship"));
@@ -958,6 +969,7 @@ public final class RobotEntity extends TamableAnimal {
     }
     @Override public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag); inventory.syncEquipment();
+        tag.putUUID("RobotMemoryId", memoryId);
         tag.putInt("RobotHealthSchema", HEALTH_SCHEMA);
         tag.putInt("RobotHunger", hunger); tag.putInt("RobotHungerActiveTicks", hungerActiveTicks);
         tag.putInt("RobotHungerStarvationTicks", hungerStarvationTicks);
@@ -987,6 +999,7 @@ public final class RobotEntity extends TamableAnimal {
     }
     @Override public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag); setCharacter(RobotCharacter.byId(tag.getString("RobotCharacter")));
+        memoryId = tag.hasUUID("RobotMemoryId") ? tag.getUUID("RobotMemoryId") : getUUID();
         if (tag.getInt("RobotHealthSchema") < HEALTH_SCHEMA) {
             // Legacy entity NBT includes an Attributes list whose max-health base
             // can still be 20 after changing the entity's default attributes.

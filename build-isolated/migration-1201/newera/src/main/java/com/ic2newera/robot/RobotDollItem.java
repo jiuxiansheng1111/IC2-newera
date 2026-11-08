@@ -35,11 +35,14 @@ public final class RobotDollItem extends Item {
             return InteractionResult.FAIL;
         }
         ItemStack doll = context.getItemInHand();
+        boolean hadPriorRobotState = doll.hasTag() && doll.getTag().contains("RobotState");
         robot.setCharacter(character); robot.tame(player); robot.stay();
         if (doll.hasCustomHoverName()) robot.setCustomName(doll.getHoverName());
         robot.restoreDoll(doll);
         if (robot.deaths() >= RobotEntity.MAX_DEATHS) return InteractionResult.FAIL;
         if (!server.addFreshEntity(robot)) return InteractionResult.FAIL;
+        if (!hadPriorRobotState)
+            RobotMemory.record(robot, RobotMemory.Kind.FIRST_MEETING, robot.character().chineseName);
         if (!player.getAbilities().instabuild) doll.shrink(1);
         return InteractionResult.CONSUME;
     }

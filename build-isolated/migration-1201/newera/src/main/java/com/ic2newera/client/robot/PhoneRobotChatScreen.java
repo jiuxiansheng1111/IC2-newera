@@ -28,6 +28,8 @@ final class PhoneRobotChatScreen extends Screen {
     private Button send, combat, pause, follow, voice, workTypeButton, startWorkButton;
     private RobotWorkChoice workChoice;
     private RobotControlTabs tabs;
+    private String lastMemoryDraft = "";
+    private boolean memoryDraft;
     private RobotControlTabs.Page page = RobotControlTabs.Page.CHAT;
     private final List<Button> onlineControls = new ArrayList<>();
     private CompletableFuture<RobotChatBridge.Reply> pending;
@@ -104,6 +106,8 @@ final class PhoneRobotChatScreen extends Screen {
         });
         tabs.add(RobotControlTabs.Page.SETTINGS, "陪伴互动", "远程查看好感并玩无奖励小游戏；摸头和牵手必须近身。", b ->
                 minecraft.setScreen(new RobotCompanionshipScreen(this, robot, character, true)));
+        tabs.add(RobotControlTabs.Page.SETTINGS, "共同回忆", "读取自己机器人的真实经历，手机耗电 20 EU。", b ->
+                minecraft.setScreen(new RobotMemoryScreen(this, robot, character, true)));
         transcriptTop = 82;
         inputY = height - 26;
         int inputWidth = panelWidth - 72;
@@ -136,11 +140,18 @@ final class PhoneRobotChatScreen extends Screen {
     private void updateControls() {
         boolean phonePower = online() && IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.COMMAND_COST);
         if (send != null) {
-            send.active = pending != null || phonePower && device.energy() >= 2000 && !input.getValue().isBlank();
+            if (!lastMemoryDraft.equals(input.getValue())) {
+                lastMemoryDraft = input.getValue();
+                memoryDraft = RobotMemoryClient.topic(lastMemoryDraft) != null;
+            }
+            boolean memory = memoryDraft;
+            boolean canRead = online() && IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.READ_COST);
+            send.active = pending != null || (memory ? canRead : phonePower && device.energy() >= 2000) && !input.getValue().isBlank();
             send.setMessage(Component.literal(pending != null ? "取消请求" : "发送"));
             String reason = pending != null ? "取消当前文字请求；取消后会把问题放回输入框。"
                     : !heldPhone() ? "手持或副手持手机后才能远程聊天。"
                     : device == null || !device.controllable() ? "机器人离线或当前玩家没有控制权限；返回设备列表刷新。"
+                    : memory ? (canRead ? "从服务器读取回忆，手机耗电 20 EU。" : "读取回忆需要手机至少有 20 EU。")
                     : !IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.COMMAND_COST) ? "手机电量不足，无法发送远程命令。"
                     : device.energy() < 2000 ? "机器人储能低于 2000 EU，服务端不会接收本次聊天请求。"
                     : input.getValue().isBlank() ? "输入消息后再发送，也可按回车提交。"
@@ -163,7 +174,8 @@ final class PhoneRobotChatScreen extends Screen {
         if (!online() || pending != null || input.getValue().isBlank()) return;
         voiceStatusFocused = false;
         String question = input.getValue().trim(); input.setValue("");
-        messages.add(new RobotChatBridge.Message("user", question));
+        boolean memory = RobotMemoryClient.topic(question) != null;
+        messages.add(new RobotChatBridge.Message("user", question, memory));
         if (messages.size() > 60) messages.subList(0, messages.size() - 60).clear();
         int ticket = ++generation; scroll = 0; status = "正在通过手机联系机器人……";
         pending = RobotChatBridge.sendPhone(robot, character, List.copyOf(messages));
@@ -175,9 +187,9 @@ final class PhoneRobotChatScreen extends Screen {
                 status = cause instanceof IllegalStateException ? cause.getMessage() : "远程聊天未完成，请检查手机连接后重试。";
                 restoreQuestion(question);
             } else {
-                messages.add(new RobotChatBridge.Message("assistant", reply.text()));
-                status = "回复完成。";
-                if (RobotVoiceSettings.enabled()) {
+                messages.add(new RobotChatBridge.Message("assistant", reply.text(), memory));
+                status = memory ? "已读取共同回忆。" : "回复完成。";
+                if (!memory && RobotVoiceSettings.enabled()) {
                     status = "回复完成，角色语音已排队。";
                     RobotVoiceClient.enqueue(robot, character, reply.voiceReplyId(), reply.segments(), reply.text()).whenComplete((voiceStatus, failure) -> minecraft.execute(() -> {
                         if (ticket != generation || minecraft.screen != this) return;
