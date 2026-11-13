@@ -55,7 +55,14 @@ public final class FieldRouteScreen extends Screen {
             line(g, "暂无目的地", 34, 0xFFE8A8);
             line(g, "从生态相册、月球远征或任务路线选一个地点后出发。", 50, 0xDCEDEF);
         } else {
-            String dim = route.dimension().equals("minecraft:overworld") ? "主世界" : route.dimension().equals("ad_astra:moon") ? "月球" : route.dimension();
+            String dim = switch (route.dimension()) {
+                case "minecraft:overworld" -> "主世界";
+                case "ad_astra:moon" -> "月球（Ad Astra）";
+                case "ad_astra:mars" -> "火星（Ad Astra）";
+                case "northstar:moon" -> "月球（Northstar）";
+                case "northstar:mars" -> "火星（Northstar）";
+                default -> route.dimension();
+            };
             line(g, route.label() + "　" + dim + "　" + route.target().toShortString(), 23, TARGET);
             line(g, route.status(), 38, 0xE7EEF1);
             line(g, "下一步　" + route.next(), 52, PLAYER);

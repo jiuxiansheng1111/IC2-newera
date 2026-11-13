@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/phone_photo",
+  "display": {
+    "icon": {
+      "item": "minecraft:spyglass"
+    },
+    "title": "齿轮盛宴的野外来客",
+    "description": "用相机或工业手机留下本服核验的浣熊、海豹、走鹃或三叶虾照片。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

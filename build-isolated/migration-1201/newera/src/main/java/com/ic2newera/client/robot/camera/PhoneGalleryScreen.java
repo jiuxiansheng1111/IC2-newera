@@ -107,7 +107,7 @@ public final class PhoneGalleryScreen extends Screen {
         for (int i = 0; i < visibleRows && rowOffset + i < serverRows.size(); i++) {
             int index = rowOffset + i;
             PhoneCameraServerData.PhotoRow row = serverRows.get(index);
-            String name = speciesName(row.speciesId()) + " · " + row.camera().pos().toShortString() + (row.published() ? " · 公开" : "");
+            String name = com.ic2newera.field.EcologyAlbum.speciesName(row.speciesId()) + " · " + row.camera().pos().toShortString() + (row.published() ? " · 公开" : "");
             addRenderableWidget(Button.builder(Component.literal(name), b -> selectServer(index))
                     .bounds(10, 60 + i * 21, 232, 19).build());
         }
@@ -127,14 +127,6 @@ public final class PhoneGalleryScreen extends Screen {
         PhoneCameraPackets.requestPhoto(selectedServer);
     }
 
-    private static String speciesName(String id) {
-        return switch (id) {
-            case "spawn:angler_fish" -> "鮟鱇鱼";
-            case "spawn:clam" -> "蛤蜊";
-            case "spawn:tuna" -> "金枪鱼";
-            default -> id == null || id.isBlank() ? "风景 / 自拍" : id;
-        };
-    }
 
     private UUID selectedId() {
         if (selectedServer != null) return selectedServer;

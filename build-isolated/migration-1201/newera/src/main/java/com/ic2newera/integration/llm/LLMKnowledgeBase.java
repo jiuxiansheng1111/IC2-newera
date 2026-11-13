@@ -30,6 +30,17 @@ public final class LLMKnowledgeBase {
 
     public static String forQuestion(String question, int limit) {
         int contextLimit = Math.max(256, Math.min(limit, MAX_CONTEXT_CHARS));
+        String handbook = QuestHandbookKnowledge.forQuestion(question, Math.min(3000, contextLimit));
+        if (!handbook.isEmpty()) {
+            int remaining = contextLimit - handbook.length();
+            if (remaining < 600) return handbook;
+            String manual = forOperations(question, remaining);
+            return manual.startsWith("[") ? handbook : handbook + manual;
+        }
+        return forOperations(question, contextLimit);
+    }
+
+    private static String forOperations(String question, int contextLimit) {
         if (DOCUMENT.isBlank()) return "[随包工艺知识库不可用；请不要猜测配方或生产步骤。]";
         List<Section> sections = SECTIONS;
         if (sections.isEmpty()) return DOCUMENT.substring(0, Math.min(DOCUMENT.length(), contextLimit));
@@ -49,7 +60,7 @@ public final class LLMKnowledgeBase {
             if (section.text.length() > remaining) continue;
             context.append(section.text).append('\n');
         }
-        return context.toString();
+        return context.substring(0, Math.min(contextLimit, context.length()));
     }
 
     /** Follow-up questions retain one recent player topic, never model-generated claims. */

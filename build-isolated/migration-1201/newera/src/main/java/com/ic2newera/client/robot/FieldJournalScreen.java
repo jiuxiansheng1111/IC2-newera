@@ -179,15 +179,15 @@ public final class FieldJournalScreen extends Screen {
         if (value != null && (s.equals("月球补给箱在哪") || s.equals("上次的月球补给箱在哪") || s.equals("月球着陆点在哪")
                 || s.equals("上次的月球着陆点在哪") || s.equals("上回留在月球的补给箱在哪")))
             return new Query(Tab.MOON, "where", value);
-        for (int i = 0; i < FieldJournal.NAMES.size(); i++) {
-            String name = FieldJournal.NAMES.get(i);
+        for (var species : com.ic2newera.field.EcologyAlbum.availableSpecies()) {
+            String name = species.displayName();
             if (s.equals("带我去" + name + "的拍摄点") || s.equals("带我去" + name + "拍摄点"))
-                return new Query(Tab.ALBUM, "guide", "camera|" + FieldJournal.SPECIES.get(i));
-            if (s.equals(name + "的拍摄点在哪")) return new Query(Tab.ALBUM, "where", "camera|" + FieldJournal.SPECIES.get(i));
+                return new Query(Tab.ALBUM, "guide", "camera|" + species.entityId());
+            if (s.equals(name + "的拍摄点在哪")) return new Query(Tab.ALBUM, "where", "camera|" + species.entityId());
             if (s.equals("哪里见过" + name) || s.equals(name + "在哪里拍到的") || s.equals(name + "在哪"))
-                return new Query(Tab.ALBUM, "where", FieldJournal.SPECIES.get(i));
+                return new Query(Tab.ALBUM, "where", species.entityId());
             if (s.equals("带我去" + name + "发现地") || s.equals("带我去看" + name))
-                return new Query(Tab.ALBUM, "guide", FieldJournal.SPECIES.get(i));
+                return new Query(Tab.ALBUM, "guide", species.entityId());
         }
         return null;
     }

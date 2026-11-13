@@ -30,8 +30,6 @@ public final class FieldJournal {
     public static final UUID NO_ROBOT = new UUID(0, 0);
     private static final Map<ServerPlayer, Long> nextRequest = new WeakHashMap<>();
     private static final Map<ServerPlayer, Integer> albumPages = new WeakHashMap<>();
-    public static final List<String> SPECIES = List.of("spawn:angler_fish", "spawn:clam", "spawn:tuna");
-    public static final List<String> NAMES = List.of("鮟鱇鱼", "蛤蜊", "金枪鱼");
     public record Candidate(String id, String label) {}
     public record Request(UUID ticket, Tab tab, String op, String arg, UUID robot, boolean nearbyChat) {}
     public record View(UUID ticket, Tab tab, String notice, List<String> lines, List<Candidate> candidates, List<Candidate> archived, ItemStack photo) {

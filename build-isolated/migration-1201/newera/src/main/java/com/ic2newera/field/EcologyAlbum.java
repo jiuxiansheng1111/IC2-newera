@@ -67,7 +67,21 @@ public final class EcologyAlbum {
     private static final List<Species> SPECIES = List.of(
             new Species("angler_fish", "鮟鱇鱼", "spawn:angler_fish"),
             new Species("clam", "蛤蜊", "spawn:clam"),
-            new Species("tuna", "金枪鱼", "spawn:tuna"));
+            new Species("tuna", "金枪鱼", "spawn:tuna"),
+            new Species("raccoon", "浣熊", "alexsmobs:raccoon"),
+            new Species("seal", "海豹", "alexsmobs:seal"),
+            new Species("roadrunner", "走鹃", "alexsmobs:roadrunner"),
+            new Species("trilocaris", "三叶虾", "alexscaves:trilocaris"));
+
+    public static List<Species> availableSpecies() {
+        return SPECIES.stream().filter(s -> BuiltInRegistries.ENTITY_TYPE.containsKey(
+                ResourceLocation.tryParse(s.entityId()))).toList();
+    }
+
+    public static String speciesName(String id) {
+        Species species = findSpecies(id);
+        return species == null ? (id == null || id.isBlank() ? "风景 / 自拍" : id) : species.displayName();
+    }
 
     private EcologyAlbum() {}
 
@@ -101,7 +115,7 @@ public final class EcologyAlbum {
         return PhoneCameraServerData.list(viewer, true, page).stream().map(row -> {
             PhotoEvidence evidence = new PhotoEvidence(row.id().toString(), row.capturedAtMillis(), row.owner(), row.speciesId(),
                     row.camera(), row.subject(), row.id().toString());
-            String target = row.speciesId().isBlank() ? "风景 / 自拍" : row.speciesId();
+            String target = speciesName(row.speciesId());
             String label = target + " · " + row.camera().dimension().location() + " " + row.camera().pos().toShortString();
             return new PhonePhoto(new Candidate(row.id().toString(), label), evidence);
         }).toList();
@@ -200,8 +214,14 @@ public final class EcologyAlbum {
         data.evidence.add(evidenceTag(evidence));
         trimEvidence(data);
         data.setDirty();
-        DailyContracts.onPhotoEvidence(player, evidence);
+        recordObservation(player, evidence);
         return evidence;
+    }
+
+    private static void recordObservation(ServerPlayer player, PhotoEvidence evidence) {
+        Species species = findSpecies(evidence.speciesId());
+        if (species != null && species.fromDelight()) FieldMilestones.award(player, "delight_wildlife_photo");
+        DailyContracts.onPhotoEvidence(player, evidence);
     }
 
     public static boolean hasPhoneCaptureTicket(ServerPlayer player, UUID captureId) {
@@ -497,7 +517,7 @@ public final class EcologyAlbum {
                     GlobalPos.of(level.dimension(), BlockPos.of(shutterSubject.getLong("Pos"))), id);
             if (data.evidence.stream().noneMatch(row -> id.equals(row.getString("EvidenceKey")))) {
                 data.evidence.add(evidenceTag(evidence));
-                DailyContracts.onPhotoEvidence(player, evidence);
+                recordObservation(player, evidence);
             }
         }
         data.shots.remove(shutter);
@@ -835,7 +855,11 @@ public final class EcologyAlbum {
         return server.overworld().getDataStorage().computeIfAbsent(AlbumData::load, AlbumData::new, DATA_NAME);
     }
 
-    private record Species(String key, String displayName, String entityId) {}
+    public record Species(String key, String displayName, String entityId) {
+        public boolean fromDelight() {
+            return entityId.startsWith("alexsmobs:") || entityId.startsWith("alexscaves:");
+        }
+    }
 
     private static final class AlbumData extends SavedData {
         private UUID worldIdentity = UUID.randomUUID();

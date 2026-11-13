@@ -147,6 +147,7 @@ for name,parent,icon,title,desc,frame in [
     ('weekly_claimed','weekly_accepted','minecraft:clock','跨车间交班','完成联合工单的材料与协作目标，在原公告栏领取整份报酬。','goal'),
     ('phone_photo','phone','ic2newera:industrial_phone','留住这一帧','用工业手机拍摄，并成功保存一张服务器照片。','task'),
     ('album_published','phone_photo','exposure:photograph','海岸观察员','向公共记录提交一张通过核验的生态照片。','goal'),
+    ('delight_wildlife_photo','phone_photo','minecraft:spyglass','齿轮盛宴的野外来客','用相机或工业手机留下本服核验的浣熊、海豹、走鹃或三叶虾照片。','task'),
     ('route_arrival','phone','minecraft:compass','按图归来','跟随手机导航到达记录坐标或目标方块旁。','task'),
     ('moon_landing','lunar_crystal','ad_astra:tier_1_rocket','在月面报平安','乘火箭完成月面着陆，在工业手机上亲自确认本队落点。','challenge')]:
     display(name,parent,icon,title,desc,frame,{'event':{'trigger':'minecraft:impossible'}})

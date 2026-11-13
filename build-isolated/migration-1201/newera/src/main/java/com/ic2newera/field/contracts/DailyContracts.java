@@ -424,6 +424,22 @@ public final class DailyContracts {
         result.add(new Spec("photo_" + photoSpeciesIndex, ContractType.PHOTO, species, display, 1,
                 1 + photoSpeciesIndex, photoSpeciesIndex == 2 ? 5 : photoSpeciesIndex == 0 ? 2 : 0,
                 "定向观察：" + display, "接取后使用相机拍摄指定物种。服务器核对真实快门、被摄实体与拍摄时刻，旧照片不计。"));
+        List<EcologyAlbum.Species> wildlife = EcologyAlbum.availableSpecies().stream()
+                .filter(EcologyAlbum.Species::fromDelight).toList();
+        if (!wildlife.isEmpty()) {
+            EcologyAlbum.Species subject = wildlife.get(Math.floorMod(cycle, wildlife.size()));
+            result.add(new Spec("survey_" + subject.key(), ContractType.PHOTO, subject.entityId(),
+                    subject.displayName(), 1, 2, 0, "联合考察：" + subject.displayName(),
+                    "接单后用工业手机或 Exposure 相机拍摄这只生物。请把它对准取景中心；服务器确认快门后再回来领奖。"));
+            List<Spec> samples = List.of(
+                    delivery("delight_rattle", "alexsmobs:rattlesnake_rattle", "响尾蛇响环", 1, 2, 1, "沙地标本入库", "给野外站提交响尾蛇的响环。备足再交，领取下一次考察的补给。"),
+                    delivery("delight_feather", "alexsmobs:roadrunner_feather", "走鹃羽毛", 1, 2, 1, "测绘站羽样", "交来走鹃的羽毛样本，箭矢和普通羽毛无法充作样本。"),
+                    delivery("delight_tail", "alexscaves:trilocaris_tail", "三叶虾尾", 1, 4, 3, "洞穴生物取样", "深处采集组征收三叶虾尾。提交后领取外勤补给。"),
+                    delivery("delight_cast", "tconstruct:tool_handle_sand_cast", "手柄沙模", 2, 2, 1, "铸造间要换模", "铸造间需要新的手柄沙模；只收未浇注的沙模，自己的匠魂工具留在手中。"),
+                    delivery("delight_lead", "ic2:raw_lead", "粗铅", 3, 2, 1, "矿山送样", "在打粉前分一小批粗铅给矿山化验室。已洗净的粉留给自己的生产线。"));
+            List<Spec> eligible = samples.stream().filter(s -> s.minimumRank <= rank && validItem(ResourceLocation.tryParse(s.target))).toList();
+            if (!eligible.isEmpty()) result.add(eligible.get(Math.floorMod(cycle, eligible.size())));
+        }
         return result.stream().filter(spec -> spec.minimumRank <= rank)
                 .filter(spec -> spec.type == ContractType.PHOTO || validItem(ResourceLocation.tryParse(spec.target))).toList();
     }
