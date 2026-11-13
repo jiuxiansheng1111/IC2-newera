@@ -549,7 +549,10 @@ public final class RobotEntity extends TamableAnimal {
         if (level().isClientSide || cookingOrder == null || count <= 0) return;
         cookingOrder = cookingOrder.advanced(count);
         if (!cookingOrder.complete()) { workStatus("烹饪进度：" + cookingOrder.summary()); return; }
+        ResourceLocation completedItem = cookingOrder.target();
+        int completedAmount = cookingOrder.requested();
         String completed = cookingOrder.summary();
+        RobotTaskBook.completedCooking(this, completedItem, completedAmount);
         RobotMemory.record(this, RobotMemory.Kind.FIRST_COOKING, completed);
         cookingOrder = null;
         setMode(STAY);
@@ -610,7 +613,11 @@ public final class RobotEntity extends TamableAnimal {
         if (collectionTask == null || count <= 0) return false;
         collectionTask.record(count);
         if (collectionTask.complete()) {
+            ResourceLocation completedItem = BuiltInRegistries.ITEM.getKey(collectionTask.target().getItem());
+            int completedAmount = collectionTask.requested();
+            int completedMode = collectionTask.kind();
             String completed = collectionTask.target().getHoverName().getString() + "×" + collectionTask.requested();
+            RobotTaskBook.completedCollection(this, completedItem, completedAmount, completedMode);
             RobotMemory.record(this, RobotMemory.Kind.FIRST_COLLECTION, completed);
             collectionTask = null; setMode(STAY); workStatus = "指定采集已完成";
             if (level() instanceof ServerLevel server && getOwnerUUID() != null) {

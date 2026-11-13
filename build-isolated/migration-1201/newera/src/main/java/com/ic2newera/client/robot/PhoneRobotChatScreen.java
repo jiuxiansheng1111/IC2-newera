@@ -30,11 +30,13 @@ final class PhoneRobotChatScreen extends Screen {
     private RobotControlTabs tabs;
     private String lastMemoryDraft = "";
     private boolean memoryDraft;
+    private RobotTaskIntent taskDraft;
     private RobotControlTabs.Page page = RobotControlTabs.Page.CHAT;
     private final List<Button> onlineControls = new ArrayList<>();
     private CompletableFuture<RobotChatBridge.Reply> pending;
     private int generation, ticks, scroll, left, panelWidth, transcriptTop, transcriptBottom, statusY, inputY;
     private boolean voiceStatusFocused;
+    private boolean taskPending;
 
     PhoneRobotChatScreen(IndustrialPhoneScreen parent, IndustrialMobileAccess.Snapshot snapshot, IndustrialMobileAccess.Device device) {
         super(Component.literal("手机 · " + device.name()));
@@ -98,6 +100,7 @@ final class PhoneRobotChatScreen extends Screen {
                     voiceStatusFocused = false; status = "语音草稿已填入，请校对后点击发送。";
                 })));
         tabs.add(RobotControlTabs.Page.SETTINGS, "清空对话", "取消当前文字请求并清空本页对话，不改变机器人工作任务。", b -> {
+            if (taskPending) { status = "常用任务正在处理，请等候结果后再清空对话。"; return; }
             cancelPending(false); messages.clear(); scroll = 0; status = "本页对话已清空。"; voiceStatusFocused = false;
         });
         tabs.add(RobotControlTabs.Page.SETTINGS, "模型设置", "单人游戏可设置模型；多人服机器人模型由服主管理。", b -> {
@@ -108,6 +111,8 @@ final class PhoneRobotChatScreen extends Screen {
                 minecraft.setScreen(new RobotCompanionshipScreen(this, robot, character, true)));
         tabs.add(RobotControlTabs.Page.SETTINGS, "共同回忆", "读取自己机器人的真实经历，手机耗电 20 EU。", b ->
                 minecraft.setScreen(new RobotMemoryScreen(this, robot, character, true)));
+        tabs.add(RobotControlTabs.Page.SETTINGS, "常用任务", "查看最近采集/烹饪任务并保存昵称。读取、保存或删除耗手机 20 EU；执行按普通命令计费。", b ->
+                minecraft.setScreen(new RobotTaskScreen(this, robot, character, true, device == null ? 0 : device.energy())));
         transcriptTop = 82;
         inputY = height - 26;
         int inputWidth = panelWidth - 72;
@@ -115,7 +120,7 @@ final class PhoneRobotChatScreen extends Screen {
         input.setMaxLength(1200); input.setValue(draft); input.moveCursorTo(caret);
         send = addRenderableWidget(new UiButton(left + inputWidth + 4, inputY, 68, 20, Component.literal("发送"), b -> {
             if (pending == null) requestChat();
-            else { cancelPending(true); voiceStatusFocused = false; status = "已取消本次远程聊天。"; }
+            else if (!taskPending) { cancelPending(true); voiceStatusFocused = false; status = "已取消本次远程聊天。"; }
         }));
         selectPage(page);
         if (focus && page == RobotControlTabs.Page.CHAT) setInitialFocus(input);
@@ -143,14 +148,24 @@ final class PhoneRobotChatScreen extends Screen {
             if (!lastMemoryDraft.equals(input.getValue())) {
                 lastMemoryDraft = input.getValue();
                 memoryDraft = RobotMemoryClient.topic(lastMemoryDraft) != null;
+                taskDraft = RobotTaskIntent.parse(lastMemoryDraft);
             }
+            RobotTaskIntent task = taskDraft;
             boolean memory = memoryDraft;
             boolean canRead = online() && IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.READ_COST);
-            send.active = pending != null || (memory ? canRead : phonePower && device.energy() >= 2000) && !input.getValue().isBlank();
-            send.setMessage(Component.literal(pending != null ? "取消请求" : "发送"));
-            String reason = pending != null ? "取消当前文字请求；取消后会把问题放回输入框。"
+            boolean taskUsage = task != null && !task.error().isEmpty();
+            boolean taskRead = task != null && (task.action() == RobotTaskBook.Action.LIST || task.action() == RobotTaskBook.Action.SAVE || task.action() == RobotTaskBook.Action.FORGET);
+            boolean canTask = taskUsage || taskRead && canRead || task != null && task.action() == RobotTaskBook.Action.RUN
+                    && phonePower && device != null && device.energy() >= 200;
+            send.active = pending != null ? !taskPending : (task != null ? canTask : memory ? canRead : phonePower && device.energy() >= 2000) && !input.getValue().isBlank();
+            send.setMessage(Component.literal(taskPending ? "处理中" : pending != null ? "取消请求" : "发送"));
+            String reason = taskPending ? "服务器正在处理此任务命令。为避免重复派单，请等候结果。"
+                    : pending != null ? "取消当前文字请求；取消后会把问题放回输入框。"
+                    : taskUsage ? task.error()
                     : !heldPhone() ? "手持或副手持手机后才能远程聊天。"
                     : device == null || !device.controllable() ? "机器人离线或当前玩家没有控制权限；返回设备列表刷新。"
+                    : task != null ? (taskUsage ? task.error() : taskRead ? canRead ? "常用任务操作成功后手机耗电 20 EU。" : "常用任务读取、保存和删除需要手机至少有 20 EU。"
+                    : device != null && device.energy() < 200 ? "重复任务需要机器人至少有 200 EU。" : "执行常用任务按普通命令扣手机 100 EU，并从机器人扣 200 EU。")
                     : memory ? (canRead ? "从服务器读取回忆，手机耗电 20 EU。" : "读取回忆需要手机至少有 20 EU。")
                     : !IndustrialPhoneItem.hasHeldCharge(minecraft.player, IndustrialPhoneItem.COMMAND_COST) ? "手机电量不足，无法发送远程命令。"
                     : device.energy() < 2000 ? "机器人储能低于 2000 EU，服务端不会接收本次聊天请求。"
@@ -171,24 +186,27 @@ final class PhoneRobotChatScreen extends Screen {
         RobotPackets.CHANNEL.sendToServer(new RobotPackets.PhoneAction(robot, action, ""));
     }
     private void requestChat() {
-        if (!online() || pending != null || input.getValue().isBlank()) return;
+        RobotTaskIntent task = RobotTaskIntent.parse(input.getValue());
+        boolean localUsage = task != null && !task.error().isEmpty();
+        if ((!online() && !localUsage) || pending != null || input.getValue().isBlank()) return;
         voiceStatusFocused = false;
         String question = input.getValue().trim(); input.setValue("");
-        boolean memory = RobotMemoryClient.topic(question) != null;
+        boolean memory = task != null || RobotMemoryClient.topic(question) != null;
+        taskPending = task != null && task.error().isEmpty();
         messages.add(new RobotChatBridge.Message("user", question, memory));
         if (messages.size() > 60) messages.subList(0, messages.size() - 60).clear();
-        int ticket = ++generation; scroll = 0; status = "正在通过手机联系机器人……";
+        int ticket = ++generation; scroll = 0; status = task != null ? "正在处理常用任务……" : "正在通过手机联系机器人……";
         pending = RobotChatBridge.sendPhone(robot, character, List.copyOf(messages));
         pending.whenComplete((reply, error) -> minecraft.execute(() -> {
             if (ticket != generation || minecraft.screen != this) return;
-            pending = null;
+            pending = null; taskPending = false;
             if (error != null) {
                 Throwable cause = error; while (cause.getCause() != null) cause = cause.getCause();
                 status = cause instanceof IllegalStateException ? cause.getMessage() : "远程聊天未完成，请检查手机连接后重试。";
                 restoreQuestion(question);
             } else {
                 messages.add(new RobotChatBridge.Message("assistant", reply.text(), memory));
-                status = memory ? "已读取共同回忆。" : "回复完成。";
+                status = memory ? task != null ? reply.text() : "已读取共同回忆。" : "回复完成。";
                 if (!memory && RobotVoiceSettings.enabled()) {
                     status = "回复完成，角色语音已排队。";
                     RobotVoiceClient.enqueue(robot, character, reply.voiceReplyId(), reply.segments(), reply.text()).whenComplete((voiceStatus, failure) -> minecraft.execute(() -> {
@@ -208,6 +226,7 @@ final class PhoneRobotChatScreen extends Screen {
         if (!messages.isEmpty() && messages.get(messages.size() - 1).role().equals("user")) messages.remove(messages.size() - 1);
     }
     private void cancelPending(boolean restore) {
+        if (taskPending) return;
         generation++;
         if (pending != null) {
             pending.cancel(true); pending = null;
@@ -266,6 +285,10 @@ final class PhoneRobotChatScreen extends Screen {
         return super.keyPressed(key, scan, modifiers);
     }
     @Override public void onClose() { minecraft.setScreen(heldPhone() ? parent : null); }
-    @Override public void removed() { cancelPending(true); if (input != null) draft = input.getValue(); super.removed(); }
+    @Override public void removed() {
+        if (taskPending) { generation++; pending = null; taskPending = false; }
+        else cancelPending(true);
+        if (input != null) draft = input.getValue(); super.removed();
+    }
     @Override public boolean isPauseScreen() { return false; }
 }

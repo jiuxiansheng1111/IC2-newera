@@ -66,6 +66,25 @@ public final class RobotMemory {
         return data(level.getServer()).isRegistered(robot.getOwnerUUID(), robot.memoryId(), robot.getUUID());
     }
 
+    /** Task-book data shares the existing bounded r66 identity directory and overworld file. */
+    static CompoundTag taskBookFor(ServerPlayer player, RobotEntity robot) {
+        if (player == null || robot == null || robot.getOwnerUUID() == null
+                || !player.getUUID().equals(robot.getOwnerUUID()) || !isRegistered(robot)) return new CompoundTag();
+        return data(player.getServer()).taskBook(player.getUUID(), robot.memoryId(), robot.getUUID());
+    }
+
+    static boolean storeTaskBook(ServerPlayer player, RobotEntity robot, CompoundTag state) {
+        if (player == null || robot == null || state == null || robot.getOwnerUUID() == null
+                || !player.getUUID().equals(robot.getOwnerUUID()) || !isRegistered(robot)) return false;
+        return data(player.getServer()).storeTaskBook(player.getUUID(), robot.memoryId(), robot.getUUID(), state);
+    }
+
+    static void recordCompletedTask(RobotEntity robot, RobotTaskBook.Row row) {
+        if (robot == null || row == null || robot.getOwnerUUID() == null
+                || !(robot.level() instanceof ServerLevel level)) return;
+        data(level.getServer()).recordCompletedTask(robot, row, level.getServer().overworld().getGameTime());
+    }
+
     /** Single-builder milestone, called only from the successful final native placement branch. */
     public static void recordBuild(RobotEntity robot, BlockPos origin, ResourceLocation dimension, String subject) {
         if (robot == null || origin == null || dimension == null || robot.getOwnerUUID() == null
@@ -107,6 +126,7 @@ public final class RobotMemory {
         private final LinkedHashMap<Key, ArrayList<Entry>> entries = new LinkedHashMap<>();
         private final LinkedHashMap<Key, UUID> activeEntities = new LinkedHashMap<>();
         private final java.util.LinkedHashSet<Key> knownIdentities = new java.util.LinkedHashSet<>();
+        private final LinkedHashMap<Key, CompoundTag> taskBooks = new LinkedHashMap<>();
 
         private static MemoryData load(CompoundTag tag) {
             MemoryData data = new MemoryData();
@@ -141,7 +161,44 @@ public final class RobotMemory {
                     if (data.knownIdentities.size() < MAX_ROBOTS || data.knownIdentities.contains(key)) data.knownIdentities.add(key);
                 }
             }
+            ListTag books = tag.getList("TaskBooks", Tag.TAG_COMPOUND);
+            for (int i = 0; i < Math.min(books.size(), MAX_ROBOTS); i++) {
+                CompoundTag row = books.getCompound(i);
+                if (!row.hasUUID("Owner") || !row.hasUUID("RobotMemoryId") || !row.contains("Data", Tag.TAG_COMPOUND)) continue;
+                Key key = new Key(row.getUUID("Owner"), row.getUUID("RobotMemoryId"));
+                if (data.knownIdentities.contains(key)) {
+                    CompoundTag clean = sanitizeTaskBook(row.getCompound("Data"));
+                    if (!clean.isEmpty()) data.taskBooks.put(key, clean);
+                }
+            }
             return data;
+        }
+
+        private CompoundTag taskBook(UUID owner, UUID memoryId, UUID entityId) {
+            Key key = new Key(owner, memoryId);
+            if (!isRegistered(owner, memoryId, entityId)) return new CompoundTag();
+            CompoundTag saved = taskBooks.get(key);
+            return saved == null ? new CompoundTag() : saved.copy();
+        }
+
+        private boolean storeTaskBook(UUID owner, UUID memoryId, UUID entityId, CompoundTag state) {
+            Key key = new Key(owner, memoryId);
+            if (!isRegistered(owner, memoryId, entityId) || !knownIdentities.contains(key)
+                    || !validTaskBook(state)) return false;
+            taskBooks.put(key, state.copy()); setDirty(); return true;
+        }
+
+        private void recordCompletedTask(RobotEntity robot, RobotTaskBook.Row row, long gameTime) {
+            UUID owner = robot.getOwnerUUID();
+            Key key = new Key(owner, robot.memoryId());
+            if (!isRegistered(owner, robot.memoryId(), robot.getUUID()) || !knownIdentities.contains(key)) return;
+            CompoundTag state = taskBooks.computeIfAbsent(key, ignored -> new CompoundTag());
+            CompoundTag saved = RobotTaskBook.saveRow(row);
+            long latest = Math.max(state.getCompound("LatestCollect").getLong("CompletedAt"),
+                    state.getCompound("LatestCook").getLong("CompletedAt"));
+            saved.putLong("CompletedAt", Math.max(Math.max(0, gameTime), latest + 1));
+            state.put(row.type().equals("collect") ? "LatestCollect" : "LatestCook", saved);
+            setDirty();
         }
 
         private void register(RobotEntity robot) {
@@ -239,7 +296,66 @@ public final class RobotMemory {
                 row.putUUID("Owner", key.owner()); row.putUUID("RobotMemoryId", key.robotMemoryId()); known.add(row);
             });
             tag.put("Known", known);
+            ListTag books = new ListTag();
+            taskBooks.forEach((key, state) -> {
+                CompoundTag row = new CompoundTag(); row.putUUID("Owner", key.owner());
+                row.putUUID("RobotMemoryId", key.robotMemoryId()); row.put("Data", state.copy()); books.add(row);
+            });
+            tag.put("TaskBooks", books);
             return tag;
+        }
+
+        private static boolean validTaskBook(CompoundTag state) {
+            if (state == null || state.toString().length() > 32_768) return false;
+            try {
+                for (String field : List.of("LatestCollect", "LatestCook")) {
+                    if (!state.contains(field)) continue;
+                    RobotTaskBook.Row latest = RobotTaskBook.loadRow(state.getCompound(field), "@last");
+                    if (latest == null || !latest.type().equals(field.equals("LatestCollect") ? "collect" : "cook")
+                            || state.getCompound(field).getLong("CompletedAt") < 0
+                            || state.getCompound(field).getLong("CompletedAt") >= Long.MAX_VALUE - 1) return false;
+                }
+                ListTag rows = state.getList("Snapshots", Tag.TAG_COMPOUND);
+                if (rows.size() > RobotTaskBook.MAX_SNAPSHOTS) return false;
+                java.util.HashSet<String> names = new java.util.HashSet<>();
+                for (int i = 0; i < rows.size(); i++) {
+                    CompoundTag snapshot = rows.getCompound(i);
+                    String name = snapshot.getString("Name");
+                    if (!RobotTaskBook.validName(name) || !names.add(name.toLowerCase(java.util.Locale.ROOT))
+                            || RobotTaskBook.loadRow(snapshot.getCompound("Row"), name) == null) return false;
+                }
+                return true;
+            } catch (RuntimeException invalid) { return false; }
+        }
+
+        /** Salvage valid rows independently so one damaged or removed item cannot erase a robot's other orders. */
+        private static CompoundTag sanitizeTaskBook(CompoundTag source) {
+            CompoundTag clean = new CompoundTag();
+            for (String field : List.of("LatestCollect", "LatestCook")) {
+                if (!source.contains(field, Tag.TAG_COMPOUND)) continue;
+                CompoundTag saved = source.getCompound(field);
+                RobotTaskBook.Row row = RobotTaskBook.loadRow(saved, "@last");
+                long completedAt = saved.getLong("CompletedAt");
+                if (row != null && row.type().equals(field.equals("LatestCollect") ? "collect" : "cook")
+                        && completedAt >= 0 && completedAt < Long.MAX_VALUE - 1) {
+                    CompoundTag copy = RobotTaskBook.saveRow(row); copy.putLong("CompletedAt", completedAt);
+                    clean.put(field, copy);
+                }
+            }
+            ListTag snapshots = source.getList("Snapshots", Tag.TAG_COMPOUND);
+            ListTag kept = new ListTag();
+            java.util.HashSet<String> names = new java.util.HashSet<>();
+            for (int i = 0; i < Math.min(snapshots.size(), 64) && kept.size() < RobotTaskBook.MAX_SNAPSHOTS; i++) {
+                CompoundTag saved = snapshots.getCompound(i);
+                String name = RobotTaskIntent.normalizedName(saved.getString("Name"));
+                String canonical = name.toLowerCase(java.util.Locale.ROOT);
+                RobotTaskBook.Row row = RobotTaskBook.loadRow(saved.getCompound("Row"), name);
+                if (row == null || !RobotTaskBook.validName(name) || !names.add(canonical)) continue;
+                CompoundTag snapshot = new CompoundTag(); snapshot.putString("Name", name);
+                snapshot.put("Row", RobotTaskBook.saveRow(row)); kept.add(snapshot);
+            }
+            if (!kept.isEmpty()) clean.put("Snapshots", kept);
+            return clean;
         }
 
         private static CompoundTag saveEntry(Entry entry) {

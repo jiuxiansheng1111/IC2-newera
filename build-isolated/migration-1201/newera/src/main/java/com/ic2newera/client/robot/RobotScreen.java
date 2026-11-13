@@ -34,6 +34,7 @@ public final class RobotScreen extends Screen {
     private RobotControlTabs tabs;
     private RobotControlTabs.Page page = RobotControlTabs.Page.CHAT;
     private boolean voiceStatusFocused;
+    private boolean taskPending;
     public RobotScreen(RobotPackets.View view) { super(RobotCharacter.byId(view.character()).title().copy().append("机器人")); this.view = view; workChoice = RobotWorkChoice.fromMode(view.mode()); }
     public static void receive(RobotPackets.View next) {
         Minecraft client = Minecraft.getInstance();
@@ -99,11 +100,16 @@ public final class RobotScreen extends Screen {
                 minecraft.setScreen(new RobotCompanionshipScreen(this, view.robot(), view.character(), false)));
         tabs.add(RobotControlTabs.Page.SETTINGS, "共同回忆", "看它记住的第一次。也可以在聊天里问：你还记得我们第一次见面吗？", b ->
                 minecraft.setScreen(new RobotMemoryScreen(this, view.robot(), view.character(), false)));
+        tabs.add(RobotControlTabs.Page.SETTINGS, "常用任务", "查看最近完成的采集/烹饪任务，保存昵称后可随时重做。", b ->
+                minecraft.setScreen(new RobotTaskScreen(this, view.robot(), view.character(), false, view.energy())));
         tabs.add(RobotControlTabs.Page.SETTINGS, "模型设置", "单人游戏可在此设置模型；多人服的机器人模型由服主管理。", b -> {
             if (minecraft.getSingleplayerServer() != null) minecraft.setScreen(new com.ic2newera.client.ui.LLMSettingsScreen(this));
             else { voiceStatusFocused = false; status = "多人服的机器人模型由服主管理；个人助手设置在助手页面打开。"; }
         });
-        tabs.add(RobotControlTabs.Page.SETTINGS, "清空对话", "取消当前文字请求并清除本页聊天记录，不改变工作任务。", b -> { cancel(); messages.clear(); scroll = 0; status = "本页对话已清空。"; });
+        tabs.add(RobotControlTabs.Page.SETTINGS, "清空对话", "取消当前文字请求并清除本页聊天记录，不改变工作任务。", b -> {
+            if (taskPending) { status = "常用任务正在处理，请等候结果后再清空对话。"; return; }
+            cancel(); messages.clear(); scroll = 0; status = "本页对话已清空。";
+        });
         tabs.add(RobotControlTabs.Page.SETTINGS, "收回娃娃", "收回到背包并保留角色状态；背包满时不会移除机器人。", b -> action(3, 0));
         transcriptTop = 82;
         inputY = height - 26;
@@ -111,7 +117,7 @@ public final class RobotScreen extends Screen {
         input = addRenderableWidget(new EditBox(font, left, inputY, inputWidth, 20, Component.literal("聊天内容")));
         input.setMaxLength(1200); input.setValue(draft); input.moveCursorTo(caret);
         send = addRenderableWidget(new UiButton(left + inputWidth + 4, inputY, 68, 20, Component.literal("发送"), button -> {
-            if (busy()) cancel(); else requestChat();
+            if (busy()) { if (!taskPending) cancel(); } else requestChat();
         }));
         selectPage(page);
         if (restoreFocus && page == RobotControlTabs.Page.CHAT) setInitialFocus(input);
@@ -128,8 +134,8 @@ public final class RobotScreen extends Screen {
     }
     private void updateControls() {
         if (send == null || input == null) return;
-        send.setMessage(Component.literal(busy() ? "取消请求" : "发送"));
-        send.active = busy() || !input.getValue().isBlank();
+        send.setMessage(Component.literal(taskPending ? "处理中" : busy() ? "取消请求" : "发送"));
+        send.active = busy() && !taskPending || !busy() && !input.getValue().isBlank();
         followButton.setMessage(Component.literal(view.following() ? "改为待命" : "跟随主人"));
         combatButton.setMessage(Component.literal("攻击动物：" + (view.combat() ? "开" : "关")));
         workTypeButton.setMessage(Component.literal("类型：" + workChoice.title));
@@ -150,18 +156,22 @@ public final class RobotScreen extends Screen {
         grant = 0;
         if (queued.isBlank()) return;
         String question = queued; queued = ""; input.setValue("");
-        boolean memory = RobotMemoryClient.topic(question) != null;
+        RobotTaskIntent task = RobotTaskIntent.parse(question);
+        boolean taskCommand = task != null;
+        boolean memory = taskCommand || RobotMemoryClient.topic(question) != null;
+        taskPending = taskCommand && task.error().isEmpty();
         messages.add(new RobotChatBridge.Message("user", question, memory));
         // Keep the local transcript bounded as well as the bridge request.
         if (messages.size() > 60) messages.subList(0, messages.size() - 60).clear();
-        scroll = 0; status = memory ? "正在翻看我们的回忆……" : "模型正在回复……";
+        scroll = 0; status = taskCommand ? "正在处理常用任务……" : memory ? "正在翻看我们的回忆……" : "模型正在回复……";
         int ticket = ++generation;
         pending = RobotChatBridge.send(view, List.copyOf(messages));
         pending.whenComplete((reply, error) -> minecraft.execute(() -> {
-            if (generation != ticket || minecraft.screen != this) return;
-            pending = null;
+            if (generation != ticket) return;
+            pending = null; taskPending = false;
+            if (minecraft.screen != this && !taskCommand) return;
             if (error == null) {
-                messages.add(new RobotChatBridge.Message("assistant", reply.text(), memory)); status = memory ? "已读取共同回忆。" : "回复完成。";
+                messages.add(new RobotChatBridge.Message("assistant", reply.text(), memory)); status = memory ? taskCommand ? reply.text() : "已读取共同回忆。" : "回复完成。";
                 if (!memory && RobotVoiceSettings.enabled()) {
                     status = "回复完成，已加入语音队列。";
                     RobotVoiceClient.enqueue(view.robot(), view.character(), reply.voiceReplyId(), reply.segments(), reply.text()).whenComplete((voiceStatus, voiceError) -> minecraft.execute(() -> {
@@ -188,6 +198,7 @@ public final class RobotScreen extends Screen {
     }
     private void cancel() {
         voiceStatusFocused = false;
+        if (taskPending) return;
         generation++; grant = 0; queued = "";
         if (pending != null) {
             pending.cancel(true); pending = null;

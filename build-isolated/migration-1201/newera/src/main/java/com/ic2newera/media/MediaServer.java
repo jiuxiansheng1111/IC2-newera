@@ -152,6 +152,13 @@ public final class MediaServer {
         NetEaseLoginService.observeOwner(player.server, NativeMediaConfig.musicLoginOwnerUuid(player));
         int operation = request.operation();
         if (operation < 0 || operation > MediaPackets.NETEASE_LIKED || operation == 6 || (!MediaPackets.isChat(operation) && !request.messages().isEmpty())) return;
+        if (MediaPackets.isChat(operation) && !request.messages().isEmpty()) {
+            MediaPackets.Message last = request.messages().get(request.messages().size() - 1);
+            if (last.role().equals("user") && RobotTaskIntent.parse(last.content()) != null) {
+                error(player, request.ticket(), "请在机器人聊天或手机的「常用任务」中重发这条指令。");
+                return;
+            }
+        }
         Session session = SESSIONS.computeIfAbsent(player.getUUID(), id -> new Session(player));
         if (session.player != player) { clear(session); session = new Session(player); SESSIONS.put(player.getUUID(), session); }
         refreshLikedSession(session);
