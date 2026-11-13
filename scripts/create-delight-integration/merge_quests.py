@@ -14,6 +14,7 @@ from pathlib import Path
 AUTOFTBQ = Path(os.environ.get("AUTOFTBQ_PATH") or Path(__file__).resolve().parents[2] / "build-isolated/player-packaging/20261113-r69-expedition/autoftbq")
 sys.path.insert(0, str(AUTOFTBQ))
 from snbt_parser import parse_snbt, to_snbt  # noqa: E402
+from repair_signed_ids import repair_tree  # noqa: E402
 
 
 def read(path: Path):
@@ -224,6 +225,13 @@ def main():
     for group in newera_group_data.get("chapter_groups", []):
         if group not in groups["chapter_groups"]: groups["chapter_groups"].append(group)
     write(groups_path, groups)
+
+    # FTB Quests 2001.4.22 parses these hexadecimal IDs with Long.parseLong,
+    # so unsigned values above Long.MAX_VALUE fail or collapse to ID zero.
+    # Remap only overflowing IDs and keep all references consistent.
+    signed_fix = repair_tree(out, parse_snbt, to_snbt)
+    if signed_fix["objects_remapped"]:
+        print(f"Remapped {signed_fix['objects_remapped']} overflowing FTB IDs; preserved {signed_fix['preserved_ids']} IDs")
 
     # Verify all quest links and dependencies across all emitted chapters.
     emitted_files = sorted((out / "chapters").glob("*.snbt"))

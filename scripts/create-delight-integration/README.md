@@ -12,6 +12,19 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 6. 运行 `audit_mods.py --plan <工作目录>/selection.json --report <工作目录>/deps.json` 核对两端 Forge 依赖和内嵌库。运行 `build_joint.py export` 生成 PCL 联合导入包，运行 `build_server.py --work <工作目录> --output <新服务端ZIP> --baseline <r70服务端ZIP>` 生成对应的服务端。
 7. 本机独立安装使用 `install_joint.py --work <工作目录> --profile <r70实例> --name Create-Delight-New-Era-r71`。随后运行 `verify_release.py` 核对已安装客户端、两个归档、共享模组、任务关系、物品定义和 AI 索引的一致性。
 
+## 对已验收 r71 的兼容性补丁
+
+`hotfix-lock-r71.json` 是两项兼容补丁的共享版本锁，记录 Modrinth version ID、目标文件名、SHA-512、字节数、端侧、被替换文件名，以及唯一的旧 Hotai 覆盖排除项。`acquire_mods.py` 读取原始齿轮盛宴包并从 Modrinth 版本 API 获取锁定版本；同时验证 API 返回的散列元数据和下载字节的 SHA-512。已缓存且散列匹配的文件可离线复用。`build_joint.py select` 直接将锁定项叠加到底包选择和端侧分类中；`overlay` 按锁中路径排除旧补丁。流程不要求手动改 `acquisition.json`、`reference-index.json` 或 `server-sides.json`，这些原始输入始终保留为底包记录。既有工作目录兼容：`select` 会忽略旧文件名、验证并选用锁定文件，旧文件名或已更新的工作目录分类均可识别。
+
+1. 运行 `acquire_mods.py --base <原始包ZIP> --profile <r70实例>`，再运行 `build_joint.py select --built <r71新纪元JAR>` 和 `audit_mods.py`。
+2. 运行 `build_joint.py overlay` 和 `build_joint.py export`。
+3. 对已停止运行且回执完整的独立实例，逐个运行 `patch_installed_mod.py --work <工作目录> --profile <r70源实例目录> --name Create-Delight-New-Era-r71 --mod <新JAR文件名>`。工具逐文件核对现有回执、确认新旧 JAR 的 mod ID 一致、备份被替换文件，并按锁更新已存在的覆写项或移除明确列出的过时覆写项。
+4. 完整重建包时运行 `build_joint.py export` 和 `build_server.py`。如果版本锁只要求移除已发布包中的特定覆写，可运行 `patch_release_archives.py`，它流式重写已有 ZIP、更新服务端内外清单，并逐个原子替换客户端和服务端文件。最后运行 `verify_release.py`，核对 `r71-release-manifest.json` 中两端 JAR 数、共享模组字节、锁定补丁 SHA-512、锁定覆写排除项和 `minecraftOrDedicatedServerStarted` 状态。
+
+服务端生成器保留旧 ZIP 直到新 ZIP 和审计回执都完整写入同目录临时文件，并通过 `os.replace` 原子替换。磁盘不足时压缩会失败并清理一次性暂存文件，旧 ZIP 与旧回执保持原样；请清理有授权的临时文件后重试。生成器仍使用短路径临时解包目录，结束或失败都会删除该目录。归档定点修补器不解包整服，写出 CRC 验证通过的新 ZIP 后才逐个替换。该流程只改独立 r71 实例，不启动游戏、不操作存档，也不修改服务器。
+
+`advisory_lock.py` 提供系统级文件锁。客户端包导出、服务端包生成、定点归档修补和独立实例补丁共用一个发布锁；安装器额外在写入前再次核对实例回执与所有登记文件。各归档替换前也会比对开始处理时的 SHA-256。锁等待期间不会覆盖另一进程刚完成的新版本，异常退出时系统自动释放锁。
+
 ## 专用服务端
 
 `server-sides.json` 固定本次附件的两端分类。`server-config-policy.json` 定义玩法配置与客户端专用文件的处理。专用服需要 KubeJS 的启动和服务端脚本、数据包、MBD2 机器定义、服务器加载的卫星导航界面以及两端同一份任务知识。家庭实例的存档与账户数据不属于发布包。

@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import quote,unquote,urlsplit,urlunsplit
 from urllib.request import Request,urlopen
 from zipfile import ZipFile
-import argparse,hashlib,io,json,shutil,time
+import argparse,hashlib,io,json,os,shutil,time
 
 root=Path(__file__).resolve().parents[2]
 parser=argparse.ArgumentParser(description=__doc__)
@@ -35,6 +35,33 @@ with ZipFile(base_dir/'base.mrpack') as source:
         with source.open(entry) as src, dest.open('wb') as out: shutil.copyfileobj(src,out)
 def digest(path,alg):
     with path.open('rb') as f:return hashlib.file_digest(f,alg).hexdigest()
+def acquire_locked_hotfix(patch,api_template):
+    name=patch['filename'];target=stage/name
+    def checked(path):
+        return path.is_file() and path.stat().st_size==patch['fileSize'] and digest(path,'sha512')==patch['sha512'].lower()
+    if checked(target):return target
+    api_url=api_template.format(versionId=patch['versionId'])
+    req=Request(api_url,headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'application/json'})
+    with closing(urlopen(req,timeout=30)) as resp:version=json.load(resp)
+    if version.get('id')!=patch['versionId']:raise ValueError('Modrinth version ID mismatch: '+name)
+    files=[row for row in version.get('files',[]) if row.get('filename')==name]
+    if len(files)!=1:raise ValueError('Locked filename is not unique in Modrinth version: '+name)
+    published=files[0]
+    if published.get('size')!=patch['fileSize'] or published.get('hashes',{}).get('sha512','').lower()!=patch['sha512'].lower():
+        raise ValueError('Modrinth published size/SHA-512 differs from release lock: '+name)
+    part=target.with_name(target.name+'.partial')
+    req=Request(published['url'],headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'*/*'})
+    with closing(urlopen(req,timeout=45)) as resp,part.open('wb') as out:
+        count=0
+        while chunk:=resp.read(256*1024):
+            count+=len(chunk)
+            if count>patch['fileSize']:raise ValueError('Locked file exceeds expected size: '+name)
+            out.write(chunk)
+    if not checked(part):
+        part.unlink(missing_ok=True)
+        raise ValueError('Downloaded hotfix failed locked size/SHA-512: '+name)
+    part.replace(target)
+    return target
 index=json.loads((work/'reference-index.json').read_text('utf-8'))
 rows=[row for row in index['files'] if row['path'].startswith('mods/') and row['path'].endswith('.jar')]
 candidates={}
@@ -86,6 +113,17 @@ with ThreadPoolExecutor(max_workers=12) as pool:
         n,status=f.result();results[n]=status
         if len(results)%10==0 or isinstance(status,dict):
             print(len(results),'/',len(rows),'failed',sum(isinstance(v,dict) for v in results.values()),flush=True)
-record={'manifest':len(rows),'embedded':embedded,'rows':results}
-(work/'acquisition.json').write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
+hotfix_lock=json.loads((Path(__file__).with_name('hotfix-lock-r71.json')).read_text('utf-8-sig'))
+if hotfix_lock.get('schema')!=1:raise ValueError('Unsupported r71 hotfix lock schema')
+for patch in hotfix_lock['patches']:
+    if patch['replaces'] not in results and patch['filename'] not in results:
+        raise ValueError('Base acquisition does not contain the superseded mod: '+patch['replaces'])
+    acquire_locked_hotfix(patch,hotfix_lock['versionApi'])
+    results.pop(patch['replaces'],None)
+    results[patch['filename']]='verified-stage'
+record={'manifest':len(rows),'embedded':embedded,'rows':results,
+        'lockedHotfixes':[{'versionId':p['versionId'],'filename':p['filename'],'sha512':p['sha512']} for p in hotfix_lock['patches']]}
+record_path=work/'acquisition.json';record_temp=record_path.with_name(record_path.name+f'.tmp-{os.getpid()}')
+record_temp.write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
+os.replace(record_temp,record_path)
 print('ACQUISITION',dict(Counter('failed' if isinstance(v,dict) else 'found' if v not in {'verified-stage','download'} else v for v in results.values())),len(embedded),flush=True)

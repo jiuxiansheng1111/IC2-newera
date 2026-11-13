@@ -17,6 +17,8 @@ import tempfile
 import zipfile
 from pathlib import Path, PurePosixPath
 
+from advisory_lock import serialize_r71_release
+
 CLIENT_DENY = (
     "resourcepacks/", "shaderpacks/", "options.txt", "kubejs/assets/",
     "kubejs/client_scripts/", "config/crash_assistant/", "config/modpack_defaults/config/crash_assistant/",
@@ -296,6 +298,7 @@ def copy_ldlib_server_definitions(work: Path, server: Path, copied: list[str]) -
                                                   ]}
 
 
+@serialize_r71_release
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--work", required=True, type=Path)
@@ -310,6 +313,7 @@ def main():
     report_path = output.with_suffix(output.suffix + ".audit.json")
     if not known_generated_output(output, report_path):
         raise FileExistsError(f"目标已存在且不是本脚本可验证的先前 r71 生成件，拒绝覆盖：{output}")
+    initial_output_sha = sha256(output) if output.exists() else None
     side = json.loads(side_manifest(work).read_text(encoding="utf-8-sig"))
     config = side.get("configuration", {})
     config_policy = load_config_policy()
@@ -325,11 +329,10 @@ def main():
     root = None
     try:
         baseline_root = safe_extract(baseline, stage_parent)
-        root = "s"
         archive_root = "Create-Delight-New-Era-r71-Server"
-        old_root = stage_parent / baseline_root
-        server = stage_parent / root
-        if old_root != server: old_root.rename(server)
+        # Work directly in the short extracted directory. Renaming a populated
+        # tree can be denied by Windows file scanners even when it is writable.
+        server = stage_parent / baseline_root
         mods_dir = server / "mods"
         if mods_dir.exists(): shutil.rmtree(mods_dir)
         mods_dir.mkdir(parents=True)
@@ -429,9 +432,9 @@ def main():
                                         "server_sha256": server_knowledge_sha},
                     "preserved": ["Forge libraries and launchers", "voice component", "LICENSE", "THIRD-PARTY-NOTICES.txt", "server.properties"],
                     "excluded": ["worlds/player data", "resource packs/shaders", "KubeJS assets and client scripts", "client mods (server=false)"]}
-        (stage_parent / root / "SERVER-BUILD-MANIFEST.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (server / "SERVER-BUILD-MANIFEST.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         with zipfile.ZipFile(temp_output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=5, allowZip64=True) as zf:
-            for p in sorted((stage_parent / root).rglob("*")):
+            for p in sorted(server.rglob("*")):
                 if p.is_file():
                     compressed = zipfile.ZIP_STORED if p.suffix.lower() in (".jar", ".zip", ".png", ".ogg") else zipfile.ZIP_DEFLATED
                     zf.write(p, (Path(archive_root) / p.relative_to(server)).as_posix(), compress_type=compressed)
@@ -440,6 +443,9 @@ def main():
         temp_report.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         # Replace only a previously verified output from this builder; temp files
         # are in the same directory so the replacement is atomic on Windows.
+        current_output_sha = sha256(output) if output.exists() else None
+        if current_output_sha != initial_output_sha:
+            raise FileExistsError(f"Server output changed during this build; refusing to replace it: {output}")
         os.replace(temp_output, output)
         os.replace(temp_report, report_path)
         print(json.dumps({"output": str(output), "sha256": manifest["output_sha256"], "mods": len(mods), "copied_server_files": len(copied)}, ensure_ascii=True))

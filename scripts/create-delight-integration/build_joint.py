@@ -10,11 +10,13 @@ import tomllib
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile, ZIP_DEFLATED, ZIP_STORED
 
+from advisory_lock import serialize_r71_release
 from quest_knowledge import build_catalogue
 
 ROOT = Path(__file__).resolve().parents[2]
 M = ROOT / "build-isolated/migration-1201/newera"
 W = ROOT / "build-isolated/player-packaging/20261113-delight-joint"
+HOTFIX_LOCK = Path(__file__).with_name("hotfix-lock-r71.json")
 BASE = W / "quests-work/base.mrpack"
 R70 = ROOT / "dist/IC2-New-Era-r70"
 PROFILE = Path(os.environ.get("NEWERA_R70_PROFILE") or json.loads((M / "build/deployment/pcl-installation-1201.json").read_text("utf-8-sig"))["versionDirectory"])
@@ -67,6 +69,24 @@ def select(built=None):
     source_side = read(Path(__file__).with_name("server-sides.json"))["sideClassification"]
     both = set(source_side["baseServerFiles"] + source_side["upstreamOverrideAddedFiles"])
     client_only = set(source_side["clientOnly"])
+    hotfix_lock = read(HOTFIX_LOCK)
+    patches = hotfix_lock.get("patches", [])
+    superseded = {p["replaces"] for p in patches}
+    patched_names = {p["filename"] for p in patches}
+    for patch in patches:
+        old, new = patch["replaces"], patch["filename"]
+        old_sides = (old in both, old in client_only)
+        new_sides = (new in both, new in client_only)
+        if sum(old_sides) == 1:
+            if any(new_sides): raise ValueError(f"Both old and locked names are classified: {old} / {new}")
+            (both if old_sides[0] else client_only).remove(old)
+            (both if patch["server"] else client_only).add(new)
+        elif old_sides == (False, False) and new_sides == (patch["server"], not patch["server"]):
+            pass  # Also accept a workspace whose source-side classification was already updated.
+        else:
+            raise ValueError(f"Hotfix side classification is missing or ambiguous: {old} / {new}")
+        if (new in both) != bool(patch["server"]) or not patch["client"]:
+            raise ValueError(f"Locked side classification is inconsistent: {new}")
     base_index = read(W / "reference-index.json")
     byname = {PurePosixPath(row["path"]).name: row for row in base_index["files"] if row["path"].startswith("mods/")}
     with ZipFile(SERVER) as z:
@@ -76,10 +96,21 @@ def select(built=None):
         rfiles = {PurePosixPath(row["path"]).name: row for row in rindex["files"] if row["path"].startswith("mods/")}
         raw = {PurePosixPath(n).name: z.read(n) for n in z.namelist() if n.startswith("overrides/mods/") and n.endswith(".jar")}
     sources = []
-    for name, value in {**acquisition["rows"], **dict.fromkeys(acquisition["embedded"], "verified-stage")}.items():
+    acquired_rows = {name: value for name, value in acquisition["rows"].items()
+                     if name not in superseded and name not in patched_names}
+    for patch in patches:
+        acquired_rows[patch["filename"]] = "verified-stage"
+    for name, value in {**acquired_rows, **dict.fromkeys(acquisition["embedded"], "verified-stage")}.items():
         path = W / "incoming-mods" / name if value in ("download", "verified-stage") else Path(value)
         if not (name in both or name in client_only):
             raise ValueError(f"Unclassified server file {name}")
+        locked = next((p for p in patches if p["filename"] == name), None)
+        if locked:
+            if path.stat().st_size != locked["fileSize"] or digest(path, "sha512") != locked["sha512"].lower():
+                raise ValueError(f"Locked size/SHA-512 mismatch: {name}")
+            mod_ids = tuple(sorted(m[0] for m in description(path)))
+            if mod_ids != (locked["modId"],):
+                raise ValueError(f"Locked Modrinth version has unexpected mod identity: {name}: {mod_ids}")
         sources.append((name, path, "delight", name in both, byname.get(name)))
     for name in sorted(raw.keys() | rfiles.keys()):
         path = PROFILE / "mods" / name
@@ -125,11 +156,14 @@ def select(built=None):
 
 def overlay(picks):
     OVERLAY.mkdir(parents=True, exist_ok=True)
+    locked_exclusions = {rel for patch in read(HOTFIX_LOCK)["patches"]
+                         for rel in patch.get("excludeOverlayFiles", [])}
     with ZipFile(BASE) as base, ZipFile(CLIENT) as new:
         for z, source in ((base, "base"), (new, "r70")):
             for entry in z.infolist():
                 if not entry.filename.startswith("overrides/") or entry.is_dir(): continue
                 rel = entry.filename[len("overrides/"):]
+                if rel in locked_exclusions: continue
                 if rel.startswith(("mods/", "config/ftbquests/quests/")): continue
                 if rel.startswith(("config/yes_steve_model/cache/", "config/yes_steve_model/builtin/")): continue
                 if source == "r70":
@@ -143,6 +177,9 @@ def overlay(picks):
                     write(target, old)
                 else:
                     with z.open(entry) as part, target.open("wb") as dst: shutil.copyfileobj(part, dst)
+    for rel in locked_exclusions:
+        target = safe(OVERLAY, rel)
+        if target.exists(): target.unlink()
     quests = OVERLAY / "config/ftbquests/quests"
     # The base export contained generated YSM 2.6.5 models and multiplayer
     # caches. Let the selected 2.6.3 JAR provide its own built-ins on first run.
@@ -221,22 +258,30 @@ def export(picks):
     index["dependencies"]["forge"] = "47.4.28"
     OUT.mkdir(parents=True, exist_ok=True)
     dest = OUT / (NAME + "-Windows.mrpack")
-    temp = W / "joint-client.tmp"
-    with ZipFile(temp, "w", ZIP_DEFLATED, compresslevel=4) as z:
-        z.writestr("modrinth.index.json", json.dumps(index, ensure_ascii=False, indent=2))
-        for f in sorted(OVERLAY.rglob("*")):
-            if f.is_file():
-                z.write(f, "overrides/" + f.relative_to(OVERLAY).as_posix(),
-                        compress_type=ZIP_STORED if f.suffix.lower() in (".zip", ".jar", ".png", ".ogg") else ZIP_DEFLATED)
-        for p in picks:
-            if not p["index"]: z.write(p["path"], "overrides/mods/" + p["name"], compress_type=ZIP_STORED)
-    with ZipFile(temp) as z:
-        if z.testzip() or len(z.namelist()) != len(set(z.namelist())): raise ValueError("Corrupt client pack")
-    temp.replace(dest)
+    initial_dest_sha = digest(dest) if dest.exists() else None
+    temp = W / f"joint-client-{os.getpid()}.tmp"
+    try:
+        with ZipFile(temp, "w", ZIP_DEFLATED, compresslevel=4) as z:
+            z.writestr("modrinth.index.json", json.dumps(index, ensure_ascii=False, indent=2))
+            for f in sorted(OVERLAY.rglob("*")):
+                if f.is_file():
+                    z.write(f, "overrides/" + f.relative_to(OVERLAY).as_posix(),
+                            compress_type=ZIP_STORED if f.suffix.lower() in (".zip", ".jar", ".png", ".ogg") else ZIP_DEFLATED)
+            for p in picks:
+                if not p["index"]: z.write(p["path"], "overrides/mods/" + p["name"], compress_type=ZIP_STORED)
+        with ZipFile(temp) as z:
+            if z.testzip() or len(z.namelist()) != len(set(z.namelist())): raise ValueError("Corrupt client pack")
+        current_dest_sha = digest(dest) if dest.exists() else None
+        if current_dest_sha != initial_dest_sha:
+            raise FileExistsError(f"Client pack changed during export; refusing to replace it: {dest}")
+        os.replace(temp, dest)
+    finally:
+        temp.unlink(missing_ok=True)
     print(dest)
 
 
-if __name__ == "__main__":
+@serialize_r71_release
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=["select", "overlay", "export"])
     parser.add_argument("--built", type=Path)
@@ -244,3 +289,7 @@ if __name__ == "__main__":
     if args.phase == "select": select(args.built)
     elif args.phase == "overlay": overlay(read(W / "selection.json"))
     else: export(read(W / "selection.json"))
+
+
+if __name__ == "__main__":
+    main()

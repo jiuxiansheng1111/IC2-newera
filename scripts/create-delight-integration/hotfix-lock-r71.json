@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "service": "Modrinth",
+  "versionApi": "https://api.modrinth.com/v2/version/{versionId}",
+  "patches": [
+    {
+      "versionId": "eTAXn3Y2",
+      "filename": "supermartijn642corelib-1.1.25a-forge-mc1.20.1.jar",
+      "modId": "supermartijn642corelib",
+      "sha512": "c45965f8ab4d5a5d3223c5efad5f04c5d26c01c1af546cc771f71c76d024c231519b2af07bee8f8f9ad32832617c44d90eb22a88958f9b1a2efcc7ad1e288cd8",
+      "fileSize": 559829,
+      "replaces": "supermartijn642corelib-1.1.18-forge-mc1.20.1.jar",
+      "client": true,
+      "server": true
+    },
+    {
+      "versionId": "EuJjPpk0",
+      "filename": "quality_food-1.20.1-2.4.5-all.jar",
+      "modId": "quality_food",
+      "sha512": "8fb8faefce7388cfae4de6c33e299927d41855d6dd835603af7a97fa5d84732d760fd0bfed490274ca37cbfcfde5fe1ca16e1bbfd7853e0f09be0e53039b0089",
+      "fileSize": 916807,
+      "replaces": "quality_food-1.20.1-2.4.3-all.jar",
+      "client": true,
+      "server": true,
+      "excludeOverlayFiles": [
+        "hotai/de/cadentem/quality_food/capability/LevelData.badiff"
+      ]
+    }
+  ]
+}

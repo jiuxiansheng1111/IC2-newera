@@ -4,7 +4,7 @@ import json
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
-from build_joint import NAME, OUT, PROFILE, W, digest, read, write
+from build_joint import HOTFIX_LOCK, NAME, OUT, PROFILE, W, digest, read, write
 from merge_quests import read as read_snbt
 
 
@@ -15,6 +15,8 @@ def exactly(value, expected, label):
 
 def main():
     selections = read(W / "selection.json")
+    hotfix_locks = read(HOTFIX_LOCK)["patches"]
+    excluded_overlay_files = {rel for lock in hotfix_locks for rel in lock.get("excludeOverlayFiles", [])}
     installed = PROFILE.parent / NAME
     client = next(OUT.glob("*Windows.mrpack"))
     server = next(OUT.glob("*Server.zip"))
@@ -36,6 +38,9 @@ def main():
         exactly({p.name for p in (installed / "mods").glob("*.jar")}, set(byname), "installed mods")
         exactly({n.removeprefix(prefix + "mods/") for n in sn if n.startswith(prefix + "mods/")},
                 {r["name"] for r in selections if r["server"]}, "server mods")
+        for rel in excluded_overlay_files:
+            if "overrides/" + rel in cn or prefix + rel in sn or (installed / rel).exists():
+                raise ValueError("Locked incompatible override remains in release or installed instance: " + rel)
         for row in selections:
             rel = "mods/" + row["name"]
             exactly(digest(installed / rel), row["sha256"], "installed " + rel)
@@ -94,15 +99,38 @@ def main():
     exactly(pending - dynamic, set(), "unsubstantiated new task/reward items")
     deps = read(W / "deps.json")["summary"]
     exactly(deps["issues"]["error"], 0, "dependency errors")
+    hotfix_rows = []
+    for lock in hotfix_locks:
+        selected = byname.get(lock["filename"])
+        if not selected:
+            raise ValueError("Locked compatibility patch is absent from selection.json: " + lock["filename"])
+        exactly(digest(Path(selected["path"])), selected["sha256"], "selection SHA-256 " + lock["filename"])
+        exactly(digest(Path(selected["path"]), "sha512"), lock["sha512"], "hotfix SHA-512 " + lock["filename"])
+        exactly(Path(selected["path"]).stat().st_size, lock["fileSize"], "hotfix file size " + lock["filename"])
+        exactly(selected["ids"], [lock["modId"]], "hotfix mod ID " + lock["filename"])
+        exactly(bool(selected["server"]), bool(lock["server"]), "hotfix server classification " + lock["filename"])
+        exactly(True, bool(lock["client"]), "hotfix client classification " + lock["filename"])
+        hotfix_rows.append({"filename": lock["filename"], "modrinthVersionId": lock["versionId"],
+                            "sha256": selected["sha256"], "sha512": lock["sha512"],
+                            "replaces": lock["replaces"], "client": lock["client"], "server": lock["server"],
+                            "excludeOverlayFiles": lock.get("excludeOverlayFiles", [])})
+    artifacts = {f.name: {"bytes": f.stat().st_size, "sha256": digest(f)} for f in (client, server)}
+    receipt_path = W / "live-r71" / "dedicated-start.json"
+    receipt = read(receipt_path) if receipt_path.is_file() else {}
+    online = (receipt.get("serverZipSha256") == artifacts[server.name]["sha256"]
+              and receipt.get("questKnowledgeSha256") == digest(installed / "config/ic2newera/quest_knowledge.json")
+              and receipt.get("ftbChapters") == len(files) and receipt.get("ftbQuests") == len(done)
+              and receipt.get("answeredConsoleList") is True and receipt.get("answeredPublicStatus") is True)
     report = {"release": "r71", "minecraft": "1.20.1", "forge": "47.4.28", "clientJars": len(selections),
               "serverJars": sum(r["server"] for r in selections), "allSharedJarHashesMatch": True,
               "chapters": len(files), "handbookQuests": len(done), "newQuests": len(new),
               "verifiedDistinctNewTaskAndRewardItems": len(wanted), "dynamicItems": sorted(pending),
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
-              "minecraftOrDedicatedServerStarted": False,
-              "artifacts": {f.name: {"bytes": f.stat().st_size, "sha256": digest(f)} for f in (client, server)}}
+              "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
+              "compatibilityHotfixes": hotfix_rows, "artifacts": artifacts}
     write(W / "verified-release.json", report)
+    write(OUT / "r71-release-manifest.json", report)
     print(json.dumps(report, ensure_ascii=False))
 
 
