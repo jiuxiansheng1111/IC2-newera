@@ -70,10 +70,15 @@ public final class IC2NewEra {
         modBus.addListener(IC2NewEra::loadComplete);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, LLMConfig.SPEC);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, com.ic2newera.field.camera.PhoneCameraConfig.SPEC,
+                "ic2newera-phone-camera-server.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.ic2newera.media.NativeMediaConfig.SPEC,
                 "ic2newera-media-common.toml");
         NetworkHandler.register();
         com.ic2newera.robot.RobotPackets.register();
+        com.ic2newera.field.FieldJournal.register();
+        com.ic2newera.field.camera.PhoneCameraPackets.register();
+        com.ic2newera.field.board.FieldBoardContent.register(modBus);
         com.ic2newera.media.MediaPackets.register();
         IndustrialNetworkPackets.register();
         com.ic2newera.network.ProcessGraphPacket.register();

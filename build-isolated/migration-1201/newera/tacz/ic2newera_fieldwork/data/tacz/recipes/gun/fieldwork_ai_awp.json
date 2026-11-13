@@ -1,0 +1,9 @@
+{
+  "type": "tacz:gun_smith_table_crafting",
+  "materials": [
+    { "item": { "item": "ic2:advanced_circuit" }, "count": 8 },
+    { "item": { "item": "create:precision_mechanism" }, "count": 4 },
+    { "item": { "item": "ic2:carbon_plate" }, "count": 3 }
+  ],
+  "result": { "type": "gun", "id": "tacz:ai_awp" }
+}

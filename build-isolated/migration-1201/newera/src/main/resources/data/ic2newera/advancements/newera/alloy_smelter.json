@@ -4,7 +4,7 @@
     "icon": {
       "item": "ic2newera:alloy_smelter"
     },
-    "title": "合金的起点",
+    "title": "第一炉开工",
     "description": "获得一台新纪元合金炉。",
     "frame": "task",
     "show_toast": true,

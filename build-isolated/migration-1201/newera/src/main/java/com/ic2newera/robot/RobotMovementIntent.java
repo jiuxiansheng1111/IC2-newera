@@ -5,7 +5,7 @@ import java.util.Locale;
 
 /** Exact whitelist for affirmative movement requests; questions only execute when they explicitly ask to come. */
 public enum RobotMovementIntent {
-    NONE, COME, FOLLOW, HOME, SET_HOME, WAIT, STOP, RESUME, STATUS;
+    NONE, COME, FOLLOW, HOME, SET_HOME, WAIT, STOP, RESUME, STATUS, FIELD_GUIDE;
     private RobotMovementIntent() { }
 
     public static RobotMovementIntent parse(String text) {

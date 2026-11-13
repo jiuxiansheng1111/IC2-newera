@@ -1,0 +1,230 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_works"
+    group: "694AE8DA9964AC44"
+    icon: "create:cogwheel"
+    id: "694AABB742DA81D7"
+    order_index: 1
+    quest_links: [
+        {
+            id: "694AC258C5CEFBC6"
+            linked_quest: "694A9133B87CD8A9"
+            x: -3.0d
+            y: 0.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694A00D9E852F0AC"
+            title: "传动从一根轴开始"
+            icon: "create:cogwheel"
+            x: 0.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A9133B87CD8A9"
+            ]
+            tasks: [
+                {
+                    id: "694A59D17E848943"
+                    type: "item"
+                    item: "create:andesite_alloy"
+                    count: 2
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A79465EDE1A42"
+                    type: "item"
+                    item: "create:cogwheel"
+                    count: 2
+                    team_reward: false
+                }
+                {
+                    id: "694A5EE55B8E2535"
+                    type: "item"
+                    item: "create:shaft"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "在工作台合成安山合金"
+            description: [
+                "在工作台合成安山合金。用水车和传动轴带起机械设备。"
+                ""
+                "领取齿轮，搭一套鼓风机水洗装置。水洗量产后再准备高温合金。"
+            ]
+        }
+        {
+            id: "694A399AC1BCD4AC"
+            title: "开合金炉"
+            icon: "ic2newera:alloy_smelter"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A00D9E852F0AC"
+            ]
+            tasks: [
+                {
+                    id: "694AB526B5B41930"
+                    type: "item"
+                    item: "ic2newera:alloy_smelter"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A519FEC4EDDE7"
+                    type: "item"
+                    item: "ic2:forge_hammer"
+                    team_reward: false
+                }
+            ]
+            subtitle: "按当前配方制作新纪元合金炉，接入 EU"
+            description: [
+                "按当前配方制作新纪元合金炉，接入 EU。准备普通铁粉和 IC2 煤粉。"
+                ""
+                "按炉内的批准配方配料得到钢粉，再熔炼为钢锭。扳手与电源可以沿用矿场设备。"
+            ]
+        }
+        {
+            id: "694ACC982105F2AE"
+            title: "工坊里的第一炉钢"
+            icon: "ic2newera:tempered_steel_ingot"
+            x: 4.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A399AC1BCD4AC"
+            ]
+            tasks: [
+                {
+                    id: "694A7B34858105D6"
+                    type: "item"
+                    item: "ic2newera:tempered_steel_ingot"
+                    count: 2
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A85894B4830BE"
+                    type: "item"
+                    item: "ic2newera:tempered_steel_chestplate"
+                    team_reward: false
+                }
+                {
+                    id: "694AEA280AA7AB2A"
+                    type: "item"
+                    item: "ic2newera:tempered_steel_sword"
+                    team_reward: false
+                }
+            ]
+            subtitle: "制得两块低碳钢锭"
+            description: [
+                "制得两块低碳钢锭。钢粉合金工序由合金炉完成，再熔炼为成品。"
+                ""
+                "领取低碳钢胸甲和剑，探索下一处矿点。之后可分头做电路板和动力转换。"
+            ]
+        }
+        {
+            id: "694A0E58A046FC77"
+            title: "刻上第一块电路板"
+            icon: "ic2newera:pcb"
+            x: 6.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694ACC982105F2AE"
+            ]
+            tasks: [
+                {
+                    id: "694A81852A57CD6C"
+                    type: "item"
+                    item: "ic2newera:pcb"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A230827BD18BE"
+                    type: "item"
+                    item: "ic2:insulated_copper_cable"
+                    count: 8
+                    team_reward: false
+                }
+            ]
+            subtitle: "从下界石英开始准备硅和高纯硅，按电子材料加工机的配方制得 PCB"
+            description: [
+                "从下界石英开始准备硅和高纯硅，按电子材料加工机的配方制得 PCB。"
+                ""
+                "把电路板加工成集成电路，继续制作工业手机及控制硬件。"
+            ]
+        }
+        {
+            id: "694ABF6FDC630B9B"
+            title: "接通控制电路"
+            icon: "ic2newera:integrated_circuit"
+            x: 8.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A0E58A046FC77"
+            ]
+            tasks: [
+                {
+                    id: "694A697D7312B398"
+                    type: "item"
+                    item: "ic2newera:integrated_circuit"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AA0CE5E81A0A0"
+                    type: "item"
+                    item: "ic2newera:tempered_steel_axe"
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得一枚新纪元集成电路"
+            description: [
+                "取得一枚新纪元集成电路。电子材料加工机的输入、输出与温度在机器界面可查。"
+                ""
+                "制作工业手机并充电。可以去实地取景，也可以给公告栏任务规划交付路线。"
+            ]
+        }
+        {
+            id: "694A8AD2240EB290"
+            title: "让齿轮吃上电"
+            icon: "ic2newera:eu_motor"
+            x: 6.0d
+            y: 2.0d
+            shape: "square"
+            dependencies: [
+                "694ACC982105F2AE"
+            ]
+            tasks: [
+                {
+                    id: "694A7529E04EFBFD"
+                    type: "item"
+                    item: "ic2newera:eu_motor"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AC8C436599151"
+                    type: "item"
+                    item: "create:cogwheel"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得一台初级电动机，将 IC2 供电接入，再将轴面接到 Create 传动设备"
+            description: [
+                "取得一台初级电动机，将 IC2 供电接入，再将轴面接到 Create 传动设备。"
+                ""
+                "反方向的能源转换用初级机械发电机；高档转换设备需要对应电压和更高级的材料。"
+            ]
+        }
+    ]
+    title: "传动工坊 · 合金与电子"
+}

@@ -1,0 +1,9 @@
+{
+  "type": "tacz:gun_smith_table_crafting",
+  "materials": [
+    { "item": { "item": "ic2:advanced_circuit" }, "count": 6 },
+    { "item": { "item": "create:precision_mechanism" }, "count": 3 },
+    { "item": { "item": "ic2:carbon_plate" }, "count": 2 }
+  ],
+  "result": { "type": "gun", "id": "tacz:mk18" }
+}

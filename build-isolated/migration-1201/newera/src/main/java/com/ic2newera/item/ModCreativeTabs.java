@@ -24,6 +24,7 @@ public final class ModCreativeTabs {
                                 com.ic2newera.block.ModProcessorBlocks.ITEMS,
                                 com.ic2newera.industrial.IndustrialItems.ITEMS,
                                 com.ic2newera.motor.MotorBlocks.ITEMS,
+                                com.ic2newera.field.board.FieldBoardContent.ITEMS,
                                 com.ic2newera.equipment.ModEquipment.ITEMS,
                                 com.ic2newera.frontier.FrontierContent.ITEMS,
                                 com.ic2newera.wormhole.WormholeContent.ITEMS,

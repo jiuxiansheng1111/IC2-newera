@@ -1,0 +1,180 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_endgame"
+    group: "694AE8DA9964AC44"
+    icon: "avaritia:crystal_matrix_ingot"
+    id: "694A62C5064EE4A2"
+    order_index: 9
+    quest_links: [
+        {
+            id: "694A9FDDAE35FF19"
+            linked_quest: "694ADA72DB635FFA"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694A9D8AF44076A9"
+            linked_quest: "694ACC982105F2AE"
+            x: -3.0d
+            y: 2.0d
+        }
+        {
+            id: "694AB04A7A25B9A0"
+            linked_quest: "694A505AF25E0D59"
+            x: -3.0d
+            y: 4.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694A91B108800C19"
+            title: "把仓库的一份余料登记在案"
+            icon: "projecte:transmutation_table"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694ADA72DB635FFA"
+            ]
+            tasks: [
+                {
+                    id: "694AB84948D6054C"
+                    type: "item"
+                    item: "projecte:philosophers_stone"
+                }
+                {
+                    id: "694A2156271695F2"
+                    type: "item"
+                    item: "projecte:transmutation_table"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AB69FD12AB178"
+                    type: "item"
+                    item: "minecraft:glowstone_dust"
+                    count: 8
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得贤者之石和转化桌"
+            description: [
+                "取得贤者之石和转化桌。打开转化桌，只选择本包实际标有 EMC 的余料登记。"
+                ""
+                "给加工线保留最低库存。高阶材料的 EMC 是否存在以本服务器显示为准。"
+            ]
+        }
+        {
+            id: "694A231ADCA73E43"
+            title: "把水晶矩阵单独建账"
+            icon: "avaritia:crystal_matrix_ingot"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A91B108800C19"
+                "694ACC982105F2AE"
+            ]
+            tasks: [
+                {
+                    id: "694A30EFD6D0BDA2"
+                    type: "item"
+                    item: "avaritia:crystal_matrix_ingot"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AACC65010CD2E"
+                    type: "item"
+                    item: "ae2:blank_pattern"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "按已安装的无尽贪婪配方取得一块水晶矩阵锭"
+            description: [
+                "按已安装的无尽贪婪配方取得一块水晶矩阵锭。用 ME 终端盘点下一批所需的高价值材料。"
+                ""
+                "准备中子收集器，将其持续产物计入长期库存。手册奖励保留生产目标的成本。"
+            ]
+        }
+        {
+            id: "694AF2BA356DFB36"
+            title: "等一份真正的长期产出"
+            icon: "avaritia:neutron_collector"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A231ADCA73E43"
+            ]
+            tasks: [
+                {
+                    id: "694A785E14CFF4A1"
+                    type: "item"
+                    item: "avaritia:neutron_collector"
+                }
+                {
+                    id: "694A2FF0996909F0"
+                    type: "item"
+                    item: "avaritia:neutron_pile"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A0B48F903EB23"
+                    type: "item"
+                    item: "minecraft:diamond"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得中子收集器和一份中子素尘埃"
+            description: [
+                "取得中子收集器和一份中子素尘埃。根据当前 JEI 的合并关系记录累积所需的份数。"
+                ""
+                "准备持久存储，再制作一锭中子素。将材料留给终局配方。"
+            ]
+        }
+        {
+            id: "694A8E342CFD83FC"
+            title: "两座星球和一台工厂的账本"
+            icon: "ic2newera:industrial_ssd"
+            x: 6.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AF2BA356DFB36"
+                "694A505AF25E0D59"
+            ]
+            tasks: [
+                {
+                    id: "694A31675F2CBE92"
+                    type: "item"
+                    item: "avaritia:neutron_ingot"
+                }
+                {
+                    id: "694AADBEEE52C260"
+                    type: "item"
+                    item: "ic2newera:industrial_ssd"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A93BBAA0F5576"
+                    type: "item"
+                    item: "minecraft:nether_star"
+                    team_reward: false
+                }
+            ]
+            subtitle: "在完成月球采样后，备齐一锭中子素和工业 SSD"
+            description: [
+                "在完成月球采样后，备齐一锭中子素和工业 SSD。把长期收集与工业电子生产的成果放到同一张清单。"
+                ""
+                "把余下物资分配到下一次远征或无尽合成。终局装备本体仍由玩家的小队生产。"
+            ]
+        }
+    ]
+    title: "终局仓储 · 等价交换与无尽贪婪"
+}

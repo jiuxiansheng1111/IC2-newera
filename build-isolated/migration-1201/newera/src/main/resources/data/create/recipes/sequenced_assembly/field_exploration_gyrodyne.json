@@ -1,0 +1,31 @@
+{
+  "type": "create:sequenced_assembly",
+  "conditions": [{ "type": "forge:mod_loaded", "modid": "immersive_aircraft" }],
+  "ingredient": { "item": "immersive_aircraft:hull" },
+  "transitionalItem": { "item": "immersive_aircraft:hull" },
+  "loops": 2,
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        { "item": "immersive_aircraft:hull" },
+        { "item": "create:precision_mechanism" }
+      ],
+      "results": [{ "item": "immersive_aircraft:hull" }]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        { "item": "immersive_aircraft:hull" },
+        { "item": "ic2:advanced_circuit" }
+      ],
+      "results": [{ "item": "immersive_aircraft:hull" }]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [{ "item": "immersive_aircraft:hull" }],
+      "results": [{ "item": "immersive_aircraft:hull" }]
+    }
+  ],
+  "results": [{ "item": "immersive_aircraft:gyrodyne" }]
+}

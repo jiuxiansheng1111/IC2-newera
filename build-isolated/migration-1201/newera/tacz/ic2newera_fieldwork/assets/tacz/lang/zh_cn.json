@@ -1,0 +1,6 @@
+{
+  "pack.ic2newera_fieldwork.name": "新纪元远征枪包",
+  "pack.ic2newera_fieldwork.desc": "为远征准备的抽象工业配方。",
+  "config.tacz.client.render.enable_tooltip_id": "显示 TaCZ 注册 ID",
+  "config.tacz.client.render.enable_tooltip_id.desc": "启用高级提示（F3+H）时，在物品提示中显示枪械、弹药或配件的注册 ID。"
+}

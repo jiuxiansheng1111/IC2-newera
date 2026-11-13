@@ -4,9 +4,9 @@
     "icon": {
       "item": "ic2newera:universal_transformer"
     },
-    "title": "电压自由转换",
+    "title": "四档同网",
     "description": "获得一台万能变压器。",
-    "frame": "task",
+    "frame": "goal",
     "show_toast": true,
     "announce_to_chat": false,
     "hidden": false

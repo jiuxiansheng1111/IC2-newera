@@ -72,7 +72,21 @@ side="BOTH"
 
 [[dependencies.ic2newera]]
 modId="ad_astra"
-mandatory=false
+mandatory=true
 versionRange="[1.15.21]"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.ic2newera]]
+modId="exposure"
+mandatory=true
+versionRange="[1.7.7]"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.ic2newera]]
+modId="ftbquests"
+mandatory=true
+versionRange="[2001.4.22]"
 ordering="AFTER"
 side="BOTH"

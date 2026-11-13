@@ -1,0 +1,33 @@
+{
+  "type": "create:sequenced_assembly",
+  "conditions": [{ "type": "forge:mod_loaded", "modid": "tacz" }],
+  "ingredient": { "item": "ic2:advanced_circuit" },
+  "transitionalItem": { "item": "ic2:advanced_circuit" },
+  "loops": 2,
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        { "item": "ic2:advanced_circuit" },
+        { "item": "create:precision_mechanism" }
+      ],
+      "results": [{ "item": "ic2:advanced_circuit" }]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [{ "item": "ic2:advanced_circuit" }],
+      "results": [{ "item": "ic2:advanced_circuit" }]
+    }
+  ],
+  "results": [
+    {
+      "item": "tacz:modern_kinetic_gun",
+      "nbt": {
+        "GunId": "tacz:mk18",
+        "GunFireMode": "AUTO",
+        "GunCurrentAmmoCount": 0,
+        "HasBulletInBarrel": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "parent": "ic2newera:newera/minerals",
+  "display": {
+    "icon": {
+      "item": "ic2:lead_ore"
+    },
+    "title": "岩层里的铅灰色",
+    "description": "采集粗铅、铅矿石或深层铅矿石。后续任务在工业手册的矿场章。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "sample_0": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2:raw_lead",
+              "ic2:lead_ore",
+              "ic2:deepslate_lead_ore"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "sample_0"
+    ]
+  ]
+}

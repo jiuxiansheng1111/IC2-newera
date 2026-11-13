@@ -1,0 +1,206 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_field"
+    group: "694A8F2A1E08B488"
+    icon: "ic2newera:industrial_phone"
+    id: "694A8450BD6364EF"
+    order_index: 2
+    quest_links: [
+        {
+            id: "694AA2EF6B500F47"
+            linked_quest: "694A56FE243FF4D0"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694ADAED46414455"
+            linked_quest: "694ABF6FDC630B9B"
+            x: -3.0d
+            y: 2.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694AB83C42E3066E"
+            title: "第一次交班"
+            icon: "ic2newera:field_notice_board"
+            x: 0.0d
+            y: 2.0d
+            shape: "square"
+            dependencies: [
+                "694A56FE243FF4D0"
+            ]
+            tasks: [
+                {
+                    id: "694A2E067D271B6B"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/contract_completed"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A98635BE96A43"
+                    type: "item"
+                    item: "ic2newera:mechanical_dog"
+                    team_reward: false
+                }
+            ]
+            subtitle: "在有电的公告栏接取委托，查看材料或指定生物，完成后回原公告栏点击领取"
+            description: [
+                "在有电的公告栏接取委托，查看材料或指定生物，完成后回原公告栏点击领取。"
+                ""
+                "新委托每半小时轮换，已接委托可继续。领取机械狗，把它带到矿区。"
+            ]
+        }
+        {
+            id: "694AC488EB7CC7A2"
+            title: "口袋里的调度室"
+            icon: "ic2newera:industrial_phone"
+            x: 0.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694ABF6FDC630B9B"
+            ]
+            tasks: [
+                {
+                    id: "694A410A5E5F4613"
+                    type: "item"
+                    item: "ic2newera:industrial_phone"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AC869A30B3A8F"
+                    type: "item"
+                    item: {
+                        id: "ic2newera:anon_robot_doll"
+                        Count: 1b
+                        tag: {
+                            RobotState: {
+                                Deaths: 4
+                            }
+                        }
+                    }
+                    team_reward: false
+                }
+                {
+                    id: "694A034A87FB5BFD"
+                    type: "item"
+                    item: "ic2newera:robot_battery"
+                    team_reward: false
+                }
+            ]
+            subtitle: "制作一部工业手机并给它充电"
+            description: [
+                "制作一部工业手机并给它充电。手机里的远征手记、图库和设备清单有各自入口。"
+                ""
+                "领取一台剩余 1/5 耐久的机器人娃娃，放置时留出空间；为机器人准备电池。最后一次损坏后将无法再部署。"
+            ]
+        }
+        {
+            id: "694AE6D9E3CEF4EF"
+            title: "快门落下"
+            icon: "ic2newera:industrial_phone"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AC488EB7CC7A2"
+            ]
+            tasks: [
+                {
+                    id: "694AABFC1742FAD9"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/phone_photo"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A3ACA6E621911"
+                    type: "item"
+                    item: "ic2newera:mechanical_cat"
+                    team_reward: false
+                }
+            ]
+            subtitle: "打开手机相机，选择适合的原生视角，拍照并将一张照片保存到服务器图库"
+            description: [
+                "打开手机相机，选择适合的原生视角，拍照并将一张照片保存到服务器图库。"
+                ""
+                "图库会记录坐标。把目的地加入任务路线，出发后可在导航地图查看每一步。"
+            ]
+        }
+        {
+            id: "694A00111B0021E1"
+            title: "重回取景地"
+            icon: "minecraft:compass"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AE6D9E3CEF4EF"
+            ]
+            tasks: [
+                {
+                    id: "694AC876FB0F4471"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/route_arrival"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A6DA00BB14AA1"
+                    type: "item"
+                    item: "minecraft:golden_carrot"
+                    count: 6
+                    team_reward: false
+                }
+            ]
+            subtitle: "打开生态相册或手机图库，为一处拍摄点开启导航，沿路线抵达"
+            description: [
+                "打开生态相册或手机图库，为一处拍摄点开启导航，沿路线抵达。"
+                ""
+                "用任务路线安排多站。未加载的地形会在行进中补算，跨维度时先前往对应世界。"
+            ]
+        }
+        {
+            id: "694AD0A997D69F8B"
+            title: "观察员的原片"
+            icon: "exposure:photograph"
+            x: 4.0d
+            y: 2.0d
+            shape: "square"
+            dependencies: [
+                "694AE6D9E3CEF4EF"
+            ]
+            tasks: [
+                {
+                    id: "694A75AC3C5E9A0F"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/album_published"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A7B6BEC3337FD"
+                    type: "item"
+                    item: "minecraft:nautilus_shell"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "拍摄生机遍布的鮟鱇鱼、蛤蜊或金枪鱼"
+            description: [
+                "拍摄生机遍布的鮟鱇鱼、蛤蜊或金枪鱼。在符合条件的相片中选一张公开收录。"
+                ""
+                "同伴可以查看原片，用拍摄点或物种发现点重新造访这片海域。"
+            ]
+        }
+    ]
+    title: "野外工单 · 同伴与拍摄"
+}

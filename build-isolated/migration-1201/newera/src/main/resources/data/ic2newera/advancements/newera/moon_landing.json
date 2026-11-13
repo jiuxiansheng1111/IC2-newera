@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/lunar_crystal",
+  "display": {
+    "icon": {
+      "item": "ad_astra:tier_1_rocket"
+    },
+    "title": "在月面报平安",
+    "description": "乘火箭完成月面着陆，在工业手机上亲自确认本队落点。",
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/phone",
+  "display": {
+    "icon": {
+      "item": "minecraft:compass"
+    },
+    "title": "按图归来",
+    "description": "跟随手机导航到达记录坐标或目标方块旁。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

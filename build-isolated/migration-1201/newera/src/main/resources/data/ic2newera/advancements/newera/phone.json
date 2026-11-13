@@ -4,7 +4,7 @@
     "icon": {
       "item": "ic2newera:industrial_phone"
     },
-    "title": "随身控制",
+    "title": "把车间装进口袋",
     "description": "获得一部工业手机。",
     "frame": "task",
     "show_toast": true,

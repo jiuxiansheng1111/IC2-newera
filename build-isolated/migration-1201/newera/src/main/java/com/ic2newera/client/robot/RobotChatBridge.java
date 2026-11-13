@@ -25,6 +25,9 @@ final class RobotChatBridge {
     private static CompletableFuture<Reply> send(java.util.UUID robot, String character, int operation, List<Message> messages) {
         var last = messages.get(messages.size() - 1);
         if (last.privateMemory()) {
+            var field = FieldJournalScreen.query(last.content());
+            if (field != null) return FieldJournalScreen.chat(robot, operation == MediaPackets.PHONE_CHAT, field)
+                    .thenApply(text -> new Reply(text, null, 0));
             RobotTaskIntent task = RobotTaskIntent.parse(last.content());
             if (task != null) {
                 if (!task.error().isEmpty()) return CompletableFuture.completedFuture(new Reply(task.error(), null, 0));

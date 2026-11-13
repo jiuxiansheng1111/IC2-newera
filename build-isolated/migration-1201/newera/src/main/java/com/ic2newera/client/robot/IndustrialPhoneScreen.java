@@ -141,7 +141,7 @@ public final class IndustrialPhoneScreen extends Screen {
         }
         detailBottom = device != null && device.kind() == 5 ? height - 111 : height - 87;
         detailVisibleLines = Math.max(1, (detailBottom - 54) / 11);
-        int footerWidth = (panelWidth - 12) / 4;
+        int footerWidth = (panelWidth - 20) / 6;
         addRenderableWidget(new UiButton(left, height - 24, footerWidth, 20, Component.literal("刷新状态"), b -> command(0, "")));
         var music = addRenderableWidget(new UiButton(left + footerWidth + 4, height - 24, footerWidth, 20, Component.literal("手机音乐"), b -> {
             List<IndustrialMobileAccess.Device> voiceRobots = snapshot.devices().stream()
@@ -153,7 +153,13 @@ public final class IndustrialPhoneScreen extends Screen {
         music.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("搜索、播放和管理游戏内音乐歌单。")));
         var wormhole = addRenderableWidget(new UiButton(left + 2 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("虫洞"), b -> minecraft.setScreen(new WormholeScreen(this))));
         wormhole.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal("查看手机虫洞模块、供能装置和服务器提供的传送目的地。")));
-        addRenderableWidget(new UiButton(left + 3 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("关闭"), b -> onClose()));
+        addRenderableWidget(new UiButton(left + 3 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("远征手记"),
+                b -> minecraft.setScreen(new FieldJournalScreen(this, device != null && device.kind() == 1 ? device.id() : null)),
+                Component.literal("月球远征、生态相册和队友邀请。选中自己的机器人后可让它带路。")));
+        addRenderableWidget(new UiButton(left + 4 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("相机"),
+                b -> com.ic2newera.client.robot.camera.PhoneCameraController.open(),Component.literal("V 切换三个视角，P 拍到本机，O 同时存服务器，G 打开图库，退格退出。按键可在控制设置修改。")));
+        addRenderableWidget(new UiButton(left + 5 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("图库"),
+                b -> com.ic2newera.client.robot.camera.PhoneCameraController.openGallery(this),Component.literal("查看自己的照片和已公开的照片。")));
     }
     private void command(int action, String value) { RobotPackets.CHANNEL.sendToServer(new RobotPackets.PhoneAction(selected == null ? new UUID(0, 0) : selected, action, value)); }
     @Override public void tick() {

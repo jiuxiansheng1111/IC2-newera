@@ -4,7 +4,7 @@
     "icon": {
       "item": "ic2newera:industrial_network_switch"
     },
-    "title": "工业网络",
+    "title": "车间有信号",
     "description": "获得一个工业交换机。",
     "frame": "task",
     "show_toast": true,

@@ -1,0 +1,218 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_foundry"
+    group: "694AE8DA9964AC44"
+    icon: "tconstruct:seared_melter"
+    id: "694A0B72B72BCEB0"
+    order_index: 5
+    quest_links: [
+        {
+            id: "694AD56AF125AC2C"
+            linked_quest: "694A56FE243FF4D0"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694AE11CAAF7E958"
+            linked_quest: "694A00D9E852F0AC"
+            x: -3.0d
+            y: 2.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694A49C61551DCD8"
+            title: "炉砖从河岸开始"
+            icon: "tconstruct:grout"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A56FE243FF4D0"
+            ]
+            tasks: [
+                {
+                    id: "694AF64A243FEE3D"
+                    type: "item"
+                    item: "tconstruct:grout"
+                    count: 4
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A3806AC288F9F"
+                    type: "item"
+                    item: "minecraft:clay_ball"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "收集沙子、沙砾和黏土，按 JEI 组合为至少四份匠魂火泥"
+            description: [
+                "收集沙子、沙砾和黏土，按 JEI 组合为至少四份匠魂火泥。"
+                ""
+                "把火泥烧成焦黑砖。工坊里已有的电炉也能承担这道烧制工序。"
+            ]
+        }
+        {
+            id: "694A70AAE03DBFBD"
+            title: "一座能出料的小炉"
+            icon: "tconstruct:seared_melter"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A49C61551DCD8"
+            ]
+            tasks: [
+                {
+                    id: "694AC6B57BAC8D9C"
+                    type: "item"
+                    item: "tconstruct:seared_heater"
+                }
+                {
+                    id: "694A02EDD6630747"
+                    type: "item"
+                    item: "tconstruct:seared_melter"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A891F908FDC1D"
+                    type: "item"
+                    item: "tconstruct:seared_faucet"
+                    team_reward: false
+                }
+            ]
+            subtitle: "备齐焦黑加热器和焦黑熔化炉，把熔化炉搭在加热器上"
+            description: [
+                "备齐焦黑加热器和焦黑熔化炉，把熔化炉搭在加热器上。"
+                ""
+                "侧面安装浇注口，下方留一格放铸造台。初期就能试浇，再决定何时扩为大冶炼炉。"
+            ]
+        }
+        {
+            id: "694A8FBDC05D5235"
+            title: "铸台接上第一炉"
+            icon: "tconstruct:ingot_cast"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A70AAE03DBFBD"
+            ]
+            tasks: [
+                {
+                    id: "694A93001994C697"
+                    type: "item"
+                    item: "tconstruct:seared_table"
+                }
+                {
+                    id: "694A3A7B3EA115BE"
+                    type: "item"
+                    item: "tconstruct:ingot_cast"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A3E91EC1C9BA0"
+                    type: "item"
+                    item: "minecraft:gold_ingot"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得铸造台和可重复使用的金锭模具，留在浇注口下方试浇一锭"
+            description: [
+                "取得铸造台和可重复使用的金锭模具，留在浇注口下方试浇一锭。"
+                ""
+                "把工位旁的成品箱登记成手机路标，供机械工坊集中取料。"
+            ]
+        }
+        {
+            id: "694AD25D832B1C5F"
+            title: "从木板模到工具台"
+            icon: "tconstruct:tinker_station"
+            x: 2.0d
+            y: 2.0d
+            shape: "square"
+            dependencies: [
+                "694A49C61551DCD8"
+            ]
+            tasks: [
+                {
+                    id: "694AC98AE642B254"
+                    type: "item"
+                    item: "tconstruct:part_builder"
+                }
+                {
+                    id: "694A94FD1621F1D3"
+                    type: "item"
+                    item: "tconstruct:tinker_station"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A6CEA65479B50"
+                    type: "item"
+                    item: "tconstruct:pattern"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "备齐匠魂部件制造台和工具装配台"
+            description: [
+                "备齐匠魂部件制造台和工具装配台。用模具制部件，再在工具台装配。"
+                ""
+                "检查你的手斧是否匹配农夫乐事砧板上显示的工具条件，再交给机器人复做。"
+            ]
+        }
+        {
+            id: "694A30858723366C"
+            title: "铸造与传动交班"
+            icon: "create:mechanical_press"
+            x: 6.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A8FBDC05D5235"
+                "694A00D9E852F0AC"
+            ]
+            tasks: [
+                {
+                    id: "694AB908521A0565"
+                    type: "item"
+                    item: "create:mechanical_press"
+                }
+                {
+                    id: "694A2D3F01EC34EB"
+                    type: "item"
+                    item: "tconstruct:seared_basin"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A4D4D4CAC5D6C"
+                    type: "item"
+                    item: "create:depot"
+                    team_reward: false
+                }
+                {
+                    id: "694A61D52B4E2DB7"
+                    type: "item"
+                    item: "create:shaft"
+                    count: 3
+                    team_reward: false
+                }
+            ]
+            subtitle: "备齐机械动力辊压机和匠魂浇铸盆，预留独立的进料和成品位置"
+            description: [
+                "备齐机械动力辊压机和匠魂浇铸盆，预留独立的进料和成品位置。"
+                ""
+                "把两条线的成品送进库存，给下一章的 AE2 存储准备空间。"
+            ]
+        }
+    ]
+    title: "铸造车间 · 从火泥到工位"
+}

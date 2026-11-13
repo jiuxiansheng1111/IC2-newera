@@ -1,0 +1,198 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_space"
+    group: "694A8F2A1E08B488"
+    icon: "ad_astra:tier_1_rocket"
+    id: "694A1E607482FDCD"
+    order_index: 3
+    quest_links: [
+        {
+            id: "694A525911E725A5"
+            linked_quest: "694ABF6FDC630B9B"
+            x: -3.0d
+            y: 0.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694AF2DBD4AB749A"
+            title: "预备起飞"
+            icon: "ad_astra:tier_1_rocket"
+            x: 0.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694ABF6FDC630B9B"
+            ]
+            tasks: [
+                {
+                    id: "694A6364DDC3D1A4"
+                    type: "item"
+                    item: "ad_astra:tier_1_rocket"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A426ABE486668"
+                    type: "item"
+                    item: "minecraft:baked_potato"
+                    count: 12
+                    team_reward: false
+                }
+                {
+                    id: "694A9680C993CC5A"
+                    type: "item"
+                    item: "minecraft:torch"
+                    count: 16
+                    team_reward: false
+                }
+            ]
+            subtitle: "准备 Ad Astra 一级火箭、燃料、能用的氧气和完整太空服"
+            description: [
+                "准备 Ad Astra 一级火箭、燃料、能用的氧气和完整太空服。用工业手机登记地球备货箱，核对清单。"
+                ""
+                "地球发射后选择月球，控制着陆器触地，再打开远征手记确认落点。"
+            ]
+        }
+        {
+            id: "694AB8BF4763F3A5"
+            title: "落点已标记"
+            icon: "ad_astra:space_suit"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AF2DBD4AB749A"
+            ]
+            tasks: [
+                {
+                    id: "694AF0140F5BC314"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/moon_landing"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A08B8B2BA398A"
+                    type: "item"
+                    item: "minecraft:golden_carrot"
+                    count: 8
+                    team_reward: false
+                }
+            ]
+            subtitle: "真实乘坐火箭前往月球并着陆，在手机远征手记中确认本队落点"
+            description: [
+                "真实乘坐火箭前往月球并着陆，在手机远征手记中确认本队落点。"
+                ""
+                "到月面荒原的地下 Y=-48～48 寻找钒、钴和钼，记下补给箱与返程地点。"
+            ]
+        }
+        {
+            id: "694A505AF25E0D59"
+            title: "月下的三种金属"
+            icon: "ic2newera:vanadium_ore"
+            x: 4.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694AB8BF4763F3A5"
+            ]
+            tasks: [
+                {
+                    id: "694A7090DDE1CF28"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/lunar_samples"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A31F3B28C04EC"
+                    type: "item"
+                    item: "ic2newera:vanadium_steel_pickaxe"
+                    team_reward: false
+                }
+                {
+                    id: "694A019B8C186B0B"
+                    type: "item"
+                    item: "ic2newera:vanadium_steel_boots"
+                    team_reward: false
+                }
+            ]
+            subtitle: "分别取得月球荒原中的钒、钴、钼样本"
+            description: [
+                "分别取得月球荒原中的钒、钴、钼样本。每种可用原矿或粗矿，已记录的样本无需同时留在背包里。"
+                ""
+                "把材料运回工坊，制出钒锭，再准备钒钢及更远航程所需的二级火箭。"
+            ]
+        }
+        {
+            id: "694A830A0AC5F9EA"
+            title: "去火星找铌和钽"
+            icon: "ic2newera:niobium_ore"
+            x: 6.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A505AF25E0D59"
+            ]
+            tasks: [
+                {
+                    id: "694A48E1074C598A"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/martian_samples"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A78C6EB50FEEF"
+                    type: "item"
+                    item: "ic2newera:niobium_titanium_helmet"
+                    team_reward: false
+                }
+            ]
+            subtitle: "用 Ad Astra 二级或更高火箭抵达火星"
+            description: [
+                "用 Ad Astra 二级或更高火箭抵达火星。在火星荒原、峡谷或极地区地下 Y=-48～48，分别取得铌、钽矿石或粗矿。"
+                ""
+                "返航加工矿物，继续做铌钛合金。同时留意能在火星地表找到的共振矿簇。"
+            ]
+        }
+        {
+            id: "694AB086F04A17B4"
+            title: "火星发回的回声"
+            icon: "ic2newera:resonance_shard"
+            x: 8.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A830A0AC5F9EA"
+            ]
+            tasks: [
+                {
+                    id: "694AFE6131761BA9"
+                    type: "item"
+                    item: "ic2newera:resonance_shard"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AA7F2EB32B953"
+                    type: "item"
+                    item: "ic2newera:niobium_titanium_sword"
+                    team_reward: false
+                }
+            ]
+            subtitle: "探索火星可生成共振矿簇的地表，取得共振碎晶"
+            description: [
+                "探索火星可生成共振矿簇的地表，取得共振碎晶。"
+                ""
+                "连同铌钛材料运回工坊。可以用低压公告栏接取高阶委托，再把航点分享给下一队。"
+            ]
+        }
+    ]
+    title: "远征地图 · 月球与火星"
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GIG",
+    "CRC",
+    "III"
+  ],
+  "key": {
+    "G": { "item": "minecraft:glass_pane" },
+    "I": { "item": "minecraft:iron_ingot" },
+    "C": { "item": "ic2:insulated_copper_cable" },
+    "R": { "item": "ic2:circuit" }
+  },
+  "result": {
+    "item": "ic2newera:field_notice_board",
+    "count": 1
+  }
+}

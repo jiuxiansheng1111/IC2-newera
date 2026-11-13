@@ -1,0 +1,54 @@
+{
+  "parent": "ic2newera:newera/integrated_circuit",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "tacz"
+    }
+  ],
+  "display": {
+    "icon": {
+      "item": "tacz:gun_smith_table"
+    },
+    "title": "装配线的出厂章",
+    "description": "领用一件由工坊支持的 MK18 或 AI AWP 勘探装备。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "mk18": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "tacz:modern_kinetic_gun"
+            ],
+            "nbt": "{GunId:\"tacz:mk18\"}"
+          }
+        ]
+      }
+    },
+    "ai_awp": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "tacz:modern_kinetic_gun"
+            ],
+            "nbt": "{GunId:\"tacz:ai_awp\"}"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "mk18",
+      "ai_awp"
+    ]
+  ]
+}

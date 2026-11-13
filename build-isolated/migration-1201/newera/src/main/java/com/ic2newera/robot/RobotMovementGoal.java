@@ -41,6 +41,11 @@ public final class RobotMovementGoal extends Goal {
     @Override public void start() { retryTicks = targetRefreshTicks = 0; failedPaths = 0; lastIntent = RobotMovementIntent.NONE; }
     @Override public void tick() {
         RobotMovementIntent intent = robot.movementIntent();
+        if (intent == RobotMovementIntent.FIELD_GUIDE) {
+            ServerPlayer owner = robot.ownerPlayerForCompanionship();
+            if (owner == null || owner.level() != robot.level()) { robot.finishMovement(); return; }
+            if (robot.distanceToSqr(owner) > 100) { robot.navigation().stop(); return; }
+        }
         if (intent != lastIntent) { retryTicks = targetRefreshTicks = 0; failedPaths = 0; lastIntent = intent; }
         BlockPos target;
         if (intent == RobotMovementIntent.FOLLOW || intent == RobotMovementIntent.COME) {
@@ -60,7 +65,15 @@ public final class RobotMovementGoal extends Goal {
             target = robot.movementTarget();
             if (target == null) { robot.stopMovement(); return; }
             if (robot.distanceToSqr(target.getX() + .5, target.getY(), target.getZ() + .5) <= 4) {
+                if (intent == RobotMovementIntent.FIELD_GUIDE) robot.movementNotice("到了，这里就是手记中记录的地点附近。");
                 robot.navigation().stop(); robot.finishMovement(); return;
+            }
+            if (intent == RobotMovementIntent.FIELD_GUIDE && !robot.blockPosition().closerThan(target, 13)) {
+                if (targetRefreshTicks-- > 0 && !robot.navigation().isDone()) return;
+                targetRefreshTicks = 12;
+                BlockPos step = loadedWaypoint(target);
+                if (step == null) { pathFailed("PATH"); return; }
+                target = step;
             }
         }
         if (target.equals(lastTarget) && retryTicks-- > 0) return;
@@ -72,7 +85,7 @@ public final class RobotMovementGoal extends Goal {
         if (!robot.navigation().moveTo(target.getX() + .5, target.getY(), target.getZ() + .5, 1.05)) pathFailed("PATH");
         else failedPaths = 0;
     }
-    private boolean safeDestination(ServerLevel level, BlockPos pos) {
+    public static boolean safeDestination(ServerLevel level, BlockPos pos) {
         if (!level.hasChunkAt(pos) || !level.hasChunkAt(pos.above())) return false;
         BlockPos below = pos.below();
         BlockState floor = level.getBlockState(below), feet = level.getBlockState(pos), head = level.getBlockState(pos.above());
@@ -86,15 +99,24 @@ public final class RobotMovementGoal extends Goal {
                 && feet.getCollisionShape(level, pos).isEmpty() && head.getCollisionShape(level, pos.above()).isEmpty();
     }
     private BlockPos loadedWaypoint(ServerPlayer owner) {
+        return loadedWaypoint(owner.blockPosition());
+    }
+    private BlockPos loadedWaypoint(BlockPos destination) {
         var level = robot.level();
-        double dx = owner.getX() - robot.getX(), dz = owner.getZ() - robot.getZ();
+        double dx = destination.getX() + 0.5 - robot.getX(), dz = destination.getZ() + 0.5 - robot.getZ();
         double distance = Math.sqrt(dx * dx + dz * dz);
         for (double step : new double[]{Math.min(12.0, distance), Math.min(8.0, distance), Math.min(4.0, distance), 1.0}) {
-            if (distance <= 0.01) return owner.blockPosition();
+            if (distance <= 0.01) return destination;
             BlockPos candidate = BlockPos.containing(robot.getX() + dx * step / distance, robot.getY(), robot.getZ() + dz * step / distance);
             if (level.hasChunkAt(candidate) && safeDestination((ServerLevel) level, candidate)) return candidate;
+            if (robot.movementIntent() == RobotMovementIntent.FIELD_GUIDE) {
+                for (int dy : new int[]{1, -1, 2, -2}) {
+                    var nearby = candidate.offset(0, dy, 0);
+                    if (safeDestination((ServerLevel) level, nearby)) return nearby;
+                }
+            }
         }
-        BlockPos ownerPos = owner.blockPosition();
+        BlockPos ownerPos = destination;
         return level.hasChunkAt(ownerPos) && safeDestination((ServerLevel) level, ownerPos) ? ownerPos : null;
     }
     private void pathFailed(String code) {

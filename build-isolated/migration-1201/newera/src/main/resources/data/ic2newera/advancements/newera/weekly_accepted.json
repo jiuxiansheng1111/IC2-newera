@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/field_board",
+  "display": {
+    "icon": {
+      "item": "minecraft:writable_book"
+    },
+    "title": "这周一起开工",
+    "description": "在通电的公告栏上签收本周的一张个人联合工单。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

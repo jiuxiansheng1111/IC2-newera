@@ -23,6 +23,11 @@
   "item.ic2newera.zinc_dust": "Zinc Dust",
   "itemGroup.ic2newera": "IC2：新纪元",
   "key.categories.ic2newera": "IC2：新纪元",
+  "key.ic2newera.phone_camera_view": "Phone camera: change perspective",
+  "key.ic2newera.phone_camera_capture": "Phone camera: save locally",
+  "key.ic2newera.phone_camera_upload": "Phone camera: capture and save to server",
+  "key.ic2newera.phone_camera_exit": "Phone camera: exit",
+  "key.ic2newera.phone_gallery": "Phone camera: open gallery",
   "key.ic2newera.open_assistant": "打开个人工业智能助手",
   "screen.ic2newera.assistant": "个人工业智能助手",
   "screen.ic2newera.llm.api_key": "API key (saved locally)",
@@ -324,5 +329,9 @@
   "block.ic2newera.advanced_eu_motor": "Advanced EU Motor",
   "block.ic2newera.kinetic_generator": "Basic Mechanical Generator",
   "block.ic2newera.advanced_kinetic_generator": "Advanced Mechanical Generator",
-  "block.ic2newera.universal_transformer": "Universal Transformer"
+  "block.ic2newera.universal_transformer": "Universal Transformer",
+  "block.ic2newera.field_notice_board": "Field Contract Notice Board",
+  "container.ic2newera.field_notice_board": "Daily Field Contracts",
+  "item.ic2newera.field_notice_board": "Field Contract Notice Board",
+  "message.ic2newera.field_notice_board.no_power": "The notice board is unpowered. It requires IC2 tier-1 voltage and 1 EU per 12 game ticks."
 }

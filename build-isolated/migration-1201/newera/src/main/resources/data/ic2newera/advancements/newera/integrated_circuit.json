@@ -4,7 +4,7 @@
     "icon": {
       "item": "ic2newera:integrated_circuit"
     },
-    "title": "集成时代",
+    "title": "硅片上有路",
     "description": "获得一个集成电路。",
     "frame": "task",
     "show_toast": true,

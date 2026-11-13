@@ -1,0 +1,128 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_dispatch"
+    group: "694A31CFA5CED18B"
+    icon: "ic2newera:field_notice_board"
+    id: "694A0597AFA4185B"
+    order_index: 8
+    quest_links: [
+        {
+            id: "694A92130701B407"
+            linked_quest: "694A3481C6303158"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694A43F6E320C45C"
+            linked_quest: "694AB83C42E3066E"
+            x: -3.0d
+            y: 2.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694A1DA39EA3DE1C"
+            title: "读两份不同的工单"
+            icon: "ic2newera:field_notice_board"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A3481C6303158"
+            ]
+            tasks: [
+                {
+                    id: "694ACE564C64715D"
+                    type: "item"
+                    item: "ic2newera:field_notice_board"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A457440A0D49C"
+                    type: "item"
+                    item: "minecraft:paper"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "领取个人公告栏，接通一级低压电"
+            description: [
+                "领取个人公告栏，接通一级低压电。半小时委托与每周联合工单共用这一台屏幕。"
+                ""
+                "在每周页查看两种或以上材料和附加目标。每周一北京时间零点轮换，自己的已接进度保存在当前世界。"
+            ]
+        }
+        {
+            id: "694A26C8280432B5"
+            title: "在周单上签名"
+            icon: "minecraft:writable_book"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A1DA39EA3DE1C"
+            ]
+            tasks: [
+                {
+                    id: "694A0BBD76F494D7"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/weekly_accepted"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AFEF8AC1C46E6"
+                    type: "item"
+                    item: "minecraft:torch"
+                    count: 12
+                    team_reward: false
+                }
+            ]
+            subtitle: "到已通电的公告栏查看本周主题与整份报酬，再接个人联合工单"
+            description: [
+                "到已通电的公告栏查看本周主题与整份报酬，再接个人联合工单。"
+                ""
+                "先在原公告栏分批交付一项材料。物资、日常委托或照片目标以这张工单面板为准。"
+            ]
+        }
+        {
+            id: "694A784F19FE7EF0"
+            title: "完成第一次跨车间交付"
+            icon: "minecraft:clock"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A26C8280432B5"
+                "694AB83C42E3066E"
+            ]
+            tasks: [
+                {
+                    id: "694A497A0B293200"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/weekly_claimed"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AAB530BDFD464"
+                    type: "item"
+                    item: "create:brass_sheet"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "在原公告栏完成周单全部条件并亲自领取报酬"
+            description: [
+                "在原公告栏完成周单全部条件并亲自领取报酬。背包里留出所有奖励所需的空间。"
+                ""
+                "下一周会有新的主题。牵涉多个工位时，将材料箱、拍摄点和交付公告栏排成一条手机任务路线。"
+            ]
+        }
+    ]
+    title: "工务处 · 轮班和每周联合订单"
+}

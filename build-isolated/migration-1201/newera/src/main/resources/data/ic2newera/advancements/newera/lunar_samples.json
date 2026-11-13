@@ -1,0 +1,66 @@
+{
+  "parent": "ic2newera:newera/moon_landing",
+  "display": {
+    "icon": {
+      "item": "ic2newera:cobalt_ore"
+    },
+    "title": "月壤下的三种颜色",
+    "description": "在采样记录里集齐钒、钴、钼；每种可以交替拿到原矿或粗矿。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "sample_0": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:vanadium_ore",
+              "ic2newera:raw_vanadium"
+            ]
+          }
+        ]
+      }
+    },
+    "sample_1": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:cobalt_ore",
+              "ic2newera:raw_cobalt"
+            ]
+          }
+        ]
+      }
+    },
+    "sample_2": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:molybdenum_ore",
+              "ic2newera:raw_molybdenum"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "sample_0"
+    ],
+    [
+      "sample_1"
+    ],
+    [
+      "sample_2"
+    ]
+  ]
+}

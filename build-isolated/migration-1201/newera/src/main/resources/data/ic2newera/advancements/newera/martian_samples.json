@@ -1,0 +1,50 @@
+{
+  "parent": "ic2newera:newera/lunar_samples",
+  "display": {
+    "icon": {
+      "item": "ic2newera:tantalum_ore"
+    },
+    "title": "红色星球的样本箱",
+    "description": "取得铌与钽的矿石或粗矿，为下一批合金备料。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "sample_0": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:niobium_ore",
+              "ic2newera:raw_niobium"
+            ]
+          }
+        ]
+      }
+    },
+    "sample_1": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:tantalum_ore",
+              "ic2newera:raw_tantalum"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "sample_0"
+    ],
+    [
+      "sample_1"
+    ]
+  ]
+}

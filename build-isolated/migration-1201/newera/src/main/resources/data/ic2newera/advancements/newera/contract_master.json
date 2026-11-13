@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/contract_completed",
+  "display": {
+    "icon": {
+      "item": "minecraft:nether_star"
+    },
+    "title": "首席承包人",
+    "description": "领取一份 SSS 级委托的报酬。",
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

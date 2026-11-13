@@ -1,0 +1,39 @@
+{
+  "parent": "ic2newera:newera/integrated_circuit",
+  "conditions": [
+    {
+      "type": "forge:mod_loaded",
+      "modid": "immersive_aircraft"
+    }
+  ],
+  "display": {
+    "icon": {
+      "item": "immersive_aircraft:gyrodyne"
+    },
+    "title": "从空中看工厂",
+    "description": "取得一架固定旋翼机，带上工业手机前往测绘。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "aircraft": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "immersive_aircraft:gyrodyne"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "aircraft"
+    ]
+  ]
+}

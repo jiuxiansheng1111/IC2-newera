@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/weekly_accepted",
+  "display": {
+    "icon": {
+      "item": "minecraft:clock"
+    },
+    "title": "跨车间交班",
+    "description": "完成联合工单的材料与协作目标，在原公告栏领取整份报酬。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

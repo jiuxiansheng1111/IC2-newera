@@ -1,0 +1,33 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:field_notice_board"
+    },
+    "title": "今天谁来接班？",
+    "description": "取得一块任务公告栏，接上一级低压线路。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "obtain": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "ic2newera:field_notice_board"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtain"
+    ]
+  ]
+}

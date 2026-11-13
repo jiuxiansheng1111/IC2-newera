@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/phone_photo",
+  "display": {
+    "icon": {
+      "item": "exposure:photograph"
+    },
+    "title": "海岸观察员",
+    "description": "向公共记录提交一张通过核验的生态照片。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

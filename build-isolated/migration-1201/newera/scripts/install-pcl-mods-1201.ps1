@@ -27,6 +27,23 @@ if ($enhancementLock.target.minecraft -ne '1.20.1' -or $enhancementLock.target.f
     throw 'The enhancement lock is not for Minecraft 1.20.1 / Forge 47.4.28.'
 }
 $lockedMods = @($runtimeLock.runtimeMods) + @($enhancementLock.mods)
+$retiredSpecs = @()
+if ($enhancementLock.PSObject.Properties.Name -contains 'retiredMods') {
+    $retiredSpecs = @($enhancementLock.retiredMods)
+}
+$retiredById = @{}
+foreach ($retired in $retiredSpecs) {
+    if ($retired.modId -notmatch '^[a-z0-9_]+$' -or
+        $retired.file -notmatch '^[A-Za-z0-9._+-]+\.jar$' -or
+        $retired.sha256 -notmatch '^[A-Fa-f0-9]{64}$') {
+        throw 'Invalid retired mod ID, exact previous JAR name, or SHA-256 in player-enhancements-lock-1201.json.'
+    }
+    if ($retiredById.ContainsKey($retired.modId) -or
+        @($lockedMods | Where-Object { $_.modId -eq $retired.modId }).Count -gt 0) {
+        throw 'The enhancement lock contains a duplicate or still-active retired mod ID.'
+    }
+    $retiredById[$retired.modId] = $retired
+}
 
 try {
     $null = Resolve-Path -LiteralPath $VersionDirectory
@@ -231,6 +248,7 @@ $plan += [pscustomobject]@{
 }
 
 $replacedVersions = @()
+$retiredVersions = @()
 $knownPreviousHashes = @{
     'create' = 'A18763BE04F6A7921D2E3BC5E9150B0BB5BC89B5EF45A607E93939972021F932'
     'ad_astra' = '62D1A8A23075A983526A8030A7F2DAAF118087048E514F3B34541572C03DFCDF'
@@ -238,7 +256,21 @@ $knownPreviousHashes = @{
 }
 if (Test-Path -LiteralPath $modsPath -PathType Container) {
     foreach ($existing in (Get-ChildItem -LiteralPath $modsPath -File -Filter '*.jar')) {
-        foreach ($id in @(Get-DeclaredModIds $existing.FullName)) {
+        $existingIds = @(Get-DeclaredModIds $existing.FullName)
+        foreach ($retiredId in $retiredById.Keys) {
+            if ($retiredId -notin $existingIds) { continue }
+            $retired = $retiredById[$retiredId]
+            if ($existing.Name -ne $retired.file -or
+                (Get-FileHash -LiteralPath $existing.FullName -Algorithm SHA256).Hash -ne $retired.sha256.ToUpperInvariant()) {
+                throw ('A retired mod ID is present, but its JAR does not match the exact previous file and hash: ' + $retiredId)
+            }
+            if (($existing.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+                -not $existing.FullName.StartsWith($modsPath + '\', [StringComparison]::OrdinalIgnoreCase)) {
+                throw 'The previous retired dependency is outside the selected real mods directory.'
+            }
+            $retiredVersions += $existing.FullName
+        }
+        foreach ($id in $existingIds) {
             $expected = @($plan | Where-Object { $_.modId -eq $id })
             if ($expected.Count -gt 0 -and
                 -not [string]::Equals($existing.FullName, $expected[0].destination, [StringComparison]::OrdinalIgnoreCase)) {
@@ -258,8 +290,37 @@ if (Test-Path -LiteralPath $modsPath -PathType Container) {
 
 $deploymentPath = Join-Path $projectDirectory 'build\deployment'
 $backupPath = Join-Path $deploymentPath ('backups\' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
+$bookSource = (Resolve-Path -LiteralPath (Join-Path $projectDirectory '..\..\..\scripts\field-guide\config\ftbquests\quests')).Path
+$bookFiles = @(Get-ChildItem -LiteralPath $bookSource -Filter '*.snbt' -Recurse -File)
+$bookPath = Join-Path $versionPath 'config\ftbquests\quests'
+if ($bookFiles.Count -lt 3 -or !(Test-Path -LiteralPath (Join-Path $bookSource 'data.snbt'))) { throw 'The generated field guide is incomplete.' }
+$fieldworkSource = (Resolve-Path -LiteralPath (Join-Path $projectDirectory 'tacz\ic2newera_fieldwork')).Path
+$fieldworkFiles = @(Get-ChildItem -LiteralPath $fieldworkSource -Filter '*.json' -Recurse -File)
+if ($fieldworkFiles.Count -lt 5 -or !(Test-Path -LiteralPath (Join-Path $fieldworkSource 'gunpack.meta.json'))) { throw 'The TaCZ fieldwork pack is incomplete.' }
+function Assert-ProfilePath([string]$target) {
+    $probe = [IO.Path]::GetFullPath($target)
+    if (!$probe.StartsWith($versionPath+'\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Configuration is outside the selected profile.' }
+    while ($probe.Length -gt $versionPath.Length) {
+        if (Test-Path -LiteralPath $probe) {
+            $part = Get-Item -LiteralPath $probe -Force
+            if ($part.Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Refusing to follow a redirected configuration path.' }
+        }
+        $probe = [IO.Path]::GetDirectoryName($probe)
+    }
+}
+$dataFiles = @(
+    foreach ($file in $bookFiles) {
+        [pscustomobject]@{ source=$file.FullName; relative='config\ftbquests\quests\'+$file.FullName.Substring($bookSource.Length+1) }
+    }
+    foreach ($file in $fieldworkFiles) {
+        [pscustomobject]@{ source=$file.FullName; relative='tacz\ic2newera_fieldwork\'+$file.FullName.Substring($fieldworkSource.Length+1) }
+    }
+)
+foreach ($file in $dataFiles) { Assert-ProfilePath (Join-Path $versionPath $file.relative) }
+$terrainConfigs = @('config\ultraterraforged\modpack.json','config\ultraterraforged\modpack-presets\ic2-new-era-balanced-1201.json')
+foreach ($rel in $terrainConfigs) { Assert-ProfilePath (Join-Path $versionPath $rel) }
 $planPreview = @($plan | Select-Object modId, fileName, sha256, sizeBytes)
-if (-not $PSCmdlet.ShouldProcess($versionPath, "Install $($lockedMods.Count) locked runtime mods and the full New Era JAR")) {
+if (-not $PSCmdlet.ShouldProcess($versionPath, "Install $($lockedMods.Count) locked mods and the full New Era JAR; remove $($retiredVersions.Count) exact retired mod JARs")) {
     [pscustomobject]@{ planned = $plan.Count; modsDirectory = $modsPath; plan = $planPreview } | ConvertTo-Json -Depth 4
     return
 }
@@ -291,6 +352,26 @@ if ($replacedVersions.Count -gt 0) {
         Move-Item -LiteralPath $resolvedPrevious -Destination $backupTarget
     }
 }
+if ($retiredVersions.Count -gt 0) {
+    New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
+    foreach ($previousPath in ($retiredVersions | Select-Object -Unique)) {
+        $resolvedPrevious = (Resolve-Path -LiteralPath $previousPath).Path
+        $retiredName = Split-Path -Leaf $previousPath
+        $retiredSpec = @($retiredSpecs | Where-Object { $_.file -eq $retiredName })[0]
+        $previousItem = Get-Item -LiteralPath $resolvedPrevious -Force
+        if (-not $resolvedPrevious.StartsWith($modsPath + '\', [StringComparison]::OrdinalIgnoreCase) -or
+            ($previousItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+            $previousItem.PSIsContainer -or
+            (Get-FileHash -LiteralPath $resolvedPrevious -Algorithm SHA256).Hash -ne $retiredSpec.sha256.ToUpperInvariant()) {
+            throw 'Retired JAR changed after preflight; refusing to remove it.'
+        }
+        $backupTarget = [IO.Path]::GetFullPath((Join-Path $backupPath $retiredName))
+        if (-not $backupTarget.StartsWith($projectDirectory + '\', [StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Retired dependency backup path escaped the project.'
+        }
+        Move-Item -LiteralPath $resolvedPrevious -Destination $backupTarget
+    }
+}
 $copied = 0
 foreach ($entry in $plan) {
     if (Test-Path -LiteralPath $entry.destination -PathType Leaf) {
@@ -306,6 +387,31 @@ foreach ($entry in $plan) {
     $copied++
 }
 
+foreach ($file in $dataFiles) {
+    $relative = $file.relative
+    $destination = Join-Path $versionPath $relative
+    Assert-ProfilePath $destination
+    $expected = (Get-FileHash -LiteralPath $file.source).Hash
+    if ((Test-Path -LiteralPath $destination) -and (Get-FileHash -LiteralPath $destination).Hash -ne $expected) {
+        $prior = Join-Path $backupPath $relative
+        New-Item -ItemType Directory -Force -Path ([IO.Path]::GetDirectoryName($prior)) | Out-Null
+        Copy-Item -LiteralPath $destination -Destination $prior
+    }
+    if (!(Test-Path -LiteralPath $destination) -or (Get-FileHash -LiteralPath $destination).Hash -ne $expected) {
+        New-Item -ItemType Directory -Force -Path ([IO.Path]::GetDirectoryName($destination)) | Out-Null
+        Copy-Item -LiteralPath $file.source -Destination $destination -Force
+    }
+    if ((Get-FileHash -LiteralPath $destination).Hash -ne $expected) { throw "Installed fieldwork data differs for $relative" }
+}
+foreach ($rel in $terrainConfigs) {
+    $oldConfig = Join-Path $versionPath $rel
+    if (Test-Path -LiteralPath $oldConfig -PathType Leaf) {
+        $prior = [IO.Path]::GetFullPath((Join-Path $backupPath $rel))
+        if (!$prior.StartsWith($projectDirectory+'\',[StringComparison]::OrdinalIgnoreCase)) { throw 'Config backup is outside this project.' }
+        New-Item -ItemType Directory -Force -Path ([IO.Path]::GetDirectoryName($prior)) | Out-Null
+        Move-Item -LiteralPath $oldConfig -Destination $prior
+    }
+}
 $receiptFile = Join-Path $deploymentPath 'pcl-installation-1201.json'
 [pscustomobject]@{
     installedAt = (Get-Date).ToString('o')
@@ -313,6 +419,9 @@ $receiptFile = Join-Path $deploymentPath 'pcl-installation-1201.json'
     minecraft = $runtimeLock.target.minecraft
     forge = $runtimeLock.target.forge
     replacedPreviousVersions = $replacedVersions
+    removedRetiredMods = $retiredVersions
+    fieldGuideFiles = @($bookFiles | ForEach-Object { $_.FullName.Substring($bookSource.Length+1) })
+    fieldworkDataFiles = @($dataFiles | ForEach-Object { $_.relative })
     previousVersionBackup = $backupPath
     mods = @($plan | Select-Object modId, destination, sizeBytes, sha256)
 } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $receiptFile -Encoding UTF8

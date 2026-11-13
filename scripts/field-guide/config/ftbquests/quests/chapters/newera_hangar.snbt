@@ -1,0 +1,132 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_hangar"
+    group: "694A8F2A1E08B488"
+    icon: "immersive_aircraft:gyrodyne"
+    id: "694A4AB17E84E82E"
+    order_index: 4
+    quest_links: [
+        {
+            id: "694AA2DD71F56EA4"
+            linked_quest: "694ABF6FDC630B9B"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694AB29438C1C430"
+            linked_quest: "694A00D9E852F0AC"
+            x: -3.0d
+            y: 2.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694AF27341DB80CC"
+            title: "打开装备工位"
+            icon: "tacz:gun_smith_table"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694ABF6FDC630B9B"
+            ]
+            tasks: [
+                {
+                    id: "694A891BDDC92031"
+                    type: "item"
+                    item: "tacz:gun_smith_table"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A8678522BEA25"
+                    type: "item"
+                    item: "create:andesite_alloy"
+                    count: 3
+                    team_reward: false
+                }
+            ]
+            subtitle: "制作 TaCZ 装备工位，打开工位查看新纪元添加的两项勘探装备配方"
+            description: [
+                "制作 TaCZ 装备工位，打开工位查看新纪元添加的两项勘探装备配方。"
+                ""
+                "也可以在 JEI 查看 Create 序列组装配方，用已有传动线与工业部件加工同款装备。"
+            ]
+        }
+        {
+            id: "694A8204FF2F6B24"
+            title: "领用勘探装备"
+            icon: "tacz:gun_smith_table"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AF27341DB80CC"
+            ]
+            tasks: [
+                {
+                    id: "694AD1DD258722D1"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/field_equipment"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A5F05AB942EEB"
+                    type: "item"
+                    item: "minecraft:cooked_beef"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "在 TaCZ 工位或 Create 序列组装线上制得 MK18 或 AI AWP，取到背包即可登记"
+            description: [
+                "在 TaCZ 工位或 Create 序列组装线上制得 MK18 或 AI AWP，取到背包即可登记。"
+                ""
+                "领取返回营地用的补给，把出发位置加入手机路线。两种装备首次制成时均为空仓。"
+            ]
+        }
+        {
+            id: "694AB49F3E0F84C9"
+            title: "测绘机出库"
+            icon: "immersive_aircraft:gyrodyne"
+            x: 0.0d
+            y: 2.0d
+            shape: "gear"
+            dependencies: [
+                "694A00D9E852F0AC"
+            ]
+            tasks: [
+                {
+                    id: "694A1B23F16A007C"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/survey_aircraft"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A518E8EFD16D2"
+                    type: "item"
+                    item: "ic2newera:tempered_steel_boots"
+                    team_reward: false
+                }
+                {
+                    id: "694AC5C469F85151"
+                    type: "item"
+                    item: "minecraft:compass"
+                    team_reward: false
+                }
+            ]
+            subtitle: "按 JEI 中的序列组装配方从飞机机身开始，加工成一架固定旋翼机，再将成品收入背包"
+            description: [
+                "按 JEI 中的序列组装配方从飞机机身开始，加工成一架固定旋翼机，再将成品收入背包。"
+                ""
+                "将起降点存到手机，再去未勘探地区拍摄。前往月球仍需 Ad Astra 火箭。"
+            ]
+        }
+    ]
+    title: "装配间 · 飞行与装备"
+}

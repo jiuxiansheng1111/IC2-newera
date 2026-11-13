@@ -5,8 +5,8 @@
     "forge": "47.4.28",
     "java": 17
   },
-  "revision": "r62",
-  "runtimeVerification": "Metadata, official source hashes and API compatibility reviewed; full client/server and Linux play acceptance pending.",
+  "revision": "r69",
+  "runtimeVerification": "Exposure 1.7.7 Release for Forge 47 / Minecraft 1.20.1 verified from the official CurseForge artifact; exact size and SHA-256 are pinned. Full r69 pack acceptance remains pending.",
   "mods": [
     {
       "modId": "ftbultimine",
@@ -252,19 +252,24 @@
       "releaseChannel": "release"
     },
     {
-      "modId": "ultraterraforged",
-      "version": "1.0.3+1.20.1",
-      "file": "ultraterraforged-forge-1.0.3+1.20.1.jar",
-      "source": "https://raw.githubusercontent.com/Pandaismyname1/ultraterraforged/d50a181c2f4e018aa18e401c02fa6f43e8faeedb/com/pandaismyname1/ultraterraforged/ultraterraforged-forge/1.0.3+1.20.1/ultraterraforged-forge-1.0.3+1.20.1.jar",
-      "sourceVersionUrl": "https://github.com/Pandaismyname1/ultraterraforged/releases/tag/1.0.3%2B1.20.1",
-      "sizeBytes": 1884145,
-      "sha256": "E1F14634F13968EB14B12644E8D92932D26992EE44DADBB587A67C28164AFA82",
-      "sha1": "7cb3f07709053413f636703bfa487c939a1c509a",
-      "sha512": "fdf5641b03553ec085b3130dc33ce3eed52181553c777e758d1ef421454e93f958c21bae535810b446abc44cedf4f47993ccde513bc8c67184efdf36607186d8",
+      "modId": "exposure",
+      "version": "1.7.7",
+      "file": "exposure-1.20.1-1.7.7-forge.jar",
+      "source": "https://www.curseforge.com/api/v1/mods/871755/files/5751145/download",
+      "sourceVersionUrl": "https://www.curseforge.com/minecraft/mc-mods/exposure/files/5751145",
+      "sizeBytes": 1326106,
+      "sha256": "34FADEB21C2777AB0F13BB0632B3260512FFF331BA48D446A8CA782E0CDAC9B9",
       "environment": "both",
       "releaseChannel": "release",
       "license": "MIT",
-      "upstreamMavenCommit": "d50a181c2f4e018aa18e401c02fa6f43e8faeedb"
+      "fileId": 5751145,
+      "optionalDependencies": [
+        {
+          "modId": "jei",
+          "versionRange": "[15.0.0.0,)",
+          "side": "client"
+        }
+      ]
     },
     {
       "modId": "spawn",
@@ -328,6 +333,70 @@
       "environment": "both",
       "releaseChannel": "release",
       "license": "MIT"
+    },
+    {
+      "modId": "ftbquests",
+      "version": "2001.4.22",
+      "file": "ftb-quests-forge-2001.4.22.jar",
+      "source": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-quests-forge/2001.4.22/ftb-quests-forge-2001.4.22.jar",
+      "sourceVersionUrl": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-quests-forge/2001.4.22/ftb-quests-forge-2001.4.22.jar",
+      "sizeBytes": 1255469,
+      "sha256": "9EA9D159A78A2724CFE0457B024680FDB52A2126EFF9CFA5280A30578F647A68",
+      "sha1": "70f3bd771ab3b5921ce1ff5f14166fab694ca1aa",
+      "sha512": "7ffec667d4bb73e33e1815655361c93a7564d9040af937b26035bfa3cc26f6125962f173c623eb71cf949b0b0a49181a0459648007b3054e97150bd72fcc0bf8",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "All Rights Reserved"
+    },
+    {
+      "modId": "ftbteams",
+      "version": "2001.3.2",
+      "file": "ftb-teams-forge-2001.3.2.jar",
+      "source": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-teams-forge/2001.3.2/ftb-teams-forge-2001.3.2.jar",
+      "sourceVersionUrl": "https://maven.ftb.dev/releases/dev/ftb/mods/ftb-teams-forge/2001.3.2/ftb-teams-forge-2001.3.2.jar",
+      "sizeBytes": 252579,
+      "sha256": "B1CB4D82EA9F137A87E12A7AAF3329619294B56F7D70337DFD557A76E10B6E07",
+      "sha1": "c49023f5d471aa1ba7fc624d2565fe9e82b7117e",
+      "sha512": "45f8980fa1cfcb7cd772f6a03abb0ac680f7c502dc569839e325553dcaa9105148a2c27a214cd1f1131f6b06bca957f8dd01dfb4a1ccb8e13d49502513480cae",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "All Rights Reserved"
+    },
+    {
+      "modId": "tacz",
+      "version": "1.2.0",
+      "file": "tacz-forge-1.20.1-1.2.0.jar",
+      "source": "https://cdn.modrinth.com/data/SzzJttH8/versions/QGCbNkTy/tacz-forge-1.20.1-1.2.0.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/timeless-and-classics-zero/version/QGCbNkTy",
+      "sizeBytes": 69001578,
+      "sha256": "1C2F2915F76908D396A0DA577665C977564C279CCB89D459A00A29225AA45A92",
+      "sha1": "0b91b2d09f724cdf412da93370cd57d311e78e67",
+      "sha512": "7784dd103fbaa5d26a6130ae6a716a1909f93c126fd226193b21dec38f8c345b0044e9e392a1aa6737e468a346b7e95dc38a3e76f22ecaf37cef438ae57874c1",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "GPL-3.0-only (code), CC BY-NC-ND-4.0 (bundled assets)"
+    },
+    {
+      "modId": "immersive_aircraft",
+      "version": "1.5.0+1.20.1",
+      "file": "immersive_aircraft-1.5.0+1.20.1-forge.jar",
+      "source": "https://cdn.modrinth.com/data/x3HZvrj6/versions/aDUlOdzA/immersive_aircraft-1.5.0%2B1.20.1-forge.jar",
+      "sourceVersionUrl": "https://modrinth.com/mod/immersive-aircraft/version/aDUlOdzA",
+      "sizeBytes": 2441036,
+      "sha256": "7E00754F893D910F301134E0CADA37DDE0BE36C8DF15EBF98A5B6512FA664077",
+      "sha1": "dceb59fc5dbfa30625bfa56256480708e0c58419",
+      "sha512": "3c51cc0e056543226c6768117f88201921613df044bb344527855e368573e5f23a88bca890ea10a236f372fca8fdf5c8424d972e57d699134474b6e3f601cc13",
+      "environment": "both",
+      "releaseChannel": "release",
+      "license": "GPL-3.0-only"
+    }
+  ],
+  "retiredMods": [
+    {
+      "modId": "ultraterraforged",
+      "file": "ultraterraforged-forge-1.0.3+1.20.1.jar",
+      "sha256": "E1F14634F13968EB14B12644E8D92932D26992EE44DADBB587A67C28164AFA82",
+      "reason": "r69 removes the verified r62 UltraTerraForged installation when its exact prior JAR is present"
     }
   ]
 }

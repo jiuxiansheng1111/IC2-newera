@@ -1,0 +1,260 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_ground"
+    group: "694AC3E117D2CBBA"
+    icon: "ic2:forge_hammer"
+    id: "694AE563338FC1ED"
+    order_index: 0
+    quest_links: []
+    quests: [
+        {
+            id: "694A3481C6303158"
+            title: "报到领工牌"
+            icon: "ic2newera:field_notice_board"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: []
+            tasks: [
+                {
+                    id: "694A71A24A2BF166"
+                    type: "checkmark"
+                    value: 1
+                }
+            ]
+            rewards: [
+                {
+                    id: "694ADFE9F9236DDF"
+                    type: "item"
+                    item: "ic2newera:field_notice_board"
+                    team_reward: false
+                }
+            ]
+            subtitle: "点勾确认报到，再点右侧公告栏图标，领走自己的设备"
+            description: [
+                "点勾确认报到，再点右侧公告栏图标，领走自己的设备。"
+                ""
+                "先找铁和铅来建立低压电源。公告栏每分钟约用 100 EU，通电以后右击即可接委托。"
+            ]
+        }
+        {
+            id: "694A56FE243FF4D0"
+            title: "点亮第一台设备"
+            icon: "ic2:generator"
+            x: 2.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A3481C6303158"
+            ]
+            tasks: [
+                {
+                    id: "694AE9543D9753BF"
+                    type: "item"
+                    item: "minecraft:iron_ingot"
+                    count: 8
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AFEFEBB2DAA37"
+                    type: "item"
+                    item: "ic2:generator"
+                    team_reward: false
+                }
+                {
+                    id: "694AA63475F591E0"
+                    type: "item"
+                    item: "ic2:insulated_copper_cable"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "采铁并烧出八块铁锭，领取 IC2 火力发电机"
+            description: [
+                "采铁并烧出八块铁锭，领取 IC2 火力发电机。"
+                ""
+                "放入可燃物，接绝缘铜缆给公告栏供电。背包里的目标材料只作检测，可以继续使用。"
+            ]
+        }
+        {
+            id: "694A7ED7B005A70C"
+            title: "在岩层里找铅"
+            icon: "ic2:lead_ore"
+            x: 4.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A56FE243FF4D0"
+            ]
+            tasks: [
+                {
+                    id: "694AC8938EC4E4B6"
+                    type: "advancement"
+                    advancement: "ic2newera:newera/lead_sample"
+                    criterion: ""
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AC9E65E2ED60C"
+                    type: "item"
+                    item: "ic2:macerator"
+                    team_reward: false
+                }
+                {
+                    id: "694AB9FE17C2917B"
+                    type: "item"
+                    item: "minecraft:torch"
+                    count: 12
+                    team_reward: false
+                }
+            ]
+            subtitle: "在主世界地下找铅"
+            description: [
+                "在主世界地下找铅。通常在 Y=72 以下，Y=-16 以下还有额外一批矿脉。拿到粗铅、铅矿石或深层铅矿石均可。"
+                ""
+                "领打粉机接电，把一份铅矿石或粗铅放入输入槽，留好杂质粉。"
+            ]
+        }
+        {
+            id: "694A245A794E20C8"
+            title: "先把矿石打碎"
+            icon: "ic2newera:impure_lead_dust"
+            x: 6.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A7ED7B005A70C"
+            ]
+            tasks: [
+                {
+                    id: "694AE9CC6B252A91"
+                    type: "item"
+                    item: "ic2newera:impure_lead_dust"
+                    count: 2
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AF0E8CA1C523E"
+                    type: "item"
+                    item: "ic2:centrifuge"
+                    team_reward: false
+                }
+            ]
+            subtitle: "在 IC2 打粉机或 Create 粉碎轮加工一份铅矿石或粗铅，拿到两份含杂质的铅粉"
+            description: [
+                "在 IC2 打粉机或 Create 粉碎轮加工一份铅矿石或粗铅，拿到两份含杂质的铅粉。"
+                ""
+                "领取热能离心机。接足供电，等机器升温；下一步可先水洗，也可以直接离心。"
+            ]
+        }
+        {
+            id: "694A4CBADE869E4D"
+            title: "多走一道水洗"
+            icon: "create:encased_fan"
+            x: 8.0d
+            y: 2.0d
+            shape: "square"
+            dependencies: [
+                "694A245A794E20C8"
+            ]
+            tasks: [
+                {
+                    id: "694A3A0BC2AE6972"
+                    type: "item"
+                    item: "ic2:purified_lead"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A8902AFFDB04A"
+                    type: "item"
+                    item: "create:shaft"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "让转动的鼓风机吹过水，水流后放入杂质铅粉，每份得到一份洗后铅"
+            description: [
+                "让转动的鼓风机吹过水，水流后放入杂质铅粉，每份得到一份洗后铅。"
+                ""
+                "每份洗后铅离心得三份铅粉。没有风扇时，每份杂质粉直接离心得一份，主线也能推进。"
+            ]
+        }
+        {
+            id: "694A938185461A99"
+            title: "离心出粉"
+            icon: "ic2:centrifuge"
+            x: 10.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A245A794E20C8"
+            ]
+            tasks: [
+                {
+                    id: "694AD8B0E5A13A74"
+                    type: "item"
+                    item: "ic2:lead_dust"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694AECA09F107B25"
+                    type: "item"
+                    item: "ic2:electric_furnace"
+                    team_reward: false
+                }
+            ]
+            subtitle: "向热能离心机供电，放入杂质铅粉或洗后铅，加热完成后取出铅粉"
+            description: [
+                "向热能离心机供电，放入杂质铅粉或洗后铅，加热完成后取出铅粉。"
+                ""
+                "领电炉，烧铅粉得到铅锭。用洗后路线，一份原矿一共能产六份成品粉。"
+            ]
+        }
+        {
+            id: "694A9133B87CD8A9"
+            title: "第一批成品铅"
+            icon: "ic2:lead_ingot"
+            x: 12.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694A938185461A99"
+            ]
+            tasks: [
+                {
+                    id: "694AB9A1194F0CB7"
+                    type: "item"
+                    item: "ic2:lead_ingot"
+                    count: 2
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A76B87082FC65"
+                    type: "item"
+                    item: "ic2:batbox"
+                    team_reward: false
+                }
+                {
+                    id: "694A93573163F5A6"
+                    type: "item"
+                    item: "ic2:wrench"
+                    team_reward: false
+                }
+            ]
+            subtitle: "用电炉或普通炉烧出两块铅锭"
+            description: [
+                "用电炉或普通炉烧出两块铅锭。"
+                ""
+                "把储电箱接到生产线，稳定低压供电。工业加工章与个人委托现在都能继续。"
+            ]
+        }
+    ]
+    title: "黄铜工牌 · 矿场起步"
+}

@@ -1,0 +1,14 @@
+{
+  "zh_cn": {
+    "block.ic2newera.field_notice_board": "野外任务电力公告栏",
+    "container.ic2newera.field_notice_board": "野外每日任务公告栏",
+    "item.ic2newera.field_notice_board": "野外任务电力公告栏",
+    "message.ic2newera.field_notice_board.no_power": "公告栏尚未供电：需要 IC2 一级低压电，每 12 游戏刻消耗 1 EU。"
+  },
+  "en_us": {
+    "block.ic2newera.field_notice_board": "Field Contract Notice Board",
+    "container.ic2newera.field_notice_board": "Daily Field Contracts",
+    "item.ic2newera.field_notice_board": "Field Contract Notice Board",
+    "message.ic2newera.field_notice_board.no_power": "The notice board is unpowered. It requires IC2 tier-1 voltage and 1 EU per 12 game ticks."
+  }
+}

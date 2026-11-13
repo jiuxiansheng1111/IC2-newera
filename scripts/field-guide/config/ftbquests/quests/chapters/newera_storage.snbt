@@ -1,0 +1,231 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_storage"
+    group: "694AE8DA9964AC44"
+    icon: "ae2:terminal"
+    id: "694A8F995D95DC1A"
+    order_index: 6
+    quest_links: [
+        {
+            id: "694A2B03E4367806"
+            linked_quest: "694A00D9E852F0AC"
+            x: -3.0d
+            y: 0.0d
+        }
+        {
+            id: "694A97E2A9891B0B"
+            linked_quest: "694A0E58A046FC77"
+            x: -3.0d
+            y: 2.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694A1B855C8B2507"
+            title: "给水晶留一个生长面"
+            icon: "ae2:certus_quartz_crystal"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A00D9E852F0AC"
+            ]
+            tasks: [
+                {
+                    id: "694A249D426B9310"
+                    type: "item"
+                    item: "ae2:certus_quartz_crystal"
+                    count: 4
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A7C488CE26585"
+                    type: "item"
+                    item: "minecraft:redstone"
+                    count: 8
+                    team_reward: false
+                }
+            ]
+            subtitle: "在陨石中找到可以结晶的赛特斯石英母岩，收集四枚水晶，保留母岩与周围生长空间"
+            description: [
+                "在陨石中找到可以结晶的赛特斯石英母岩，收集四枚水晶，保留母岩与周围生长空间。"
+                ""
+                "准备充能器，通电后尝试让普通赛特斯石英水晶充能。"
+            ]
+        }
+        {
+            id: "694AB6C6790896C6"
+            title: "让三种材料结晶"
+            icon: "ae2:fluix_crystal"
+            x: 2.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A1B855C8B2507"
+            ]
+            tasks: [
+                {
+                    id: "694A0BD8D1AABA2F"
+                    type: "item"
+                    item: "ae2:charger"
+                }
+                {
+                    id: "694A99FD29FD600F"
+                    type: "item"
+                    item: "ae2:fluix_crystal"
+                    count: 2
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A146D60ABE14B"
+                    type: "item"
+                    item: "minecraft:quartz"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "备好充能器，按 AE2 的水中反应配方取得两枚福鲁伊克斯水晶"
+            description: [
+                "备好充能器，按 AE2 的水中反应配方取得两枚福鲁伊克斯水晶。"
+                ""
+                "检查 JEI 中福鲁伊克斯与处理器的用途，备料时从现有石英线取料。"
+            ]
+        }
+        {
+            id: "694AFD75688EEE87"
+            title: "压印一枚真正的处理器"
+            icon: "ae2:logic_processor"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694AB6C6790896C6"
+            ]
+            tasks: [
+                {
+                    id: "694A886A9803A241"
+                    type: "item"
+                    item: "ae2:inscriber"
+                }
+                {
+                    id: "694AB0D967046924"
+                    type: "item"
+                    item: "ae2:logic_processor"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A865162A20D4E"
+                    type: "item"
+                    item: "minecraft:gold_ingot"
+                    count: 3
+                    team_reward: false
+                }
+            ]
+            subtitle: "取得压印器和一枚逻辑处理器"
+            description: [
+                "取得压印器和一枚逻辑处理器。模具与印好的电路分别放入配方所示槽位。"
+                ""
+                "将处理器用于存储元件。在物流仓库留空位以便接入驱动器和终端。"
+            ]
+        }
+        {
+            id: "694ADA72DB635FFA"
+            title: "让终端读到第一格货"
+            icon: "ae2:drive"
+            x: 6.0d
+            y: 0.0d
+            shape: "gear"
+            dependencies: [
+                "694AFD75688EEE87"
+            ]
+            tasks: [
+                {
+                    id: "694ABDE4A46946A3"
+                    type: "item"
+                    item: "ae2:drive"
+                }
+                {
+                    id: "694AF4D1B489D452"
+                    type: "item"
+                    item: "ae2:item_storage_cell_1k"
+                }
+                {
+                    id: "694A926F3FFB13EC"
+                    type: "item"
+                    item: "ae2:terminal"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A3EEE8C738698"
+                    type: "item"
+                    item: "create:andesite_alloy"
+                    count: 4
+                    team_reward: false
+                }
+                {
+                    id: "694AB7D4D0665360"
+                    type: "item"
+                    item: "minecraft:chest"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "备齐 ME 驱动器、1k 物品存储元件和 ME 终端"
+            description: [
+                "备齐 ME 驱动器、1k 物品存储元件和 ME 终端。连上 AE2 可用的电源与线缆，在终端存取一批工坊材料。"
+                ""
+                "给新纪元生产线保留真实进料箱，再决定哪些成品交给 ME 仓库保存。"
+            ]
+        }
+        {
+            id: "694AEFF4D90CA882"
+            title: "一个样板对一台装配器"
+            icon: "ae2:pattern_provider"
+            x: 8.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694ADA72DB635FFA"
+                "694A0E58A046FC77"
+            ]
+            tasks: [
+                {
+                    id: "694AD6D86D67B441"
+                    type: "item"
+                    item: "ae2:blank_pattern"
+                }
+                {
+                    id: "694A3275B440A09D"
+                    type: "item"
+                    item: "ae2:pattern_provider"
+                }
+                {
+                    id: "694AAF4973FE937B"
+                    type: "item"
+                    item: "ae2:molecular_assembler"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A79D732F1319F"
+                    type: "item"
+                    item: "ae2:blank_pattern"
+                    count: 2
+                    team_reward: false
+                }
+            ]
+            subtitle: "备齐空白样板、样板供应器和分子装配室，选择一条简单工作台配方编码"
+            description: [
+                "备齐空白样板、样板供应器和分子装配室，选择一条简单工作台配方编码。"
+                ""
+                "把样板插入供应器，配齐合成 CPU 和原料后从终端下单。工厂原有矿物加工线继续按机器配方运转。"
+            ]
+        }
+    ]
+    title: "仓库调度 · AE2 与工业工坊"
+}

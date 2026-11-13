@@ -160,7 +160,7 @@ public final class RobotScreen extends Screen {
         String question = queued; queued = ""; input.setValue("");
         RobotTaskIntent task = RobotTaskIntent.parse(question);
         boolean taskCommand = task != null;
-        boolean memory = taskCommand || RobotMemoryClient.topic(question) != null;
+        boolean memory = taskCommand || RobotMemoryClient.topic(question) != null || FieldJournalScreen.query(question) != null;
         taskPending = taskCommand && task.error().isEmpty();
         messages.add(new RobotChatBridge.Message("user", question, memory));
         // Keep the local transcript bounded as well as the bridge request.

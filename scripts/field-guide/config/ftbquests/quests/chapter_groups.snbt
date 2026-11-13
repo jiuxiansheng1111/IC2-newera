@@ -1,0 +1,20 @@
+{
+    chapter_groups: [
+        {
+            id: "694AC3E117D2CBBA"
+            title: "新纪元工业手册"
+        }
+        {
+            id: "694AE8DA9964AC44"
+            title: "工程师 · 制造与仓储"
+        }
+        {
+            id: "694A8F2A1E08B488"
+            title: "勘探队 · 现场与远征"
+        }
+        {
+            id: "694A31CFA5CED18B"
+            title: "后勤组 · 委托与生活"
+        }
+    ]
+}

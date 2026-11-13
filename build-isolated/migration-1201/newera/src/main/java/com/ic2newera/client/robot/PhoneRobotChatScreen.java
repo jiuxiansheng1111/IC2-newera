@@ -148,7 +148,7 @@ final class PhoneRobotChatScreen extends Screen {
         if (send != null) {
             if (!lastMemoryDraft.equals(input.getValue())) {
                 lastMemoryDraft = input.getValue();
-                memoryDraft = RobotMemoryClient.topic(lastMemoryDraft) != null;
+                memoryDraft = RobotMemoryClient.topic(lastMemoryDraft) != null || FieldJournalScreen.query(lastMemoryDraft) != null;
                 taskDraft = RobotTaskIntent.parse(lastMemoryDraft);
             }
             RobotTaskIntent task = taskDraft;
@@ -192,7 +192,7 @@ final class PhoneRobotChatScreen extends Screen {
         if ((!online() && !localUsage) || pending != null || input.getValue().isBlank()) return;
         voiceStatusFocused = false;
         String question = input.getValue().trim(); input.setValue("");
-        boolean memory = task != null || RobotMemoryClient.topic(question) != null;
+        boolean memory = task != null || RobotMemoryClient.topic(question) != null || FieldJournalScreen.query(question) != null;
         taskPending = task != null && task.error().isEmpty();
         messages.add(new RobotChatBridge.Message("user", question, memory));
         if (messages.size() > 60) messages.subList(0, messages.size() - 60).clear();

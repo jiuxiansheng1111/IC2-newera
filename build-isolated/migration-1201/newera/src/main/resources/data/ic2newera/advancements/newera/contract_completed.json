@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/contract_accepted",
+  "display": {
+    "icon": {
+      "item": "minecraft:emerald"
+    },
+    "title": "这单结清了",
+    "description": "完成委托，在原公告栏领取自己的实物报酬。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

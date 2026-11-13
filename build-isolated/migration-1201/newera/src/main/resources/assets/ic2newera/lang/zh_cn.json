@@ -23,6 +23,11 @@
   "item.ic2newera.zinc_dust": "锌粉",
   "itemGroup.ic2newera": "IC2：新纪元",
   "key.categories.ic2newera": "IC2：新纪元",
+  "key.ic2newera.phone_camera_view": "手机取景：切换视角",
+  "key.ic2newera.phone_camera_capture": "手机取景：保存本机照片",
+  "key.ic2newera.phone_camera_upload": "手机取景：拍照并保存到服务器",
+  "key.ic2newera.phone_camera_exit": "手机取景：退出",
+  "key.ic2newera.phone_gallery": "手机取景：打开图库",
   "key.ic2newera.open_assistant": "打开个人工业智能助手",
   "screen.ic2newera.assistant": "个人工业智能助手",
   "screen.ic2newera.llm.api_key": "API密钥（留空保留已存密钥）",
@@ -324,5 +329,9 @@
   "block.ic2newera.advanced_eu_motor": "高级EU电动机",
   "block.ic2newera.kinetic_generator": "初级机械发电机",
   "block.ic2newera.advanced_kinetic_generator": "高级机械发电机",
-  "block.ic2newera.universal_transformer": "万能变压器"
+  "block.ic2newera.universal_transformer": "万能变压器",
+  "block.ic2newera.field_notice_board": "野外任务电力公告栏",
+  "container.ic2newera.field_notice_board": "野外每日任务公告栏",
+  "item.ic2newera.field_notice_board": "野外任务电力公告栏",
+  "message.ic2newera.field_notice_board.no_power": "公告栏尚未供电：需要 IC2 一级低压电，每 12 游戏刻消耗 1 EU。"
 }

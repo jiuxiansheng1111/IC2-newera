@@ -1,0 +1,180 @@
+{
+    default_hide_dependency_lines: false
+    default_quest_shape: "square"
+    filename: "newera_kitchen"
+    group: "694A31CFA5CED18B"
+    icon: "farmersdelight:cooking_pot"
+    id: "694A1C3BB726CABF"
+    order_index: 7
+    quest_links: [
+        {
+            id: "694A08D91C26BFA4"
+            linked_quest: "694A3481C6303158"
+            x: -3.0d
+            y: 0.0d
+        }
+    ]
+    quests: [
+        {
+            id: "694AAFC4219D9EE6"
+            title: "砧板上的第一份备料"
+            icon: "farmersdelight:cutting_board"
+            x: 0.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A3481C6303158"
+            ]
+            tasks: [
+                {
+                    id: "694A85C715716EF4"
+                    type: "item"
+                    item: "farmersdelight:cutting_board"
+                }
+                {
+                    id: "694A6672CD298D33"
+                    type: "item"
+                    item: "farmersdelight:iron_knife"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A42A3CE3E2842"
+                    type: "item"
+                    item: "minecraft:bowl"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "制作农夫乐事砧板与铁刀"
+            description: [
+                "制作农夫乐事砧板与铁刀。在 JEI 查一份实际切配配方，给砧板旁留一个收料位置。"
+                ""
+                "机器人也可使用符合该配方的手持工具；留出放成品与副产物的空间。"
+            ]
+        }
+        {
+            id: "694A7B259BD45D6F"
+            title: "把饱食度带出基地"
+            icon: "farmersdelight:cooking_pot"
+            x: 2.0d
+            y: -1.0d
+            shape: "gear"
+            dependencies: [
+                "694AAFC4219D9EE6"
+            ]
+            tasks: [
+                {
+                    id: "694A194DD2ED8754"
+                    type: "item"
+                    item: "farmersdelight:cooking_pot"
+                }
+                {
+                    id: "694AFED448056F2D"
+                    type: "item"
+                    item: "farmersdelight:vegetable_soup"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A3F7CE02FC3E7"
+                    type: "item"
+                    item: "farmersdelight:rice"
+                    count: 4
+                    team_reward: false
+                }
+                {
+                    id: "694A8356B75BB3A0"
+                    type: "item"
+                    item: "minecraft:bowl"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "在热源上放置农夫乐事烹饪锅，按配方取一碗蔬菜汤"
+            description: [
+                "在热源上放置农夫乐事烹饪锅，按配方取一碗蔬菜汤。"
+                ""
+                "将食物和空碗分别存放，准备一箱品种不同的出勤口粮。"
+            ]
+        }
+        {
+            id: "694A147C230025AB"
+            title: "换一个工位翻炒"
+            icon: "kaleidoscope_cookery:kitchen_shovel"
+            x: 2.0d
+            y: 1.0d
+            shape: "square"
+            dependencies: [
+                "694AAFC4219D9EE6"
+            ]
+            tasks: [
+                {
+                    id: "694ADEFE99D31D09"
+                    type: "item"
+                    item: "kaleidoscope_cookery:pot"
+                }
+                {
+                    id: "694A54754E33AE79"
+                    type: "item"
+                    item: "kaleidoscope_cookery:kitchen_shovel"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A49219D8EAB7F"
+                    type: "item"
+                    item: "minecraft:egg"
+                    count: 3
+                    team_reward: false
+                }
+            ]
+            subtitle: "制作森罗厨房的锅和锅铲，配合合适的热源，准备进行一轮翻炒"
+            description: [
+                "制作森罗厨房的锅和锅铲，配合合适的热源，准备进行一轮翻炒。"
+                ""
+                "先按游戏配方做一份蛋炒饭，再让工坊机器人复做已支持的锅灶操作。"
+            ]
+        }
+        {
+            id: "694A3496792DE289"
+            title: "为远征箱配两道菜"
+            icon: "kaleidoscope_cookery:egg_fried_rice"
+            x: 4.0d
+            y: 0.0d
+            shape: "square"
+            dependencies: [
+                "694A147C230025AB"
+                "694A7B259BD45D6F"
+            ]
+            tasks: [
+                {
+                    id: "694A82EAC9B4878F"
+                    type: "item"
+                    item: "kaleidoscope_cookery:egg_fried_rice"
+                }
+                {
+                    id: "694A6FA29ECBE2A9"
+                    type: "item"
+                    item: "farmersdelight:beef_stew"
+                }
+            ]
+            rewards: [
+                {
+                    id: "694A1F78C6242114"
+                    type: "item"
+                    item: "minecraft:golden_carrot"
+                    count: 4
+                    team_reward: false
+                }
+            ]
+            subtitle: "从两套厨房各备一份熟食，取得一份蛋炒饭与一份炖牛肉"
+            description: [
+                "从两套厨房各备一份熟食，取得一份蛋炒饭与一份炖牛肉。"
+                ""
+                "把口粮放入地面备货箱，用手记记录实际数量。本任务只检测，口粮可以直接带走。"
+            ]
+        }
+    ]
+    title: "食堂与后勤 · 两套厨房一条补给线"
+}

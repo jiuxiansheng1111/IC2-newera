@@ -88,7 +88,7 @@ def save(name, value):
 save('root', {
     'display': {'icon': {'item':'ic2newera:industrial_phone'}, 'title':'IC2：新纪元',
         'description':'新纪元自己的材料、设备与伙伴。进度记录里程碑，不限制合成或使用。',
-        'background':'minecraft:textures/block/deepslate_tiles.png', 'frame':'task',
+        'background':'create:textures/block/andesite_casing.png', 'frame':'task',
         'show_toast':False, 'announce_to_chat':False, 'hidden':False},
     'criteria': {'join': {'trigger':'minecraft:tick'}}, 'requirements':[['join']]
 })
@@ -115,4 +115,55 @@ for name, parent, prefix, title in ARMOR_SETS:
             'description':'分别获得头盔、胸甲、护腿和靴子；无需同时携带。',
             'frame':'goal', 'show_toast':True, 'announce_to_chat':False, 'hidden':False},
         'criteria':criteria, 'requirements':[[part] for part in parts]})
-print(f'Generated {len(ROWS)+len(ARMOR_SETS)+1} native New Era advancements.')
+
+# Keep the original IDs so existing worlds retain every earned milestone. The
+# fieldwork branch uses actual server events for actions and native inventory
+# criteria for samples so the book and the vanilla toast never diverge.
+def display(name, parent, icon, title, description, frame, criteria, *, any_of=False, mod=None):
+    save(name, {'parent':'ic2newera:newera/'+parent,
+        **({'conditions':[{'type':'forge:mod_loaded','modid':mod}]} if mod else {}),
+        'display':{'icon':{'item':icon},'title':title,'description':description,'frame':frame,
+            'show_toast':True,'announce_to_chat':False,'hidden':False},
+        'criteria':criteria,'requirements':[list(criteria)] if any_of else [[key] for key in criteria]})
+
+sample_sets = [
+    ('lead_sample','minerals','ic2:lead_ore','岩层里的铅灰色','采集粗铅、铅矿石或深层铅矿石。后续任务在工业手册的矿场章。',
+     [['ic2:raw_lead','ic2:lead_ore','ic2:deepslate_lead_ore']]),
+    ('lunar_samples','moon_landing','ic2newera:cobalt_ore','月壤下的三种颜色','在采样记录里集齐钒、钴、钼；每种可以交替拿到原矿或粗矿。',
+     [['ic2newera:'+m+'_ore','ic2newera:raw_'+m] for m in ['vanadium','cobalt','molybdenum']]),
+    ('martian_samples','lunar_samples','ic2newera:tantalum_ore','红色星球的样本箱','取得铌与钽的矿石或粗矿，为下一批合金备料。',
+     [['ic2newera:'+m+'_ore','ic2newera:raw_'+m] for m in ['niobium','tantalum']])]
+for name,parent,icon,title,desc,groups in sample_sets:
+    display(name,parent,icon,title,desc,'goal' if len(groups)>1 else 'task',{
+        'sample_'+str(i):{'trigger':'minecraft:inventory_changed','conditions':{'items':[{'items':items}]}}
+        for i,items in enumerate(groups)})
+display('field_board','root','ic2newera:field_notice_board','今天谁来接班？','取得一块任务公告栏，接上一级低压线路。','task',{
+    'obtain':{'trigger':'minecraft:inventory_changed','conditions':{'items':[{'items':['ic2newera:field_notice_board']}]}}})
+for name,parent,icon,title,desc,frame in [
+    ('contract_accepted','field_board','minecraft:paper','工单已签收','在通电的公告栏上接取一项个人委托。','task'),
+    ('contract_completed','contract_accepted','minecraft:emerald','这单结清了','完成委托，在原公告栏领取自己的实物报酬。','goal'),
+    ('contract_master','contract_completed','minecraft:nether_star','首席承包人','领取一份 SSS 级委托的报酬。','challenge'),
+    ('weekly_accepted','field_board','minecraft:writable_book','这周一起开工','在通电的公告栏上签收本周的一张个人联合工单。','task'),
+    ('weekly_claimed','weekly_accepted','minecraft:clock','跨车间交班','完成联合工单的材料与协作目标，在原公告栏领取整份报酬。','goal'),
+    ('phone_photo','phone','ic2newera:industrial_phone','留住这一帧','用工业手机拍摄，并成功保存一张服务器照片。','task'),
+    ('album_published','phone_photo','exposure:photograph','海岸观察员','向公共记录提交一张通过核验的生态照片。','goal'),
+    ('route_arrival','phone','minecraft:compass','按图归来','跟随手机导航到达记录坐标或目标方块旁。','task'),
+    ('moon_landing','lunar_crystal','ad_astra:tier_1_rocket','在月面报平安','乘火箭完成月面着陆，在工业手机上亲自确认本队落点。','challenge')]:
+    display(name,parent,icon,title,desc,frame,{'event':{'trigger':'minecraft:impossible'}})
+display('field_equipment','integrated_circuit','tacz:gun_smith_table','装配线的出厂章',
+        '领用一件由工坊支持的 MK18 或 AI AWP 勘探装备。','goal',{
+            key:{'trigger':'minecraft:inventory_changed','conditions':{'items':[
+                {'items':['tacz:modern_kinetic_gun'],'nbt':'{GunId:"tacz:'+key+'"}'}]}}
+            for key in ('mk18','ai_awp')},any_of=True,mod='tacz')
+display('survey_aircraft','integrated_circuit','immersive_aircraft:gyrodyne','从空中看工厂',
+        '取得一架固定旋翼机，带上工业手机前往测绘。','goal',{
+            'aircraft':{'trigger':'minecraft:inventory_changed','conditions':{'items':[
+                {'items':['immersive_aircraft:gyrodyne']}]}}},mod='immersive_aircraft')
+for name, title in {'alloy_smelter':'第一炉开工','integrated_circuit':'硅片上有路','network_switch':'车间有信号',
+        'phone':'把车间装进口袋','basic_generator':'齿轮点亮了灯','advanced_motor':'重载开机',
+        'universal_transformer':'四档同网','advanced_furnace':'炉火再升一级','robot':'今日搭班','wormhole_device':'记住这头的坐标'}.items():
+    path=OUT/(name+'.json')
+    existing=json.loads(path.read_text(encoding='utf-8')); existing['display']['title']=title
+    if name in ('universal_transformer','advanced_furnace','advanced_motor','wormhole_device'):existing['display']['frame']='goal'
+    save(name,existing)
+print(f'Generated {len(list(OUT.glob("*.json")))} native New Era advancements.')

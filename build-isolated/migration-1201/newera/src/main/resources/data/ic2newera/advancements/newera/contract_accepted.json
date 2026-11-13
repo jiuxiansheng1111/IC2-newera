@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/field_board",
+  "display": {
+    "icon": {
+      "item": "minecraft:paper"
+    },
+    "title": "工单已签收",
+    "description": "在通电的公告栏上接取一项个人委托。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "event": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "event"
+    ]
+  ]
+}

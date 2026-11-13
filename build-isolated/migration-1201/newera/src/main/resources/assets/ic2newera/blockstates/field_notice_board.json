@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ic2newera:block/field_notice_board"
+    },
+    "facing=east": {
+      "model": "ic2newera:block/field_notice_board",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "ic2newera:block/field_notice_board",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "ic2newera:block/field_notice_board",
+      "y": 270
+    }
+  }
+}

@@ -1,6 +1,10 @@
 # IC2：新纪元 / IC2: New Era
 
-当前玩家版本为 Minecraft 1.20.1 / Forge 47.4.28 **r68**。装上 IC2 锻造锤，给人形机器人一块铁锭，在普通工作台旁点「工作 → 工具制作」，它会走到台边把铁锭锤成铁板。板材剪、Create 砂纸和农夫乐事砧板有各自的动作，成品入库后还能给这一单起名。使用方法与验收状态见 [r68 交付记录](docs/delivery-r68-robot-workshop-2026-11-13.md)。采集、烹饪与命名订单见 [r67 交付记录](docs/delivery-r67-robot-task-memory-2026-11-13.md)。
+当前玩家版本为 Minecraft 1.20.1 / Forge 47.4.28 **r70**。《新纪元工业手册》有 4 个分组、10 章、47 项任务。打开第一章领取个人公告栏，接一级低压电后可以选择半小时委托或每周联合工单。任务书参考《Create Delight Remake》的跨章入口和分支结构，内容对应新纪元本包已有的机器、食物、仓储与航天设备。[r70 任务书与安装](docs/delivery-r70-industrial-quests-2026-11-13.md)
+
+工业手机的三视角摄影、生态相册、多站导航、月球远征与工业装备配方见 [r69 野外作业](docs/delivery-r69-field-guide-2026-11-13.md)。
+
+人形机器人可以拿 IC2 锻造锤和板材剪、Create 砂纸或农夫乐事厨刀在工位制作。成品入库后，可以给工单命名，再让同一台机器人复做。[r68 工具制作](docs/delivery-r68-robot-workshop-2026-11-13.md) · [r67 采集和烹饪记忆](docs/delivery-r67-robot-task-memory-2026-11-13.md)
 
 首次互动的共同回忆和工业炉外观见 [r66 交付记录](docs/delivery-r66-memory-furnaces-2026-11-08.md)。钻石粉、普通硅及万能变压器规则见 [r65 交付记录](docs/delivery-r65-2026-11-07.md)。下文保留原 1.19.2 工程与历史记录。
 

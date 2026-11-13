@@ -4,9 +4,9 @@
     "icon": {
       "item": "ic2newera:advanced_electric_furnace"
     },
-    "title": "更高的炉温",
+    "title": "炉火再升一级",
     "description": "获得一台新纪元高级电炉。",
-    "frame": "task",
+    "frame": "goal",
     "show_toast": true,
     "announce_to_chat": false,
     "hidden": false
