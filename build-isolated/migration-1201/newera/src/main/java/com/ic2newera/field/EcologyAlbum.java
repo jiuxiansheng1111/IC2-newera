@@ -181,14 +181,19 @@ public final class EcologyAlbum {
                 && row.hasUUID("Player") && player.getUUID().equals(row.getUUID("Player")));
         CompoundTag ticket = new CompoundTag();
         ticket.putString("CaptureId", captureId.toString()); ticket.putUUID("Player", player.getUUID());
-        ticket.putLong("CapturedAt", capturedAt); ticket.putString("Species", species == null ? "" : species.entityId());
+        // Persist the real, sight-validated subject type for the private phone photo
+        // row. Ecology rewards still use the whitelist-derived Species below; the
+        // photography survey can therefore recognize any real entity without
+        // broadening the ecology catalogue or requiring public album publication.
+        ResourceLocation photographedEntity = subject == null ? null : BuiltInRegistries.ENTITY_TYPE.getKey(subject.getType());
+        ticket.putLong("CapturedAt", capturedAt); ticket.putString("Species", photographedEntity == null ? "" : photographedEntity.toString());
         ticket.putString("Dimension", level.dimension().location().toString());
         ticket.putLong("CameraPos", cameraPos.pos().asLong()); ticket.putLong("SubjectPos", subjectPos.pos().asLong());
         if (subject != null) ticket.putUUID("SubjectEntity", subject.getUUID());
         data.phoneTickets.add(ticket);
         while (data.phoneTickets.size() > MAX_PHONE_TICKETS) data.phoneTickets.remove(0);
         data.setDirty(); player.getInventory().setChanged();
-        return new PhoneCaptureTicket(captureId, player.getUUID(), capturedAt, species == null ? "" : species.entityId(),
+        return new PhoneCaptureTicket(captureId, player.getUUID(), capturedAt, photographedEntity == null ? "" : photographedEntity.toString(),
                 cameraPos, subjectPos, subject == null ? null : subject.getUUID(), data.worldIdentity);
     }
 

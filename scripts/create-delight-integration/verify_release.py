@@ -10,10 +10,17 @@ from zipfile import ZipFile
 
 from build_joint import HOTFIX_LOCK, NAME, OUT, PROFILE, W, digest, read, write
 from merge_quests import read as read_snbt
+from player_handbook_scope import checks as check_book, TARGET as HANDBOOK_COUNT
 from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, UPSTREAM_SELECTOR_KEY_164, TARGET_SRG
 from repair_tacz_lod import PACKS as LOD_PACKS
 from cmm_model_fix import PACK_NAME, MODEL
 from stage_ponder_fix import CMR_ID, CMR_SHA256, load_core as load_ponder_core
+from wildlife_kills import (ECOLOGY_REMOVALS, ECOLOGY_RETAINED_QUEST_IDS,
+                            ECOLOGY_REMOVAL_TARGETS,
+                            FIELD_WILDLIFE_REMOVALS, FIELD_WILDLIFE_REMOVAL_QUEST_IDS,
+                            FIELD_WILDLIFE_RETAINED_QUEST_IDS, HUNT_ICONS, HUNT_JOBS,
+                            HUNT_LOOT_JOBS, HUNT_JOB_COUNT, HUNT_LOOT_COUNT,
+                            HUNT_SECTION_COUNT, NEW_JOINT_QUEST_COUNT)
 
 
 def exactly(value, expected, label):
@@ -107,6 +114,7 @@ def main():
         files = {n.removeprefix("overrides/") for n in cn if n.startswith("overrides/mods/")}
         files.update(n for n in downloads if n.startswith("mods/"))
         exactly(files, {"mods/" + n for n in byname}, "client mods")
+        client_mod_paths = set(files)
         active = {p.name for p in (installed / "mods").glob("*.jar")}
         expected_active = set(byname) - set(staged_only)
         exactly(expected_active - active, set(), "missing installed mods other than staged Ponder fix")
@@ -184,6 +192,13 @@ def main():
             rel = n.removeprefix(prefix)
             if rel.startswith(("world/", "saves/", "resourcepacks/", "shaderpacks/", "PCL/", "kubejs/client_scripts/")):
                 raise ValueError("Unexpected dedicated-server file " + rel)
+        jvm_flags = s.read(prefix+"user_jvm_args.txt").decode("utf-8-sig").splitlines()
+        exactly([v for v in jvm_flags if v.startswith("-Xmx")], ["-Xmx9G"], "server archive memory limit")
+        chapters_path="config/ftbquests/quests/chapters/"
+        required_chapters={p.name for p in (installed/chapters_path).glob("*.snbt")}
+        for entries,folder in ((sn,prefix+chapters_path),(c.namelist(),"overrides/"+chapters_path)):
+            actual_chapters={n[len(folder):] for n in entries if n.startswith(folder) and n.endswith(".snbt") and "/" not in n[len(folder):]}
+            exactly(actual_chapters,required_chapters,"active handbook chapters in archive")
         for file in (W / "client-overlay").rglob("*"):
             if file.is_file():
                 rel = file.relative_to(W / "client-overlay").as_posix()
@@ -218,7 +233,62 @@ def main():
         done.add(ident)
     for ident in all_quests: walk(ident)
     new = [q for f, ch in files if f.stem.startswith(("joint_", "delight_")) for q in ch["quests"]]
-    exactly(len(new), 120, "new task count")
+    exactly(len(all_quests), HANDBOOK_COUNT, "final player handbook")
+    exactly(all(r["own"] for r in index["quests"]), True, "no imported book assignments")
+    exactly(len(new), NEW_JOINT_QUEST_COUNT + 24, "joint and photo task count")
+    handbook_checks=check_book(quests)
+    merge_counts = read(W / "quests-work/merged-r71-ecology-prune/merge_report.json")
+    exactly(merge_counts["base_quests"], 2509, "retired input book quest count")
+    exactly(merge_counts["added_quests"], NEW_JOINT_QUEST_COUNT, "merged new quest count")
+    exactly(merge_counts["removed_species_quests"], 12, "removed new creature task count")
+    exactly(merge_counts["added_hunt_kill_quests"], HUNT_JOB_COUNT, "added kill hunt task count")
+    exactly(merge_counts["added_hunt_loot_quests"], HUNT_LOOT_COUNT, "added optional loot quest count")
+    new_by_id = {q["id"]: q for q in new}
+    removed_ids = set(ECOLOGY_REMOVALS) | set(FIELD_WILDLIFE_REMOVAL_QUEST_IDS.values())
+    exactly(removed_ids & set(new_by_id), set(), "removed new species quest IDs")
+    ecology = next(ch for f, ch in files if f.stem == "delight_ecology")
+    exactly({q["id"] for q in ecology["quests"]}, ECOLOGY_RETAINED_QUEST_IDS,
+            "retained ecology task IDs")
+    ecology_targets = {(t.get("type"), t.get("item") if t.get("type") == "item"
+                        else t.get("advancement"))
+                       for q in ecology["quests"] for t in q.get("tasks", [])}
+    exactly(ecology_targets & ECOLOGY_REMOVAL_TARGETS, set(), "removed ecology species targets")
+    field_wildlife = next(ch for f, ch in files if f.stem == "joint_field_wildlife")
+    exactly({q["id"] for q in field_wildlife["quests"]}, FIELD_WILDLIFE_RETAINED_QUEST_IDS,
+            "retained vanilla/Spawn field sample IDs")
+    field_items = {t.get("item") for q in field_wildlife["quests"] for t in q.get("tasks", [])}
+    exactly(field_items & FIELD_WILDLIFE_REMOVALS, set(), "removed new species field samples")
+    hunts = next(ch for f, ch in files if f.stem == "joint_field_hunts")
+    expected_hunts = {job["entity"]: job["count"] for job in HUNT_JOBS}
+    actual_hunts = {}
+    for quest in hunts["quests"]:
+        tasks = quest.get("tasks", [])
+        exactly(len(tasks), 1, "one target per patrol job")
+        task = tasks[0]
+        if task.get("type") == "kill":
+            entity = task.get("entity")
+            if entity not in expected_hunts:
+                raise ValueError("Unapproved kill target in the patrol chapter: " + str(entity))
+            actual_hunts[entity] = task.get("value")
+            exactly(quest.get("icon"), HUNT_ICONS[entity], "registered kill-target icon")
+            exactly(quest.get("dependencies", []), [], "kill target available from chapter start")
+        elif task.get("type") == "item":
+            item = task.get("item")
+            loot = next((row for row in HUNT_LOOT_JOBS if row["item"] == item), None)
+            if loot is None:
+                raise ValueError("Unapproved loot target in the patrol chapter: " + str(item))
+            exactly(task.get("count"), 1, "single optional sample count")
+            exactly(task.get("consume_items", True), loot.get("consume", True), "loot consumption policy")
+            exactly(quest.get("dependencies", []), [], "loot sample independently available")
+            exactly(quest.get("icon"), item, "loot sample icon")
+        else:
+            raise ValueError("Patrol chapter supports only kill and optional item tasks")
+        exactly(len(quest.get("rewards", [])), 1, "personal patrol reward count")
+        exactly(quest["rewards"][0].get("team_reward"), False, "patrol rewards are per player")
+    exactly(actual_hunts, expected_hunts, "patrol kill IDs/counts")
+    exactly(len(hunts["quests"]), HUNT_SECTION_COUNT, "patrol task count")
+    exactly({q["tasks"][0].get("item") for q in hunts["quests"] if q["tasks"][0].get("type") == "item"},
+            {job["item"] for job in HUNT_LOOT_JOBS}, "optional loot task IDs")
     wanted = {entry["item"] for q in new for entry in q["tasks"] + q["rewards"] if isinstance(entry.get("item"), str)}
     pending = set(wanted)
     for f in [installed / (installed.name + ".jar"), *sorted((installed / "mods").glob("*.jar"))]:
@@ -234,7 +304,7 @@ def main():
     exactly(deps["issues"]["error"], 0, "dependency errors")
     hotfix_rows = []
     pair = {p["modId"]: p for p in hotfix_locks if p.get("useOfficialDownloadInMrpack")}
-    for mod_id in ("jei", "extendedae_plus", "justenoughthreads"):
+    for mod_id in ("jei", "extendedae_plus", "justenoughthreads", "jei_plus_plus"):
         pinned = pair[mod_id]
         selected = byname[pinned["filename"]]
         rel = "mods/" + pinned["filename"]
@@ -243,7 +313,7 @@ def main():
         exactly(downloads[rel]["hashes"], {h: pinned[h] for h in ("sha1", "sha512")}, mod_id + " PCL hashes")
         exactly("overrides/" + rel in cn, False, mod_id + " must not also be embedded")
         for old_name in {pinned["replaces"], pinned.get("previouslyInstalled", pinned["replaces"])}:
-            exactly("mods/" + old_name in files, False, "superseded " + old_name)
+            exactly("mods/" + old_name in client_mod_paths, False, "superseded " + old_name)
     ae = byname[pair["extendedae_plus"]["filename"]]
     with ZipFile(installed / "mods" / ae["name"]) as lib:
         mapping = json.loads(lib.read(REFMAP_NAME))
@@ -309,11 +379,12 @@ def main():
               "stagedOnlyMods": staged_only,
               "ponderFixInstalled": not args.artifacts_only and not bool(staged_only), "ponderFixAudit": ponder_audit,
               "chapters": len(files), "handbookQuests": len(done), "newQuests": len(new),
+              "handbookChecks":handbook_checks, "retiredBaseBook":2509,
               "verifiedDistinctNewTaskAndRewardItems": len(wanted), "dynamicItems": sorted(pending),
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
               "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
-              "runtimeFixes": {"justEnoughThreads": opt["version"], "cmmModelFix": PACK_NAME,
+              "runtimeFixes": {"justEnoughThreads": opt["version"], "jeiPlusPlus": byname[pair['jei_plus_plus']['filename']]['version'], "cmmModelFix": PACK_NAME,
                                "ponderFix": {"modId": "newera_ponder_fix", "version": "1.0.0",
                                              "clientOnly": True,
                                              "installed": not args.artifacts_only and not bool(staged_only)},

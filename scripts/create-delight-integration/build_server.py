@@ -370,6 +370,9 @@ def main():
 
         # The full merged FTB book is an intentional replacement for r70's
         # quest definitions; retain any other baseline config untouched.
+        from server_heap import heap_arguments
+        jvm = server / "user_jvm_args.txt"
+        jvm.write_bytes(heap_arguments(jvm.read_bytes()))
         quest_src = overlay / "config/ftbquests/quests"
         if not quest_src.is_dir(): raise FileNotFoundError("client-overlay 缺少合并后的 config/ftbquests/quests")
         quest_dst = server / "config/ftbquests/quests"

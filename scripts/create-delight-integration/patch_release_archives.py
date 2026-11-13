@@ -39,6 +39,12 @@ def rewrite(source: Path, remove: set[str], replace_json: dict[str, object] | No
                     with old.open(info, "r") as reader, new.open(clone, "w") as writer:
                         shutil.copyfileobj(reader, writer, 1024 * 1024)
             present = set(old.namelist())
+            for name, raw in (replace_members or {}).items():
+                if name in present: continue
+                key = PurePosixPath(name)
+                if key.is_absolute() or '..' in key.parts or '\\' in name or ':' in name or name.endswith('/'):
+                    raise ValueError('Unsafe new archive member: ' + name)
+                new.writestr(name, raw, compress_type=8); changed += 1
             missing = remove - present
             if missing:
                 raise FileNotFoundError(f"Locked archive members missing from {source}: {sorted(missing)}")

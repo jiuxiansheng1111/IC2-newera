@@ -2,6 +2,9 @@
 from hashlib import sha256
 
 from extra_routes_b import ROUTES as EXPEDITION_ROUTES
+from wildlife_kills import (FIELD_WILDLIFE_PARENTS, HUNT_ICONS, HUNT_JOBS,
+                            HUNT_LOOT_JOBS, MACHINE_ACCEPTANCE_JOBS, SPAWN_INDUSTRY_JOBS,
+                            filtered_field_wildlife)
 
 
 # Each row gives a real task stack, whether it is handed in, a personal reward
@@ -93,10 +96,19 @@ def build_extra_chapters(base_chapters, newera_chapters, used_ids):
     for index, (key, title, rows) in enumerate(routes):
         anchor = anchors[ANCHORS[key]]
         quests = []
-        for number, (name, item, count, consume, gift, amount, instruction) in enumerate(rows):
+        if key == "field_wildlife":
+            source_rows = filtered_field_wildlife(rows)
+        else:
+            source_rows = list(enumerate(rows))
+        built_indices = {}
+        for number, (source_index, row) in enumerate(source_rows):
+            name, item, count, consume, gift, amount, instruction = row
             object_key = f"{key}/{item}"
-            x, y = GRID[number]
-            tasks = [{"id": identify(object_key + "/task"), "type": "item", "item": item,
+            quest_id, task_id, reward_id = (identify(object_key),
+                                            identify(object_key + "/task"),
+                                            identify(object_key + "/reward"))
+            x, y = GRID[source_index]
+            tasks = [{"id": task_id, "type": "item", "item": item,
                       "count": count, "consume_items": consume}]
             # Tinkers' Construct parts and tools carry real material/durability
             # NBT. FTB Quests 2001.4.22 reads `match_nbt: false` as the explicit
@@ -104,16 +116,135 @@ def build_extra_chapters(base_chapters, newera_chapters, used_ids):
             # with the exact registered item ID.
             if item.startswith("tconstruct:"):
                 tasks[0]["match_nbt"] = False
-            rewards = [{"id": identify(object_key + "/reward"), "type": "item", "item": gift,
+            rewards = [{"id": reward_id, "type": "item", "item": gift,
                         "count": amount, "team_reward": False}]
-            parents = [quests[i]["id"] for i in PARENTS[number]] or [anchor]
+            parent_indices = (FIELD_WILDLIFE_PARENTS[source_index] if key == "field_wildlife"
+                              else PARENTS[number])
+            parents = [quests[built_indices[i]]["id"] for i in parent_indices] or [anchor]
             terms = f"在任务页提交 {count} 件目标物品，提交时会扣除。" if consume else f"背包中备齐 {count} 件目标设备即可登记，验收后可继续使用。"
-            quests.append({"id": identify(object_key), "title": name, "icon": item, "x": float(x),
-                           "y": float(y), "shape": "gear" if number in (3, 6, 9, 11) else "square",
+            quests.append({"id": quest_id, "title": name, "icon": item, "x": float(x),
+                           "y": float(y), "shape": "gear" if source_index in (3, 6, 9, 11) else "square",
                            "dependencies": parents, "subtitle": "交付备品" if consume else "设备验收",
                            "description": [instruction, "", terms + " 奖励由队员分别领取。"],
                            "tasks": tasks, "rewards": rewards})
+            built_indices[source_index] = number
         chapters.append({"id": identify(key), "filename": "joint_" + key, "title": title,
                          "icon": quests[0]["icon"], "group": group["id"], "order_index": index,
                          "default_quest_shape": "square", "quests": quests, "quest_links": []})
-    return [group], chapters
+    hunt_group = {"id": identify("field-hunts-group"), "title": "联合工单 · 野外巡护与样本"}
+    hunt_quests = []
+    for number, job in enumerate(HUNT_JOBS):
+        title, entity, count = job["title"], job["entity"], job["count"]
+        reward_item, reward_count, instruction = job["reward"], job["reward_count"], job["text"]
+        key = f"field-hunts/{entity}"
+        task = {"id": identify(key + "/task"), "type": "kill", "entity": entity,
+                "value": count}
+        reward = {"id": identify(key + "/reward"), "type": "item", "item": reward_item,
+                  "count": reward_count, "team_reward": False}
+        hunt_quests.append({"id": identify(key), "title": title, "icon": HUNT_ICONS[entity],
+                            "x": float((number % 4) * 3.5), "y": float((number // 4) * 3.5),
+                            "shape": "square", "dependencies": [],
+                            "subtitle": f"{job['rank']}级 · {job['branch']}",
+                            "description": [instruction, "此击杀目标从本章开放时即可计数。FTB 队伍共享任务进度；每位队员可各自领取一次个人奖励。"],
+                            "tasks": [task], "rewards": [reward]})
+    loot_start = len(hunt_quests)
+    for number, job in enumerate(HUNT_LOOT_JOBS):
+        title, item = job["title"], job["item"]
+        key = f"field-hunts-loot/{item}"
+        task = {"id": identify(key + "/task"), "type": "item", "item": item,
+                "count": 1, "consume_items": job.get("consume", True)}
+        reward = {"id": identify(key + "/reward"), "type": "item", "item": job["reward"],
+                  "count": job["reward_count"], "team_reward": False}
+        hunt_quests.append({"id": identify(key), "title": title, "icon": item,
+                            "x": float((number % 4) * 3.5),
+                            "y": float(((loot_start + number) // 4) * 3.5),
+                            "shape": "square", "dependencies": [],
+                            "subtitle": f"{job['rank']}级 · {job['branch']}",
+                            "description": [job["text"], "本样本支线独立开放，不会锁住任何击杀目标；队伍成员可分别领取个人奖励。"],
+                            "tasks": [task], "rewards": [reward]})
+    base_difficulty = next((ch for ch in base_chapters if ch.get("filename") == "Difficulty_System"), None)
+    hunt_links = [{"id": identify("field-hunts-link-newera"),
+                   "linked_quest": anchors["newera_field"], "x": -2.0, "y": 0.0}]
+    if base_difficulty and base_difficulty.get("quests"):
+        hunt_links.append({"id": identify("field-hunts-link-base"),
+                           "linked_quest": base_difficulty["quests"][0]["id"], "x": -2.0, "y": 3.0})
+    chapters.append({"id": identify("field-hunts"), "filename": "joint_field_hunts",
+                     "title": "野外战备 · 狩猎与样本", "icon": "minecraft:iron_sword",
+                     "group": hunt_group["id"], "order_index": len(chapters),
+                     "default_quest_shape": "square", "quests": hunt_quests,
+                     "quest_links": hunt_links})
+    spawn_quests = []
+    spawn_quests_by_item = {}
+    for number, job in enumerate(SPAWN_INDUSTRY_JOBS):
+        key = f"spawn-industry/{job['kind']}/{job.get('entity', job.get('item'))}"
+        task_id_override = None
+        quest_id_override = None
+        reward_id_override = None
+        if job["title"] == "风扇叶片零件交付":
+            quest_id_override, task_id_override, reward_id_override = (
+                "694ADCDFDA2EB449", "694A18A2440A11F3", "694A1D24D82AC7AF")
+            preserved = {quest_id_override, task_id_override, reward_id_override}
+            if preserved & used_ids:
+                raise ValueError("Existing fan-component quest IDs collide")
+            used_ids.update(preserved)
+        if job["kind"] == "kill":
+            task = {"id": task_id_override or identify(key + "/task"), "type": "kill",
+                    "entity": job["entity"], "value": job["count"]}
+        else:
+            task = {"id": task_id_override or identify(key + "/task"), "type": "item",
+                    "item": job["item"], "count": job["count"],
+                    "consume_items": True}
+        reward = {"id": reward_id_override or identify(key + "/reward"), "type": "item",
+                  "item": job["reward"], "count": job["reward_count"],
+                  "team_reward": False}
+        spawn_quests.append({"id": quest_id_override or identify(key), "title": job["title"],
+                             "icon": job["icon"],
+                             "x": float((number % 4) * 4),
+                             "y": float((number // 4) * 3),
+                             "shape": "square", "dependencies": [],
+                             "subtitle": f"{job['rank']}级 · {job['branch']}",
+                             "description": [job["text"],
+                                             "独立开放；物品任务会消耗提交数量，奖励由队员分别领取。"],
+                             "tasks": [task], "rewards": [reward]})
+        if job["kind"] == "item":
+            spawn_quests_by_item[job["item"]] = spawn_quests[-1]["id"]
+    machine_offset = len(spawn_quests)
+    for number, job in enumerate(MACHINE_ACCEPTANCE_JOBS):
+        key = f"machine-acceptance/{job['item']}"
+        if job["title"] == "高级电炉工位验收":
+            quest_id, task_id, reward_id = ("694A5CFFD718D3D8", "694A1EDE87B9AEDB",
+                                            "694ACBFA4E5A6123")
+            preserved = {quest_id, task_id, reward_id}
+            if preserved & used_ids:
+                raise ValueError("Existing advanced-furnace quest IDs collide")
+            used_ids.update(preserved)
+        else:
+            quest_id, task_id, reward_id = (identify(key), identify(key + "/task"),
+                                            identify(key + "/reward"))
+        task = {"id": task_id, "type": "item",
+                "item": job["item"], "count": 1,
+                "consume_items": job.get("consume", True)}
+        reward = {"id": reward_id, "type": "item",
+                  "item": job["reward"], "count": job["reward_count"],
+                  "team_reward": False}
+        spawn_quests.append({"id": quest_id, "title": job["title"],
+                             "icon": job["item"],
+                             "x": float((number % 4) * 4),
+                             "y": float(30 + (number // 4) * 3),
+                             "shape": "square", "dependencies": [],
+                             "subtitle": f"{job['rank']}级 · {job['branch']}",
+                             "description": [job["text"],
+                                             "验收只检查背包持有，不会消耗或收走机器；奖励由队员分别领取。"],
+                             "tasks": [task], "rewards": [reward]})
+    for item, parent_item in (("ic2:purified_lead", "ic2newera:impure_lead_dust"),
+                              ("ic2:lead_dust", "ic2:purified_lead"),
+                              ("ic2:uranium_fuel_rod", "ic2:fuel_rod")):
+        child_id, parent_id = spawn_quests_by_item[item], spawn_quests_by_item[parent_item]
+        next(q for q in spawn_quests if q["id"] == child_id)["dependencies"] = [parent_id]
+    chapters.append({"id": identify("spawn-industry"),
+                     "filename": "joint_spawn_industry",
+                     "title": "Spawn 与工业样品", "icon": "spawn:dodo_spawn_egg",
+                     "group": group["id"], "order_index": len(chapters),
+                     "default_quest_shape": "square", "quests": spawn_quests,
+                     "quest_links": []})
+    return [group, hunt_group], chapters

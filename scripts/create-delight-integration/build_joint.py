@@ -14,6 +14,7 @@ from advisory_lock import serialize_r71_release
 from quest_knowledge import build_catalogue
 from repair_tacz_lod import repair_installed_tree
 import cmm_model_fix
+import player_handbook_scope as player_book
 
 ROOT = Path(__file__).resolve().parents[2]
 M = ROOT / "build-isolated/migration-1201/newera"
@@ -299,7 +300,9 @@ def overlay(picks):
     canonical_index = R71_TASK_SNAPSHOT / "config/ic2newera/quest_knowledge.json"
     use_snapshot = canonical_quests.is_dir() and canonical_index.is_file()
     quest_source = canonical_quests if use_snapshot else W / "quests-work/merged"
-    shutil.copytree(quest_source, quests, dirs_exist_ok=True, ignore=shutil.ignore_patterns("merge_report.json"))
+    photo_source = W / "photo-assignment-generated"
+    player_book.assemble(quest_source, W / "quests-work/merged-r71-ecology-prune", photo_source, quests)
+    player_book.non_book_resources(W, photo_source, OVERLAY, OVERLAY)
     shutil.copytree(W / "compat-work/tacz-overlay-1200/overrides", OVERLAY, dirs_exist_ok=True)
     repair_installed_tree(OVERLAY / "tacz")
     for rel in ("PCL/Setup.ini", "PCL/config.json", "config/oculus.properties", "options.txt"):
@@ -332,13 +335,9 @@ def overlay(picks):
     zh_file = assets / "objects" / zh[:2] / zh
     final_index = OVERLAY / "config/ic2newera/quest_knowledge.json"
     final_index.parent.mkdir(parents=True, exist_ok=True)
-    generated_index = W / "compat-work/generated-quest-index-preview.json" if use_snapshot else final_index
-    data = build_catalogue(quests, [Path(r["path"]) for r in picks], PROFILE / (PROFILE.name + ".jar"),
+    data = player_book.compile_index(quests, [Path(r["path"]) for r in picks], PROFILE / (PROFILE.name + ".jar"),
                            [zh_file, *list((OVERLAY / "kubejs/assets").glob("*/lang/zh_cn.json"))],
-                           generated_index)
-    if data != {"chapters": 61, "quests": 2676, "own": 167}: raise ValueError(data)
-    if use_snapshot:
-        shutil.copy2(canonical_index, final_index)
+                           final_index)
     print(data)
     if previous_overlay.exists():
         try:

@@ -2,12 +2,16 @@
   "schema": 1,
   "service": "Modrinth",
   "versionApi": "https://api.modrinth.com/v2/version/{versionId}",
-  "preserveLocalOverlayFiles": ["PCL/Setup.ini"],
+  "preserveLocalOverlayFiles": [
+    "PCL/Setup.ini"
+  ],
   "patches": [
     {
       "version": "0.14.9",
       "source": {
-        "service": "CurseForge", "projectId": 1605658, "fileId": 9568167,
+        "service": "CurseForge",
+        "projectId": 1605658,
+        "fileId": 9568167,
         "metadataApi": "https://www.curseforge.com/api/v1/mods/1605658/files/9568167",
         "downloadApi": "https://www.curseforge.com/api/v1/mods/1605658/files/9568167/download",
         "downloadUrl": "https://mediafilez.forgecdn.net/files/9568/167/justenoughthreads-0.14.9-1.20.1.jar",
@@ -28,7 +32,13 @@
     {
       "versionId": "6E4ps2ER",
       "version": "15.74.0.234",
-      "source": { "service": "Modrinth", "projectId": "u6dRKJwZ", "projectSlug": "jei", "fileId": "ZI2DZOC0", "downloadUrl": "https://cdn.modrinth.com/data/u6dRKJwZ/versions/6E4ps2ER/jei-1.20.1-forge-15.74.0.234.jar" },
+      "source": {
+        "service": "Modrinth",
+        "projectId": "u6dRKJwZ",
+        "projectSlug": "jei",
+        "fileId": "ZI2DZOC0",
+        "downloadUrl": "https://cdn.modrinth.com/data/u6dRKJwZ/versions/6E4ps2ER/jei-1.20.1-forge-15.74.0.234.jar"
+      },
       "filename": "jei-1.20.1-forge-15.74.0.234.jar",
       "modId": "jei",
       "fileSize": 4805946,
@@ -45,7 +55,13 @@
     {
       "versionId": "auasuDQR",
       "version": "1.6.4",
-      "source": { "service": "Modrinth", "projectId": "xr109llC", "projectSlug": "extendedae-plus", "fileId": "qQAk5BYB", "downloadUrl": "https://cdn.modrinth.com/data/xr109llC/versions/auasuDQR/extendedae_plus-1.6.4.jar" },
+      "source": {
+        "service": "Modrinth",
+        "projectId": "xr109llC",
+        "projectSlug": "extendedae-plus",
+        "fileId": "qQAk5BYB",
+        "downloadUrl": "https://cdn.modrinth.com/data/xr109llC/versions/auasuDQR/extendedae_plus-1.6.4.jar"
+      },
       "filename": "extendedae_plus-1.6.4.jar",
       "modId": "extendedae_plus",
       "fileSize": 2525364,
@@ -59,7 +75,12 @@
     },
     {
       "versionId": "QGCbNkTy",
-      "source": { "service": "Modrinth", "projectId": "SzzJttH8", "fileId": "ME7LTsh4", "downloadUrl": "https://cdn.modrinth.com/data/SzzJttH8/versions/QGCbNkTy/tacz-forge-1.20.1-1.2.0.jar" },
+      "source": {
+        "service": "Modrinth",
+        "projectId": "SzzJttH8",
+        "fileId": "ME7LTsh4",
+        "downloadUrl": "https://cdn.modrinth.com/data/SzzJttH8/versions/QGCbNkTy/tacz-forge-1.20.1-1.2.0.jar"
+      },
       "filename": "tacz-forge-1.20.1-1.2.0.jar",
       "modId": "tacz",
       "sha256": "1c2f2915f76908d396a0da577665c977564c279ccb89d459a00a29225aa45a92",
@@ -74,7 +95,12 @@
     },
     {
       "versionId": "ObdwJQ6q",
-      "source": { "service": "Modrinth", "projectId": "3Ihyt5WL", "fileId": "5it0KJSV", "downloadUrl": "https://cdn.modrinth.com/data/3Ihyt5WL/versions/ObdwJQ6q/taczaddon-1.2.0-forge-1.20.1.jar" },
+      "source": {
+        "service": "Modrinth",
+        "projectId": "3Ihyt5WL",
+        "fileId": "5it0KJSV",
+        "downloadUrl": "https://cdn.modrinth.com/data/3Ihyt5WL/versions/ObdwJQ6q/taczaddon-1.2.0-forge-1.20.1.jar"
+      },
       "filename": "taczaddon-1.2.0-forge-1.20.1.jar",
       "modId": "taczaddon",
       "sha256": "18f08410e46e9c31c1043240a22c86cca08243a0ea60220ea3759f0c58a3c180",
@@ -128,6 +154,29 @@
       "excludeOverlayFiles": [
         "hotai/de/cadentem/quality_food/capability/LevelData.badiff"
       ]
+    },
+    {
+      "version": "1.0.9a-1.20.1",
+      "source": {
+        "service": "CurseForge",
+        "projectId": 1645653,
+        "fileId": 9509594,
+        "metadataApi": "https://www.curseforge.com/api/v1/mods/1645653/files/9509594",
+        "downloadApi": "https://www.curseforge.com/api/v1/mods/1645653/files/9509594/download",
+        "downloadUrl": "https://mediafilez.forgecdn.net/files/9509/594/jei_plus_plus-1.0.9a-1.20.1.jar",
+        "releasePage": "https://www.curseforge.com/minecraft/mc-mods/jei-plus-plus/files/9509594"
+      },
+      "filename": "jei_plus_plus-1.0.9a-1.20.1.jar",
+      "modId": "jei_plus_plus",
+      "replacesModId": "jei_plus_plus",
+      "fileSize": 399743,
+      "sha1": "37ee20f71ee160e0e09b754ba57c0cfa39545a29",
+      "sha256": "69ce952ae1d427cd999e1439bbb609a6a90c4159bd2234a2653a8958408435c4",
+      "sha512": "071147d2db153797a299ac2661c294c0386729da48b181f320bdf16b939a58c0ee6061c6d66d96eae7b4a118f9e7f6e55e9d4e73441212d1f910a61adfd55924",
+      "replaces": "jei_plus_plus-1.0.6-1.20.1.jar",
+      "useOfficialDownloadInMrpack": true,
+      "client": true,
+      "server": false
     }
   ]
 }

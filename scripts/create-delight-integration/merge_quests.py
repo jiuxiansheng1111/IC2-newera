@@ -15,6 +15,10 @@ AUTOFTBQ = Path(os.environ.get("AUTOFTBQ_PATH") or Path(__file__).resolve().pare
 sys.path.insert(0, str(AUTOFTBQ))
 from snbt_parser import parse_snbt, to_snbt  # noqa: E402
 from repair_signed_ids import repair_tree  # noqa: E402
+from wildlife_kills import (ECOLOGY_REMOVALS, ECOLOGY_RETAINED_QUEST_IDS,
+                            FIELD_WILDLIFE_REMOVALS, FIELD_WILDLIFE_REMOVAL_QUEST_IDS,
+                            FIELD_WILDLIFE_RETAINED_QUEST_IDS,
+                            remove_ecology_jobs)  # noqa: E402
 
 
 def read(path: Path):
@@ -133,7 +137,7 @@ def build_additions(used: set[str], base_root: str, newera_root: str) -> list[di
         {"title":"送检离心后的铅粉","subtitle":"离心成品抽检","description":["把杂质铅粉直接离心，或先水洗再离心。交出 2 份成品铅粉，其余可熔炼成铅锭。","个人补给：一枚铁锭，供后续合金配料。"],"tasks":[item_task("ic2:lead_dust",2)],"rewards":[("minecraft:iron_ingot",1)]},
         {"title":"交付低碳钢锭","subtitle":"工业合金终点","description":["在新纪元合金炉用 IC2 煤粉和铁粉配出低碳钢粉，按 JEI 熔炼成锭后交出一块。","本章交付完成。个人奖励为少量现场补给，不提供跳级设备或稀有矿物。"],"tasks":[item_task("ic2newera:tempered_steel_ingot")],"rewards":[("minecraft:torch",4)]},
     ]
-    ecology = make_chapter(used, "delight_ecology", "生态协作 · 野外观察", "alexsmobs:animal_dictionary", eco, 900)
+    ecology = make_chapter(used, "delight_ecology", "生态协作 · 野外观察", "minecraft:nautilus_shell", eco, 900)
     workshop = make_chapter(used, "delight_workshop", "工坊交付 · 匠魂与工业委托", "tconstruct:seared_melter", shop, 901)
     ecology["quest_links"] = [{"id": stable_id("creature-fieldwork-link-base", used), "linked_quest": base_root, "x": -2.0, "y": 0.0}]
     workshop["quest_links"] = [{"id": stable_id("workshop-link-newera", used), "linked_quest": newera_root, "x": -2.0, "y": 0.0}]
@@ -197,6 +201,7 @@ def main():
     # Append to base theme, retaining its settings, 41 chapters, reward tables,
     # translations and all original IDs. Copy New Era chapters as independent files.
     additions = build_additions(used, bio_root, field_root)
+    removed_ecology = remove_ecology_jobs(additions[0])
     extra_groups, extra_chapters = optional_extra_chapters(base_chapters, new_chapters, used)
     all_additions = additions + extra_chapters
     joint_group_id = stable_id("delight-joint-group", used)
@@ -205,8 +210,12 @@ def main():
         "linked_quest": additions[0]["quests"][0]["id"], "x": 14.0, "y": 0.0})
     write(bio_file if out == base else out / "chapters" / bio_file.name, bio)
     # Make both handbooks cross-navigable from the New Era field chapter too.
+    hunt_chapter = next((chapter for chapter in extra_chapters
+                         if chapter.get("filename") == "joint_field_hunts"), None)
+    if hunt_chapter is None or not hunt_chapter.get("quests"):
+        raise ValueError("缺少独立的原版敌对生物巡护任务章")
     field.setdefault("quest_links", []).append({"id": stable_id("newera-to-ecology-link", used),
-        "linked_quest": additions[0]["quests"][4]["id"], "x": 12.0, "y": 0.0})
+        "linked_quest": hunt_chapter["quests"][0]["id"], "x": 12.0, "y": 0.0})
     write(out / "chapters" / field_file.name, field)
     for src in new_files:
         if src.name != field_file.name: shutil.copy2(src, out / "chapters" / src.name)
@@ -282,6 +291,17 @@ def main():
               "added_kill_targets": sorted({
                   t.get("entity") for c in all_additions for q in c.get("quests", []) for t in q.get("tasks", [])
                   if t.get("type") == "kill"}),
+              "removed_species_quests": len(ECOLOGY_REMOVALS) + len(FIELD_WILDLIFE_REMOVALS),
+              "removed_species_quest_ids": sorted(set(ECOLOGY_REMOVALS) | set(FIELD_WILDLIFE_REMOVAL_QUEST_IDS.values())),
+              "retained_ecology_quest_ids": sorted(ECOLOGY_RETAINED_QUEST_IDS),
+              "retained_field_wildlife_quest_ids": sorted(FIELD_WILDLIFE_RETAINED_QUEST_IDS),
+              "removed_field_wildlife_items": sorted(FIELD_WILDLIFE_REMOVALS),
+              "added_hunt_kill_quests": sum(1 for q in hunt_chapter["quests"]
+                                             for t in q.get("tasks", []) if t.get("type") == "kill"),
+              "added_hunt_loot_quests": sum(1 for q in hunt_chapter["quests"]
+                                             for t in q.get("tasks", []) if t.get("type") == "item"),
+              "added_hunt_section_quests": len(hunt_chapter["quests"]),
+              "preserved_base_quest_count": sum(len(c.get("quests", [])) for c in base_chapters),
               "checked_ids": len(all_ids), "checked_links": sum(len(c.get("quest_links", [])) for c in emitted),
               "checked_dependencies": sum(len(q.get("dependencies", [])) for c in emitted for q in c.get("quests", [])),
               "missing_dependencies_or_links": 0}
