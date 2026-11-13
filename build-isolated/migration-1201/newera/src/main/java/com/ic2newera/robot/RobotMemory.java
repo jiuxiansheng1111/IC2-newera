@@ -195,9 +195,17 @@ public final class RobotMemory {
             CompoundTag state = taskBooks.computeIfAbsent(key, ignored -> new CompoundTag());
             CompoundTag saved = RobotTaskBook.saveRow(row);
             long latest = Math.max(state.getCompound("LatestCollect").getLong("CompletedAt"),
-                    state.getCompound("LatestCook").getLong("CompletedAt"));
+                    Math.max(state.getCompound("LatestCook").getLong("CompletedAt"),
+                            state.getCompound("LatestCraft").getLong("CompletedAt")));
             saved.putLong("CompletedAt", Math.max(Math.max(0, gameTime), latest + 1));
-            state.put(row.type().equals("collect") ? "LatestCollect" : "LatestCook", saved);
+            String field = switch (row.type()) {
+                case "collect" -> "LatestCollect";
+                case "cook" -> "LatestCook";
+                case "craft" -> "LatestCraft";
+                default -> null;
+            };
+            if (field == null) return;
+            state.put(field, saved);
             setDirty();
         }
 
@@ -308,10 +316,15 @@ public final class RobotMemory {
         private static boolean validTaskBook(CompoundTag state) {
             if (state == null || state.toString().length() > 32_768) return false;
             try {
-                for (String field : List.of("LatestCollect", "LatestCook")) {
+                for (String field : List.of("LatestCollect", "LatestCook", "LatestCraft")) {
                     if (!state.contains(field)) continue;
                     RobotTaskBook.Row latest = RobotTaskBook.loadRow(state.getCompound(field), "@last");
-                    if (latest == null || !latest.type().equals(field.equals("LatestCollect") ? "collect" : "cook")
+                    String expectedType = switch (field) {
+                        case "LatestCollect" -> "collect";
+                        case "LatestCook" -> "cook";
+                        default -> "craft";
+                    };
+                    if (latest == null || !latest.type().equals(expectedType)
                             || state.getCompound(field).getLong("CompletedAt") < 0
                             || state.getCompound(field).getLong("CompletedAt") >= Long.MAX_VALUE - 1) return false;
                 }
@@ -331,12 +344,17 @@ public final class RobotMemory {
         /** Salvage valid rows independently so one damaged or removed item cannot erase a robot's other orders. */
         private static CompoundTag sanitizeTaskBook(CompoundTag source) {
             CompoundTag clean = new CompoundTag();
-            for (String field : List.of("LatestCollect", "LatestCook")) {
+            for (String field : List.of("LatestCollect", "LatestCook", "LatestCraft")) {
                 if (!source.contains(field, Tag.TAG_COMPOUND)) continue;
                 CompoundTag saved = source.getCompound(field);
                 RobotTaskBook.Row row = RobotTaskBook.loadRow(saved, "@last");
                 long completedAt = saved.getLong("CompletedAt");
-                if (row != null && row.type().equals(field.equals("LatestCollect") ? "collect" : "cook")
+                String expectedType = switch (field) {
+                    case "LatestCollect" -> "collect";
+                    case "LatestCook" -> "cook";
+                    default -> "craft";
+                };
+                if (row != null && row.type().equals(expectedType)
                         && completedAt >= 0 && completedAt < Long.MAX_VALUE - 1) {
                     CompoundTag copy = RobotTaskBook.saveRow(row); copy.putLong("CompletedAt", completedAt);
                     clean.put(field, copy);

@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 /** Every action, including each chat grant, rechecks owner, loaded entity and distance on the server. */
 public final class RobotPackets {
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "16", "16"::equals, "16"::equals);
+            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "robots"), () -> "17", "17"::equals, "17"::equals);
     private static final java.util.Map<ServerPlayer, Long> PHONE_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> PHONE_READ_REQUESTS = new java.util.WeakHashMap<>();
     private static final java.util.Map<ServerPlayer, Long> LOCAL_REQUESTS = new java.util.WeakHashMap<>();
@@ -53,11 +53,14 @@ public final class RobotPackets {
         }
     }
     public static void open(ServerPlayer player, RobotEntity robot, int request) {
-        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), new View(robot.getId(), robot.getUUID(), robot.character().id,
+        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), snapshot(player, robot, request, robot.status()));
+    }
+    private static View snapshot(ServerPlayer player, RobotEntity robot, int request, String status) {
+        return new View(robot.getId(), robot.getUUID(), robot.character().id,
                 robot.following(), robot.getHealth(), robot.getMaxHealth(), robot.level().dimension().location().toString(), request,
-                robot.energy(), robot.deaths(), robot.mode(), robot.combatEnabled(), robot.status(),
+                robot.energy(), robot.deaths(), robot.mode(), robot.combatEnabled(), status,
                 robot.hunger(),
-                com.ic2newera.industrial.IndustrialMobileAccess.robotNetwork(player, robot)));
+                com.ic2newera.industrial.IndustrialMobileAccess.robotNetwork(player, robot));
     }
     private static String localizeRobotReply(ServerPlayer player, UUID robotId, String message) {
         RobotEntity robot = RobotContacts.resolve(player.server, robotId);
@@ -100,6 +103,12 @@ public final class RobotPackets {
                         return;
                     }
                     case 9 -> { }
+                    case 17 -> {
+                        String reason = robot.toolWork().begin(player);
+                        String notice = reason.isEmpty() ? robot.status() : reason;
+                        CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), snapshot(player, robot, -3, notice));
+                        return;
+                    }
                     default -> { return; }
                 }
                 open(player, robot, -1);
@@ -140,7 +149,7 @@ public final class RobotPackets {
                 if (packet.action != 0 && packet.action != 1 && packet.action != 2 && packet.action != 5
                         && packet.action != 6 && packet.action != 7 && packet.action != 8 && packet.action != 10
                         && packet.action != 11 && packet.action != 12 && packet.action != 13 && packet.action != 14
-                        && packet.action != 15 && packet.action != 16 && packet.action != 20) return;
+                        && packet.action != 15 && packet.action != 16 && packet.action != 17 && packet.action != 20) return;
                 long time = player.level().getGameTime();
                 // Periodic status reads must not swallow a manual command sent in the same five ticks.
                 var limits = packet.action == 0 ? PHONE_READ_REQUESTS : PHONE_REQUESTS;

@@ -15,12 +15,18 @@ import java.util.List;
 
 /** Owner-bound completed-task snapshots and safe server-side replay for a robot identity. */
 public final class RobotTaskBook {
-    public static final String LAST = "@last", COLLECT = "@collect", COOK = "@cook";
+    public static final String LAST = "@last", COLLECT = "@collect", COOK = "@cook", CRAFT = "@craft";
     public static final int MAX_SNAPSHOTS = 8;
     private static final String SNAPSHOTS = "Snapshots";
 
     public enum Action { LIST, SAVE, RUN, FORGET }
-    public record Row(String key, String label, String type, ResourceLocation item, int amount, int mode) { }
+    public record Row(String key, String label, String type, ResourceLocation item, int amount, int mode,
+                      ResourceLocation recipe, ResourceLocation tool, ResourceLocation material) {
+        /** Keeps source and compatibility callers using the r67 six-field row shape working. */
+        public Row(String key, String label, String type, ResourceLocation item, int amount, int mode) {
+            this(key, label, type, item, amount, mode, null, null, null);
+        }
+    }
     public record Result(boolean accepted, String message, List<Row> rows) {
         public Result { rows = List.copyOf(rows == null ? List.of() : rows); }
     }
@@ -30,7 +36,11 @@ public final class RobotTaskBook {
     /** Stable signature used by packets to reject stale selection clicks. */
     public static String signature(Row row) {
         if (row == null) return "";
-        return row.type() + "|" + row.key() + "|" + row.item() + "|" + row.amount() + "|" + row.mode();
+        String base = row.type() + "|" + row.key() + "|" + row.item() + "|" + row.amount() + "|" + row.mode();
+        // Preserve the exact r67 signature for collection/cooking rows while
+        // binding every craft selection to all three new recipe identifiers.
+        if (row.recipe() == null && row.tool() == null && row.material() == null) return base;
+        return base + "|" + id(row.recipe()) + "|" + id(row.tool()) + "|" + id(row.material());
     }
 
     public static Result act(ServerPlayer player, RobotEntity robot, boolean remote, Action action,
@@ -94,10 +104,27 @@ public final class RobotTaskBook {
         }
 
         Row selected = findSource(state, selectedSource);
-        if (selected == null) return fail("没有可重放的已完成任务。");
+        if (selected == null) return fail(CRAFT.equals(selectedSource)
+                ? "没有完整的最近制作记录；旧记录缺少配方、工具或材料时不能安全复做。"
+                : "没有可重放的已完成任务。");
         if (!matchesExpected(selected, expected)) return fail("任务列表已更新，请重新选择。");
         if (!BuiltInRegistries.ITEM.containsKey(selected.item()) || BuiltInRegistries.ITEM.get(selected.item()) == net.minecraft.world.item.Items.AIR)
             return fail("任务目标物品当前不可用，未派发。");
+        if (selected.type().equals("craft")) {
+            String missing = craftMissingReason(selected);
+            if (!missing.isEmpty()) return fail(missing);
+            String blocked = replayBlock(robot);
+            if (!blocked.isEmpty()) return fail(blocked);
+            if (remote && !IndustrialPhoneItem.hasHeldCharge(player, IndustrialPhoneItem.COMMAND_COST))
+                return fail(IndustrialPhoneItem.EMPTY_MESSAGE);
+            String started = com.ic2newera.robot.workshop.ToolWork.beginSaved(
+                    player, robot, selected.recipe(), selected.item(), selected.tool(), selected.material());
+            if (!started.isEmpty()) return fail(started);
+            // ToolWork owns the one 200 EU robot charge at tool contact. The task-book
+            // replay charges only the phone, after ToolWork has accepted the exact job.
+            if (remote) chargeCommand(player);
+            return ok("已开始复做一批 " + itemName(selected.item()) + "；严格沿用记录的配方、工具和材料。", rows);
+        }
         String blocked = replayBlock(robot);
         if (!blocked.isEmpty()) return fail(blocked);
         if (remote && !IndustrialPhoneItem.hasHeldCharge(player, IndustrialPhoneItem.COMMAND_COST))
@@ -120,6 +147,15 @@ public final class RobotTaskBook {
         RobotMemory.recordCompletedTask(robot, new Row(COOK, display("cook", item, amount, 0), "cook", item, amount, 0));
     }
 
+    /** Called by the server only after one exact recipe batch has actually completed. */
+    public static void completedCraft(RobotEntity robot, ResourceLocation output, ResourceLocation recipe,
+                                      ResourceLocation tool, ResourceLocation material) {
+        if (robot == null || output == null || recipe == null || tool == null || material == null
+                || !validItem(output) || !validItem(tool) || !validItem(material)) return;
+        RobotMemory.recordCompletedTask(robot, new Row(CRAFT,
+                displayCraft(output, recipe, tool, material), "craft", output, 1, 0, recipe, tool, material));
+    }
+
     private static boolean authorized(ServerPlayer player, RobotEntity robot, boolean remote) {
         if (player == null || player.hasDisconnected() || !player.isAlive() || robot == null
                 || !(robot.level() instanceof ServerLevel level) || level.getServer() != player.server
@@ -138,7 +174,8 @@ public final class RobotTaskBook {
         player.getInventory().setChanged();
     }
 
-    private static String replayBlock(RobotEntity robot) {
+    public static String replayBlock(RobotEntity robot) {
+        if (robot == null) return "机器人状态不可用，暂不能复做。";
         if (robot.collectionTask() != null || robot.hasPausedCollectionTask()) return "机器人有进行中或已暂停的采集任务，请先完成或取消。";
         if (robot.hasCookingTask()) return "机器人有进行中或已暂停的烹饪任务，请先完成或安全取消。";
         if (robot.movementIntent() != RobotMovementIntent.NONE && robot.movementIntent() != RobotMovementIntent.FOLLOW)
@@ -154,14 +191,13 @@ public final class RobotTaskBook {
     }
 
     private static List<Row> listRows(CompoundTag state) {
-        ArrayList<Row> rows = new ArrayList<>(10);
-        CompoundTag collect = state.getCompound("LatestCollect"), cook = state.getCompound("LatestCook");
-        Row c = state.contains("LatestCollect", Tag.TAG_COMPOUND) ? loadRow(collect, COLLECT) : null;
-        Row k = state.contains("LatestCook", Tag.TAG_COMPOUND) ? loadRow(cook, COOK) : null;
-        if (c != null && k != null) {
-            if (collect.getLong("CompletedAt") >= cook.getLong("CompletedAt")) { rows.add(c); rows.add(k); }
-            else { rows.add(k); rows.add(c); }
-        } else if (c != null) rows.add(c); else if (k != null) rows.add(k);
+        ArrayList<Row> rows = new ArrayList<>(11);
+        ArrayList<Row> recent = new ArrayList<>(3);
+        addRecent(state, recent, "LatestCollect", COLLECT);
+        addRecent(state, recent, "LatestCook", COOK);
+        addRecent(state, recent, "LatestCraft", CRAFT);
+        recent.sort(Comparator.comparingLong((Row row) -> completedAt(state, row.key())).reversed());
+        rows.addAll(recent);
         ListTag snapshots = state.getList(SNAPSHOTS, Tag.TAG_COMPOUND);
         ArrayList<Row> named = new ArrayList<>();
         for (int i = 0; i < snapshots.size(); i++) {
@@ -177,15 +213,14 @@ public final class RobotTaskBook {
 
     private static Row findSource(CompoundTag state, String source) {
         if (LAST.equals(source)) {
-            List<Row> latest = listRows(state).stream().filter(row -> row.key().equals(COLLECT) || row.key().equals(COOK)).toList();
+            List<Row> latest = listRows(state).stream().filter(row -> row.key().equals(COLLECT)
+                    || row.key().equals(COOK) || row.key().equals(CRAFT)).toList();
             if (latest.isEmpty()) return null;
-            if (latest.size() == 1) return latest.get(0);
-            return state.getCompound("LatestCollect").getLong("CompletedAt")
-                    >= state.getCompound("LatestCook").getLong("CompletedAt")
-                    ? loadRow(state.getCompound("LatestCollect"), COLLECT) : loadRow(state.getCompound("LatestCook"), COOK);
+            return latest.get(0);
         }
         if (COLLECT.equals(source)) return loadRow(state.getCompound("LatestCollect"), COLLECT);
         if (COOK.equals(source)) return loadRow(state.getCompound("LatestCook"), COOK);
+        if (CRAFT.equals(source)) return loadRow(state.getCompound("LatestCraft"), CRAFT);
         String normalized = RobotTaskIntent.normalizedName(source);
         if (normalized.isEmpty()) return null;
         ListTag snapshots = state.getList(SNAPSHOTS, Tag.TAG_COMPOUND);
@@ -205,7 +240,9 @@ public final class RobotTaskBook {
 
     private static boolean sameOrder(Row a, Row b) {
         return a != null && b != null && a.type().equals(b.type()) && a.item().equals(b.item())
-                && a.amount() == b.amount() && a.mode() == b.mode();
+                && a.amount() == b.amount() && a.mode() == b.mode()
+                && java.util.Objects.equals(a.recipe(), b.recipe()) && java.util.Objects.equals(a.tool(), b.tool())
+                && java.util.Objects.equals(a.material(), b.material());
     }
 
     private static String display(String type, ResourceLocation item, int amount, int mode) {
@@ -221,6 +258,9 @@ public final class RobotTaskBook {
         CompoundTag tag = new CompoundTag();
         tag.putString("Key", row.key()); tag.putString("Type", row.type());
         tag.putString("Item", row.item().toString()); tag.putInt("Amount", row.amount()); tag.putInt("Mode", row.mode());
+        if (row.recipe() != null) tag.putString("Recipe", row.recipe().toString());
+        if (row.tool() != null) tag.putString("Tool", row.tool().toString());
+        if (row.material() != null) tag.putString("Material", row.material().toString());
         return tag;
     }
 
@@ -230,18 +270,68 @@ public final class RobotTaskBook {
             String key = displayKey == null || displayKey.isEmpty() ? tag.getString("Key") : displayKey;
             ResourceLocation item = ResourceLocation.tryParse(tag.getString("Item"));
             int amount = tag.getInt("Amount"), mode = tag.getInt("Mode");
-            if (!(type.equals("collect") || type.equals("cook")) || item == null
+            ResourceLocation recipe = tag.contains("Recipe", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("Recipe")) : null;
+            ResourceLocation tool = tag.contains("Tool", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("Tool")) : null;
+            ResourceLocation material = tag.contains("Material", Tag.TAG_STRING) ? ResourceLocation.tryParse(tag.getString("Material")) : null;
+            boolean malformedOptional = tag.contains("Recipe") && recipe == null || tag.contains("Tool") && tool == null
+                    || tag.contains("Material") && material == null;
+            if (!(type.equals("collect") || type.equals("cook") || type.equals("craft")) || item == null
                     || BuiltInRegistries.ITEM.getOptional(item).orElse(null) == net.minecraft.world.item.Items.AIR
+                    || malformedOptional || tool != null && !validItem(tool) || material != null && !validItem(material)
                     || amount < 1 || amount > 256 || (type.equals("collect")
-                    ? mode < RobotCollectionTask.AUTO || mode > RobotCollectionTask.PICKUP_ONLY : mode != 0)) return null;
-            if (!(key.equals(LAST) || key.equals(COLLECT) || key.equals(COOK) || !RobotTaskIntent.normalizedName(key).isEmpty())) return null;
-            return new Row(key, display(type, item, amount, mode), type, item, amount, mode);
+                    ? mode < RobotCollectionTask.AUTO || mode > RobotCollectionTask.PICKUP_ONLY
+                    : type.equals("craft") ? mode != 0 || amount != 1 : mode != 0)) return null;
+            if (!(key.equals(LAST) || key.equals(COLLECT) || key.equals(COOK) || key.equals(CRAFT) || !RobotTaskIntent.normalizedName(key).isEmpty())) return null;
+            String label = type.equals("craft") ? displayCraft(item, recipe, tool, material) : display(type, item, amount, mode);
+            return new Row(key, label, type, item, amount, mode, recipe, tool, material);
         } catch (RuntimeException invalid) { return null; }
     }
 
     static boolean validName(String name) {
         String normalized = RobotTaskIntent.normalizedName(name);
         return !normalized.isEmpty() && !normalized.startsWith("@");
+    }
+
+    private static void addRecent(CompoundTag state, List<Row> rows, String field, String key) {
+        if (!state.contains(field, Tag.TAG_COMPOUND)) return;
+        Row row = loadRow(state.getCompound(field), key);
+        if (row != null) rows.add(row);
+    }
+
+    private static long completedAt(CompoundTag state, String key) {
+        String field = key.equals(COLLECT) ? "LatestCollect" : key.equals(COOK) ? "LatestCook" : "LatestCraft";
+        return state.getCompound(field).getLong("CompletedAt");
+    }
+
+    private static void chargeCommand(ServerPlayer player) {
+        IndustrialPhoneItem.consumeHeld(player, IndustrialPhoneItem.COMMAND_COST);
+        player.getInventory().setChanged();
+    }
+
+    private static String craftMissingReason(Row row) {
+        if (row.recipe() == null) return "制作记录缺少配方编号，无法安全复做。";
+        if (row.tool() == null || !validItem(row.tool())) return "制作记录缺少有效工具，无法安全复做。";
+        if (row.material() == null || !validItem(row.material())) return "制作记录缺少有效材料，无法安全复做。";
+        return "";
+    }
+
+    private static boolean validItem(ResourceLocation id) {
+        return id != null && BuiltInRegistries.ITEM.containsKey(id)
+                && BuiltInRegistries.ITEM.get(id) != net.minecraft.world.item.Items.AIR;
+    }
+
+    private static String id(ResourceLocation value) { return value == null ? "" : value.toString(); }
+
+    private static String itemName(ResourceLocation id) {
+        return BuiltInRegistries.ITEM.getOptional(id).map(RobotChatItems::displayName).orElse(id.toString());
+    }
+
+    private static String displayCraft(ResourceLocation output, ResourceLocation recipe,
+                                       ResourceLocation tool, ResourceLocation material) {
+        String label = "制作 " + itemName(output) + "（按一批；配方 " + recipe + "；工具 " + itemName(tool)
+                + "；材料 " + itemName(material) + "）";
+        return label.codePointCount(0, label.length()) <= 160 ? label
+                : label.substring(0, label.offsetByCodePoints(0, 160));
     }
 
     private static Result ok(String message, List<Row> rows) { return new Result(true, message, rows); }

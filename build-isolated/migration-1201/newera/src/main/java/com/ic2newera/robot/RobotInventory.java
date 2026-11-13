@@ -25,6 +25,7 @@ public final class RobotInventory extends ItemStackHandler {
                 || stack.canPerformAction(net.minecraftforge.common.ToolActions.HOE_DIG)
                 || stack.canPerformAction(net.minecraftforge.common.ToolActions.SHEARS_DIG)
                 || stack.getItem() instanceof ic2.core.item.tool.ItemElectricToolChainsaw
+                || com.ic2newera.robot.workshop.ToolWork.acceptsTool(stack)
                 || stack.getItem() instanceof net.minecraft.world.item.SwordItem
                 || !stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE).isEmpty());
     }
@@ -68,7 +69,7 @@ public final class RobotInventory extends ItemStackHandler {
     }
     public String hint(int slot) {
         if (slot == 0) return "电池槽：仅机器人电池，需三级及以上充电；货物格放高级/核能充电宝可自动补电，死亡销毁电池。";
-        if (slot == 1) return "主手：镐、斧、锹、锄、剪刀或武器；按实际掉落与采掘等级自动选工具，保留耐久/电量消耗。";
+        if (slot == 1) return "主手：采掘工具、武器或制作工具。放锻造锤、板材剪、砂纸或砧板刀具，在「工作 → 工具制作」做一批。";
         if (slot == 2) return "副手：可携带物品；合适的采集工具可自动换到主手，原主手换回本槽。";
         if (slot < CARGO_START) return "防具槽：仅允许对应部位的装备；提供原版防护并消耗耐久。";
         return "货物槽：放工具、种子、建材、设备、烧矿原料/燃料或食材，接收成品。施工按清单扣料；生产线开始须留3个空格暂存，原矿和煤放方案进料箱。高级/核能充电宝可补电；满仓或物品变化时暂停并说明。";

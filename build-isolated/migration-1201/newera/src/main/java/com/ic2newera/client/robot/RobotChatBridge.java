@@ -56,24 +56,38 @@ final class RobotChatBridge {
 
     private static String taskReply(RobotTaskIntent intent, RobotTaskPackets.Reply reply) {
         if (intent.action() == RobotTaskBook.Action.LIST && reply.accepted()) {
-            if (reply.rows().isEmpty()) return "还没有已完成的采集或烹饪任务。完成一单后，可在设置的“常用任务”里保存昵称。";
+            if (reply.rows().isEmpty()) return "还没有已完成的采集、烹饪或制作记录。完成一单或一批后，可在“常用任务”里保存昵称。旧制作记录若缺少配方、工具或材料，将说明原因且不会复做。";
             StringBuilder text = new StringBuilder("常用任务：");
             for (var row : reply.rows()) {
                 String label = switch (row.key()) {
                     case RobotTaskBook.LAST -> "最近任务";
                     case RobotTaskBook.COLLECT -> "最近采集";
                     case RobotTaskBook.COOK -> "最近烹饪";
+                    case RobotTaskBook.CRAFT -> "最近制作";
                     default -> "已保存：" + row.key();
                 };
                 var item = ForgeRegistries.ITEMS.getValue(row.item());
                 String itemName = item == null ? row.item().toString() : item.getDescription().getString();
-                text.append("\n").append(label).append(" · ").append(row.type().equals("cook") ? "烹饪" : "采集")
-                        .append(" ").append(itemName).append(" × ").append(row.amount());
-                if (row.type().equals("collect")) text.append(row.mode() == com.ic2newera.robot.RobotCollectionTask.AUTO ? " · 按掉落物自动采集" : " · 仅拾取");
+                if (row.type().equals("craft")) {
+                    text.append("\n").append(label).append(" · 制作 ").append(itemName)
+                            .append("，按一批；配方 ").append(row.recipe() == null ? "缺失" : row.recipe())
+                            .append("；工具 ").append(itemName(row.tool()))
+                            .append("；材料 ").append(itemName(row.material()));
+                } else {
+                    text.append("\n").append(label).append(" · ").append(row.type().equals("cook") ? "烹饪" : "采集")
+                            .append(" ").append(itemName).append(" × ").append(row.amount());
+                    if (row.type().equals("collect")) text.append(row.mode() == com.ic2newera.robot.RobotCollectionTask.AUTO ? " · 按掉落物自动采集" : " · 仅拾取");
+                }
             }
             return text.toString();
         }
         if (reply.message() != null && !reply.message().isBlank()) return reply.message();
         return reply.accepted() ? "常用任务操作已完成。" : "常用任务操作未完成。";
+    }
+
+    private static String itemName(net.minecraft.resources.ResourceLocation id) {
+        if (id == null) return "缺失（旧记录无法安全复做）";
+        var item = ForgeRegistries.ITEMS.getValue(id);
+        return item == null ? id.toString() : item.getDescription().getString();
     }
 }

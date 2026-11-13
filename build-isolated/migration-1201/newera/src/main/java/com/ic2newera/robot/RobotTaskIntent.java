@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /** Explicit owner commands for the task book. A question or a compound instruction cannot dispatch an order. */
 public record RobotTaskIntent(RobotTaskBook.Action action, String source, String name, String error) {
     private static final Pattern SAVE = Pattern.compile(
-            "^(?:把|将)?(上次(?:的)?(?:采集任务|烹饪任务|做饭任务|采集|烹饪|做饭|做菜|任务|订单)?|刚才的任务|上一单|上一次采集|上一次烹饪)"
+            "^(?:把|将)?(上次(?:的)?(?:采集任务|烹饪任务|做饭任务|制作任务|采集|烹饪|做饭|做菜|制作|任务|订单)?|刚才的任务|上一单|上一次采集|上一次烹饪|上一次制作)"
             + "(?:记为|记作|记成|存为|存成|保存为|命名为)\\s*[:：]?\\s*(.*)$");
     private static final Pattern SAVE_ALIAS = Pattern.compile("^保存常用任务\\s*[:：]\\s*(.*)$");
     private static final Pattern RUN_NAMED = Pattern.compile("^(?:执行|运行|重做|再做一次)常用任务\\s*[:：]?\\s*(.*)$");
@@ -32,6 +32,7 @@ public record RobotTaskIntent(RobotTaskBook.Action action, String source, String
     }
 
     private static String sourceOf(String text) {
+        if (text.contains("制作") || text.contains("制造")) return RobotTaskBook.CRAFT;
         if (text.contains("采集")) return RobotTaskBook.COLLECT;
         if (text.contains("烹饪") || text.contains("做饭") || text.contains("做菜")) return RobotTaskBook.COOK;
         return RobotTaskBook.LAST;
@@ -55,7 +56,7 @@ public record RobotTaskIntent(RobotTaskBook.Action action, String source, String
         String s = Normalizer.normalize(text, Normalizer.Form.NFKC).strip();
         if (s.isEmpty()) return null;
         String key = s.toLowerCase(Locale.ROOT);
-        if (key.matches("(?:常用任务(?:列表)?|(?:查看|列出|看看|打开)(?:我的)?常用任务|上次(?:采集|烹饪|做饭)(?:了什么|的是什么)|上次(?:的)?任务是什么|都记了哪些任务|saved tasks|task list|タスク一覧)[?？。.!！]?")) {
+        if (key.matches("(?:常用任务(?:列表)?|(?:查看|列出|看看|打开)(?:我的)?常用任务|上次(?:采集|烹饪|做饭|制作)(?:了什么|的是什么)|上次(?:的)?任务是什么|都记了哪些任务|saved tasks|task list|タスク一覧)[?？。.!！]?")) {
             return command(RobotTaskBook.Action.LIST, "", "");
         }
         // Questions about a saved command must not execute it, even with question marks removed.
@@ -67,6 +68,7 @@ public record RobotTaskIntent(RobotTaskBook.Action action, String source, String
         String replay = switch (compact) {
             case "照上次再采一单", "照上次再采一次", "按上次再采一单", "照上次采", "再采一单", "重复上次采集", "重做上次采集", "再做一次上次的采集", "repeatlastcollection" -> RobotTaskBook.COLLECT;
             case "照上次再做一餐", "照上次再做一次饭", "照上次再做一份菜", "再做一次上次的饭", "重复上次烹饪", "重做上次烹饪", "再做一次上次的菜", "repeatlastcooking" -> RobotTaskBook.COOK;
+            case "照上次再制作一次", "按上次再制作一次", "照上次再做一批", "重复上次制作", "重做上次制作", "repeatlastcraft" -> RobotTaskBook.CRAFT;
             case "照上次再来一单", "照上次再做一单", "和上次一样再来一单", "再来一单", "重复上次任务", "重做上次任务", "执行上次任务", "repeatlasttask" -> RobotTaskBook.LAST;
             default -> "";
         };

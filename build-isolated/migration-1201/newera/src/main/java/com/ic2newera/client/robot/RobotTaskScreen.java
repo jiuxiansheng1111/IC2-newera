@@ -31,7 +31,7 @@ final class RobotTaskScreen extends Screen {
     private final int remoteEnergy;
     private boolean requested, confirmForget;
     private boolean failed;
-    private int left, panelWidth, listTop, listBottom, rowHeight = 30, offset;
+    private int left, panelWidth, listTop, listBottom, rowHeight = 42, offset;
     private String selectedKey = "", status = "", nameDraft = "";
     private List<RobotTaskBook.Row> rows = List.of();
     private EditBox name;
@@ -89,6 +89,13 @@ final class RobotTaskScreen extends Screen {
         forget.active = !busy && row != null && !isRecent(row) && readFee;
         reload.visible = !busy && failed;
         forget.setMessage(Component.literal(confirmForget ? "确认" : "忘记"));
+        run.setMessage(Component.literal(row != null && row.type().equals("craft") ? "再做一批" : "执行"));
+        if (row != null && row.type().equals("craft"))
+            run.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(remote
+                    ? "严格按记录的配方、材料和工具再做一批；手机成功开始后耗100 EU，机器人接触时耗200 EU。"
+                    : "严格按记录的配方、材料和工具再做一批；机器人接触时耗200 EU。")));
+        else run.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(remote
+                ? "接单消耗手机 100 EU、机器人 200 EU。" : "接单消耗机器人 200 EU。")));
     }
     private boolean canRun() {
         if (remote) return remoteEnergy >= 200;
@@ -155,17 +162,28 @@ final class RobotTaskScreen extends Screen {
     private int visibleRows() { return Math.max(1, (listBottom - listTop) / rowHeight); }
     private int maxOffset() { return Math.max(0, rows.size() - visibleRows()); }
     private String itemName(ResourceLocation id) {
+        if (id == null) return "缺失";
         var item = ForgeRegistries.ITEMS.getValue(id);
         return item == null ? id.toString() : item.getDescription().getString();
     }
     private String rowTitle(RobotTaskBook.Row row) {
+        if (row.type().equals("craft")) return isRecent(row) ? "最近完成的制作" : row.key() + " · 制作";
         if (isRecent(row)) return row.type().equals("cook") ? "最近完成的烹饪" : "最近完成的采集";
         return row.key() + (row.type().equals("cook") ? " · 烹饪" : " · 采集");
     }
     private String rowDetail(RobotTaskBook.Row row) {
+        if (row.type().equals("craft")) return row.amount() == 1
+                ? "按一批 · 输出 " + itemName(row.item()) + " · 工具 " + itemName(row.tool())
+                : "数量异常，无法安全复做";
         String detail = row.amount() + " × " + itemName(row.item());
         if (row.type().equals("collect")) detail += row.mode() == com.ic2newera.robot.RobotCollectionTask.AUTO ? " · 自动采集" : " · 仅拾取";
         return detail;
+    }
+    private String rowCraftExtra(RobotTaskBook.Row row) {
+        if (!row.type().equals("craft")) return "";
+        boolean missing = row.recipe() == null || row.tool() == null || row.material() == null;
+        return "材料 " + itemName(row.material()) + " · 配方 " + (row.recipe() == null ? "缺失" : row.recipe())
+                + (missing ? " · 记录不完整，不能安全复做" : "");
     }
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         renderBackground(g); g.fill(left - 5, 3, left + panelWidth + 5, height - 3, 0xEF152631);
@@ -180,9 +198,11 @@ final class RobotTaskScreen extends Screen {
             if (row.key().equals(selectedKey)) g.fill(left + 2, y + 1, left + panelWidth - 2, y + rowHeight - 1, 0xFF31515C);
             g.drawString(font, UiText.fit(font, Component.literal(rowTitle(row)), panelWidth - 14), left + 6, y + 4, 0xF0F5F5);
             g.drawString(font, UiText.fit(font, Component.literal(rowDetail(row)), panelWidth - 14), left + 6, y + 17, 0xB7D6DC);
+            String extra = rowCraftExtra(row);
+            if (!extra.isEmpty()) g.drawString(font, UiText.fit(font, Component.literal(extra), panelWidth - 14), left + 6, y + 29, 0xB7D6DC);
         }
         if (rows.isEmpty() && pending == null)
-            g.drawString(font, UiText.fit(font, Component.literal("还没有可用任务。完成一单采集或烹饪后再来保存。"), panelWidth - 12), left + 6, listTop + 8, 0xCEDCE0);
+            g.drawString(font, UiText.fit(font, Component.literal("还没有可用任务。完成一单采集、烹饪或一批制作后再来保存；旧制作记录缺配方、工具或材料时不能安全复做。"), panelWidth - 12), left + 6, listTop + 8, 0xCEDCE0);
         RenderSystem.disableScissor();
         g.drawString(font, Component.literal("任务名称"), left, listBottom + 3, 0xB7D6DC);
         if (maxOffset() > 0) {

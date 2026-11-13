@@ -83,6 +83,7 @@ final class PhoneRobotChatScreen extends Screen {
             } else command(workChoice.phoneAction);
         });
         work("重置烹饪", "取消当前烹饪计划并整理待投原料。", b -> command(14));
+        work("工具制作", "让机器人在身边的工作台或砧板做一批。手里放工具，货物栏放原料；派单耗手机 100 EU，完成耗机器人 200 EU。", b -> command(17));
         work("建造与生产线", "远程生成房屋/工业线方案，查看材料并确认施工。", b ->
                 minecraft.setScreen(new RobotBuildScreen(this, robot, RobotCharacter.byId(character).chineseName, true)));
         voice = tabs.add(RobotControlTabs.Page.VOICE, "语音：开", "控制本机回复朗读，关闭会清理语音队列。", b -> {

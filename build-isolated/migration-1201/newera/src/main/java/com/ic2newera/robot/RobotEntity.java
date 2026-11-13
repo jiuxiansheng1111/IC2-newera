@@ -23,6 +23,8 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkHooks;
 import com.ic2newera.robot.companionship.RobotCompanionship;
+import com.ic2newera.robot.workshop.ToolStroke;
+import com.ic2newera.robot.workshop.ToolWork;
 import java.util.UUID;
 
 /** Server-authoritative portable machine. Recall preserves state; death consumes one of five lives. */
@@ -54,6 +56,14 @@ public final class RobotEntity extends TamableAnimal {
     private static final EntityDataAccessor<Long> EATING_START_TIME = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.LONG);
     private static final EntityDataAccessor<ItemStack> EATING_STACK = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Integer> EATING_ARM = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> TOOL_STROKE = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Long> TOOL_START = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<ItemStack> TOOL_STACK = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<Boolean> TOOL_LEFT = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<BlockPos> TOOL_BENCH = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.BLOCK_POS);
+    private static final EntityDataAccessor<Float> TOOL_TOP = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<ItemStack> WORKPIECE = SynchedEntityData.defineId(RobotEntity.class, EntityDataSerializers.ITEM_STACK);
+    private final ToolWork toolWork = new ToolWork(this);
     private final RobotInventory inventory = new RobotInventory(this);
     private final RobotHomeGreeting homeGreeting = new RobotHomeGreeting();
     private final RobotCompanionship companionship = new RobotCompanionship(this);
@@ -109,6 +119,9 @@ public final class RobotEntity extends TamableAnimal {
         entityData.define(PETTING, false); entityData.define(HOLDING_HANDS, false);
         entityData.define(HUNGER, MAX_HUNGER); entityData.define(EATING, false);
         entityData.define(EATING_START_TIME, 0L); entityData.define(EATING_STACK, ItemStack.EMPTY); entityData.define(EATING_ARM, 1);
+        entityData.define(TOOL_STROKE, ToolStroke.NONE.ordinal()); entityData.define(TOOL_START, 0L);
+        entityData.define(TOOL_STACK, ItemStack.EMPTY); entityData.define(TOOL_LEFT, false);
+        entityData.define(TOOL_BENCH, BlockPos.ZERO); entityData.define(TOOL_TOP, 1.0F); entityData.define(WORKPIECE, ItemStack.EMPTY);
     }
     @Override protected void registerGoals() {
         goalSelector.addGoal(0, new FloatGoal(this));
@@ -143,6 +156,46 @@ public final class RobotEntity extends TamableAnimal {
     public int mode() { return entityData.get(MODE); }
     public boolean following() { return mode() == FOLLOW; }
     public boolean isWorking() { return entityData.get(WORKING); }
+    public ToolWork toolWork() { return toolWork; }
+    public ToolStroke toolStroke() { return ToolStroke.byId(entityData.get(TOOL_STROKE)); }
+    public ItemStack toolStrokeStack() { return entityData.get(TOOL_STACK); }
+    public boolean toolStrokeLeft() { return entityData.get(TOOL_LEFT); }
+    public BlockPos toolBench() { return entityData.get(TOOL_BENCH); }
+    public ItemStack workpiece() { return entityData.get(WORKPIECE); }
+    public float toolBenchTop() { return entityData.get(TOOL_TOP); }
+    public float toolSurfaceHeight() {
+        return workpiece().isEmpty() ? 1 : (float)(toolBench().getY() + toolBenchTop() - getY());
+    }
+    public void showWorkpiece(BlockPos bench, float top, ItemStack stack) {
+        if (level().isClientSide) return;
+        entityData.set(TOOL_BENCH, bench.immutable());
+        entityData.set(TOOL_TOP, top);
+        entityData.set(WORKPIECE, stack.copyWithCount(1));
+    }
+    public float toolStrokeProgress(float partialTick) {
+        int duration = toolStroke().duration();
+        if (duration == 0) return -1;
+        float elapsed = level().getGameTime() - entityData.get(TOOL_START) + partialTick;
+        return elapsed < 0 || elapsed >= duration ? -1 : elapsed / duration;
+    }
+    public void startToolStroke(ToolStroke stroke, ItemStack stack) {
+        startToolStroke(stroke, stack, InteractionHand.MAIN_HAND);
+    }
+    public void startToolStroke(ToolStroke stroke, ItemStack stack, InteractionHand hand) {
+        if (level().isClientSide || stroke == ToolStroke.NONE || stack.isEmpty()) return;
+        entityData.set(WORKPIECE, ItemStack.EMPTY);
+        boolean mainLeft = getMainArm() == HumanoidArm.LEFT;
+        entityData.set(TOOL_LEFT, hand == InteractionHand.MAIN_HAND ? mainLeft : !mainLeft);
+        entityData.set(TOOL_STACK, stack.copyWithCount(1));
+        entityData.set(TOOL_START, level().getGameTime());
+        entityData.set(TOOL_STROKE, stroke.ordinal());
+    }
+    public void clearToolStroke() {
+        if (level().isClientSide || toolStroke() == ToolStroke.NONE) return;
+        entityData.set(TOOL_STROKE, ToolStroke.NONE.ordinal());
+        entityData.set(TOOL_STACK, ItemStack.EMPTY);
+        entityData.set(WORKPIECE, ItemStack.EMPTY);
+    }
     public void setWorking(boolean working) {
         entityData.set(WORKING, working);
         if (working) { activeThisTick = true; clearMovementOrder(); }
@@ -199,7 +252,7 @@ public final class RobotEntity extends TamableAnimal {
     public String movementDimension() { return movementDimension; }
     public net.minecraft.world.entity.ai.navigation.PathNavigation navigation() { return getNavigation(); }
     public boolean movementBusy() {
-        return isWorking() || workTaskActive || collectionTask != null
+        return toolWork.active() || isWorking() || workTaskActive || collectionTask != null
                 || mode() == MINING || mode() == LOGGING || mode() == COOKING || mode() == SMELTING || mode() == FARMING
                 || mode() == BUILDING || mode() == PRODUCTION || mode() == REFITTING
                 // A partial line refit can leave machines, cables, or escrowed materials in an unsafe intermediate state.
@@ -208,6 +261,7 @@ public final class RobotEntity extends TamableAnimal {
     public String pausedCollectionSummary() { return pausedCollectionTask == null ? "" : pausedCollectionTask.summary(); }
     public boolean hasPausedCollectionTask() { return pausedCollectionTask != null; }
     public boolean pauseWorkPreservingTask() {
+        if (!level().isClientSide && toolWork.active()) { toolWork.finish("工具制作已停止。"); return true; }
         if (level().isClientSide || !movementBusy()) return false;
         if (collectionTask != null) { pausedCollectionTask = collectionTask; collectionTask = null; }
         movementIntent = RobotMovementIntent.NONE; movementTarget = null; movementDimension = "";
@@ -633,10 +687,14 @@ public final class RobotEntity extends TamableAnimal {
         if (collectionTask == null && pausedCollectionTask == null) return;
         collectionTask = null; pausedCollectionTask = null; setMode(STAY); workStatus = reason == null || reason.isBlank() ? "指定采集已取消" : reason;
     }
-    public void stay() { stopMovement(); }
+    public void stay() {
+        if (toolWork.active()) toolWork.finish("工具制作已停止。");
+        stopMovement();
+    }
     public void follow() { if (!movementBusy() && powered()) beginMovement(RobotMovementIntent.FOLLOW, level().dimension().location().toString(), null); }
     public void setMode(int mode) {
         if (mode < STAY || mode > REFITTING) return;
+        if (toolWork.active()) toolWork.finish("已切换工作，工具制作结束。");
         if (mode == FOLLOW) {
             movementIntent = RobotMovementIntent.FOLLOW; movementTarget = null;
             movementDimension = level().dimension().location().toString(); getNavigation().stop();
@@ -709,6 +767,8 @@ public final class RobotEntity extends TamableAnimal {
         }
         super.tick();
         if (level().isClientSide || !isAlive()) return;
+        toolWork.tick((ServerLevel)level());
+        if (toolStroke() != ToolStroke.NONE && toolStrokeProgress(0) < 0) clearToolStroke();
         if (buildTask != null && buildTask.projectId() != null)
             com.ic2newera.robot.building.RobotBuildTeams.reconcile(this);
         if (getTarget() != null && !mayAttack(getTarget())) { setTarget(null); getNavigation().stop(); }

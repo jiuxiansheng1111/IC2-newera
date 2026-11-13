@@ -119,6 +119,10 @@ public final class IndustrialMobileAccess {
         if (device.kind() == 1) {
             RobotEntity robot = RobotContacts.resolve(player.server, id);
             if (robot == null || !canReachRobot(player, robot)) return result(false, "机器人连接已失效。");
+            if (command == 17) {
+                String reason = robot.toolWork().begin(player);
+                return result(reason.isEmpty(), reason.isEmpty() ? robot.status() : reason);
+            }
             if (command != 1 && command != 2 && command != 5 && command != 6 && command != 7 && command != 8
                     && command != 13 && command != 14 && command != 15 && command != 16) return result(false, "机器人不支持该远程命令。");
             if (command == 14) return robot.cancelCooking()

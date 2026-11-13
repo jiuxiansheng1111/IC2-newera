@@ -8,6 +8,7 @@ import com.github.ysbbbbbb.kaleidoscopecookery.init.ModRecipes;
 import com.github.ysbbbbbb.kaleidoscopecookery.init.tag.TagMod;
 import com.ic2newera.robot.RobotEntity;
 import com.ic2newera.robot.RobotInventory;
+import com.ic2newera.robot.workshop.ToolStroke;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -282,6 +283,11 @@ final class KaleidoPotCookingAdapter {
         if (completed > goal) { block(robot, "原生翻炒计数超出配方批次；操作锁定"); return null; }
         state = captured.clearInFlight().withCompletedStirs(completed).withPhase(PHASE_FRYING);
         robot.updateCooking(state);
+        // Kaleidoscope exposes shovel use as one immediate right-click. Start the
+        // visual stir only after its serialized pot counter and returned tool
+        // durability prove that the native action succeeded; this motion is
+        // feedback for a completed action, not an input that causes it.
+        robot.startToolStroke(ToolStroke.STIR, toolBefore.copy());
         robot.workStatus("炒锅已核实完成翻炒 " + completed + "/" + goal + " 次；等待原生火候");
         return state;
     }

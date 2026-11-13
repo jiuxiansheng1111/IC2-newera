@@ -53,6 +53,7 @@ public final class RobotScreen extends Screen {
             screen.updateControls();
             if (next.request() == -2) { screen.grant = 0; screen.queued = ""; screen.status = "电量不足 2000 EU，或发送过快；请补电后重试。"; }
             if (next.request() > 0 && screen.grant == next.request()) screen.beginChat();
+            if (next.request() == -3) { screen.voiceStatusFocused = false; screen.status = next.status(); }
         } else if (next.request() == 0) client.setScreen(new RobotScreen(next));
     }
     void updateView(RobotPackets.View next) { view = next; }
@@ -79,6 +80,7 @@ public final class RobotScreen extends Screen {
             status = workChoice.hint; voiceStatusFocused = false;
         });
         tabs.add(RobotControlTabs.Page.WORK, "重置烹饪", "取消当前烹饪计划并按原有规则整理待投原料。", b -> action(11, 0));
+        tabs.add(RobotControlTabs.Page.WORK, "工具制作", "装备工具，把原料放进货物栏，附近放工作台或农夫乐事砧板。按货格顺序选料做一批，完成耗机器人 200 EU。", b -> action(17, 0));
         tabs.add(RobotControlTabs.Page.WORK, "建造与生产线", "描述房屋或生产线，先核对场地和材料方案，再确认逐块施工。", b ->
                 minecraft.setScreen(new RobotBuildScreen(this, view.robot(), RobotCharacter.byId(view.character()).chineseName, false)));
         voiceButton = tabs.add(RobotControlTabs.Page.VOICE, "语音：开", "控制本机所有机器人的回复朗读；关闭会清理本地语音队列。", b -> {

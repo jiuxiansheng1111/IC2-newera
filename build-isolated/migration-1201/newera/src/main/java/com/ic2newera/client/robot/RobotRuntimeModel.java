@@ -3,6 +3,7 @@ package com.ic2newera.client.robot;
 import com.ic2newera.robot.RobotEntity;
 import com.ic2newera.robot.RobotCharacter;
 import com.ic2newera.robot.RobotExpression;
+import com.ic2newera.robot.workshop.ToolStroke;
 import com.ic2newera.client.robot.voice.RobotVoiceClient;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -54,6 +55,7 @@ final class RobotRuntimeModel extends HumanoidModel<RobotEntity> {
         smiling = expression == RobotExpression.SOFT_SMILE || expression == RobotExpression.HAPPY
                 || expression == RobotExpression.WORRIED && RobotModelResources.INSTANCE.hasExpression(entity.character(), expression);
         animation = animationByEntity.computeIfAbsent(entity, ignored -> new RobotAnimationPose());
+        float partialTick = clamp(age - entity.tickCount, 0.0F, 1.0F);
         boolean mainLeft = entity.getMainArm() == HumanoidArm.LEFT;
         animation.update(entity.character().id, limbSwing, limbAmount, age + entity.getId() * 7,
                 netHeadYaw, headPitch, attackTime, entity.mode(), entity.isWorking() && entity.powered(), mainLeft,
@@ -63,7 +65,8 @@ final class RobotRuntimeModel extends HumanoidModel<RobotEntity> {
                 entity.isSprinting(), entity.getPose() == Pose.SWIMMING,
                 entity.isOrderedToSit(), entity.hurtTime, entity.canAnimateEating(),
                 entity.eatingProgress(age - entity.tickCount),
-                entity.eatingArm() == HumanoidArm.LEFT);
+                entity.eatingArm() == HumanoidArm.LEFT,
+                entity.toolStroke(), entity.toolStrokeProgress(partialTick), entity.toolStrokeLeft(), entity.toolSurfaceHeight());
         if (entity.petting()) {
             // A small nod accepts the head pat; the authored face/hair stay rigid.
             animation.rotation[RobotMesh.HEAD_PART][0] += 0.10F + (float) Math.sin(age * 0.35F) * 0.045F;
@@ -227,6 +230,14 @@ final class RobotRuntimeModel extends HumanoidModel<RobotEntity> {
                 part.gripY() - 0.625F * heldScale, part.gripZ() + 0.125F * heldScale);
         stack.scale(RobotModelDimensions.REFERENCE_SCALE,
                 RobotModelDimensions.REFERENCE_SCALE, RobotModelDimensions.REFERENCE_SCALE);
+    }
+
+    /** Origin of the actual hand on the posed mesh, before any item display transform. */
+    void translateToWorkshopGrip(HumanoidArm arm, PoseStack stack) {
+        int index = arm == HumanoidArm.LEFT ? RobotMesh.LEFT_ARM_PART : RobotMesh.RIGHT_ARM_PART;
+        transformPart(stack, index);
+        RobotMesh.Part part = mesh.parts[index];
+        stack.translate(part.gripX(), part.gripY(), part.gripZ());
     }
 
     @Override
