@@ -4,6 +4,8 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 
 ## 数据来源与生成
 
+11 月 14 日的实际握手和主菜单提示分别追到线上进程的旧协议、CMR 注液器教学在生成语言时访问尚未创建的世界。[诊断与安装记录](../../docs/diagnosis-r71-handshake-ponder-2026-11-14.md)。客户端打包选择会生成并按实际 CMR 类签名校准本项目的独立修复 JAR；不向服务端增加模组。
+
 同日启动修复将旧 JEI Optimize 换成与当前 JEI 匹配的 Just Enough Threads 0.14.9（仅客户端）。用已有 Forge 实例时，按 [故障与交付记录](../../docs/delivery-r71-create-startup-and-local-profile-2026-11-13.md) 运行 `install_existing_forge.py`：先生成只读计划，核对后按相同的包与计划散列安装。初次发布时用 `--candidate-sha256` 指定新导出 Windows 包散列；发布完成后默认使用正式清单。运行 `verify_release.py` 前将 `NEWERA_INSTALLED_PROFILE` 指向实际已装好的版本目录。原始输入经过散列校验后缓存在工作目录；离线复核 Forge 版本范围可用 `audit_mods.py --forge-libraries <启动器的libraries目录>`。
 
 1. 准备玩家提供的原始导入包和 r70 服务端 ZIP、Windows MRPack。本机归档在 `W/r70-release`，其他位置可通过 `NEWERA_R70_RELEASE` 指定。运行 `acquire_mods.py --base <原始ZIP> --profile <r70实例>` 获取原清单与原任务，并核对下载字节和锁定散列。

@@ -1,0 +1,2 @@
+Manifest-Version: 1.0
+MixinConfigs: newera_ponder_fix.mixins.json

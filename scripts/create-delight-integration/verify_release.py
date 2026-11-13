@@ -3,6 +3,8 @@ import hashlib
 import io
 import json
 import os
+import tomllib
+import argparse
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
@@ -11,6 +13,7 @@ from merge_quests import read as read_snbt
 from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, UPSTREAM_SELECTOR_KEY_164, TARGET_SRG
 from repair_tacz_lod import PACKS as LOD_PACKS
 from cmm_model_fix import PACK_NAME, MODEL
+from stage_ponder_fix import CMR_ID, CMR_SHA256, load_core as load_ponder_core
 
 
 def exactly(value, expected, label):
@@ -56,13 +59,40 @@ def class_signatures(data):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--artifacts-only", action="store_true",
+                        help="Verify archives against a read-only prior profile; allow only the Ponder fix to remain staged")
+    parser.add_argument("--installed-profile", type=Path,
+                        help="Read-only PCL version directory; defaults to NEWERA_INSTALLED_PROFILE or the recorded profile")
+    args = parser.parse_args()
     selections = read(W / "selection.json")
     hotfix_locks = read(HOTFIX_LOCK)["patches"]
     excluded_overlay_files = {rel for lock in hotfix_locks for rel in lock.get("excludeOverlayFiles", [])}
-    installed = Path(os.environ.get("NEWERA_INSTALLED_PROFILE") or PROFILE).resolve()
+    installed = (args.installed_profile or Path(os.environ.get("NEWERA_INSTALLED_PROFILE") or PROFILE)).resolve()
     client = next(OUT.glob("*Windows.mrpack"))
     server = next(OUT.glob("*Server.zip"))
     byname = {r["name"]: r for r in selections}
+    ponder_rows = [r for r in selections if r.get("primary") == "newera_ponder_fix"]
+    if len(ponder_rows) != 1:
+        raise ValueError(f"Expected exactly one staged first-party Ponder fix, found {len(ponder_rows)}")
+    ponder_row = ponder_rows[0]
+    ponder_source = Path(ponder_row["path"]).resolve()
+    if not ponder_source.is_file() or digest(ponder_source) != ponder_row["sha256"]:
+        raise ValueError("Staged first-party Ponder JAR differs from selection.json")
+    if ponder_row["ids"] != ["newera_ponder_fix"] or ponder_row["name"] != "newera-ponder-fix-1.20.1-1.0.0.jar" or ponder_row["server"]:
+        raise ValueError("First-party Ponder JAR must be the exact client-only release row")
+    ponder_target = installed / "mods" / ponder_row["name"]
+    if ponder_target.is_file():
+        if digest(ponder_target) != ponder_row["sha256"]:
+            raise ValueError("Existing Ponder JAR differs from the staged first-party JAR")
+        staged_only = []
+        ponder_effective = ponder_target
+    else:
+        if not args.artifacts_only:
+            raise FileNotFoundError(f"The installed profile lacks the Ponder fix; use --artifacts-only: {ponder_target}")
+        staged_only = [ponder_row["name"]]
+        ponder_effective = ponder_source
+    core = load_ponder_core()
     with ZipFile(client) as c, ZipFile(server) as s:
         if c.testzip() or s.testzip(): raise ValueError("Damaged compressed payload")
         cn, sn = set(c.namelist()), set(s.namelist())
@@ -78,7 +108,8 @@ def main():
         files.update(n for n in downloads if n.startswith("mods/"))
         exactly(files, {"mods/" + n for n in byname}, "client mods")
         active = {p.name for p in (installed / "mods").glob("*.jar")}
-        exactly(set(byname) - active, set(), "missing installed mods")
+        expected_active = set(byname) - set(staged_only)
+        exactly(expected_active - active, set(), "missing installed mods other than staged Ponder fix")
         for patch in hotfix_locks:
             for old in (patch["replaces"], patch.get("previouslyInstalled", "")):
                 exactly(old in active, False, "obsolete or duplicate JAR: " + old)
@@ -104,13 +135,43 @@ def main():
                 raise ValueError("TaCZ default asset bundle unexpectedly contains recipe definitions")
         for row in selections:
             rel = "mods/" + row["name"]
-            exactly(digest(installed / rel), row["sha256"], "installed " + rel)
+            installed_mod = installed / rel
+            effective_mod = ponder_effective if row["primary"] == "newera_ponder_fix" else installed_mod
+            if row["primary"] != "newera_ponder_fix" and not installed_mod.is_file():
+                raise FileNotFoundError(f"Missing read-only profile mod: {installed_mod}")
+            exactly(digest(effective_mod), row["sha256"],
+                    ("staged " if row["primary"] == "newera_ponder_fix" and staged_only else "profile ") + rel)
             if rel in downloads:
-                exactly(digest(installed / rel, "sha512"), downloads[rel]["hashes"]["sha512"], rel)
+                exactly(digest(effective_mod, "sha512"), downloads[rel]["hashes"]["sha512"], rel)
             else:
                 exactly(hashlib.sha256(c.read("overrides/" + rel)).hexdigest(), row["sha256"], rel)
             if row["server"]:
                 exactly(hashlib.sha256(s.read(prefix + rel)).hexdigest(), row["sha256"], "server " + rel)
+        exactly(len(selections), 404, "client JAR count")
+        exactly(sum(bool(r["server"]) for r in selections), 344, "server JAR count")
+        cmr_rows = [r for r in selections if CMR_ID in r.get("ids", [])]
+        if len(cmr_rows) != 1:
+            raise ValueError(f"Expected exactly one pinned {CMR_ID} mod, found {len(cmr_rows)}")
+        cmr_profile = installed / "mods" / cmr_rows[0]["name"]
+        if not cmr_profile.is_file():
+            raise FileNotFoundError(f"Missing read-only profile CMR JAR: {cmr_profile}")
+        exactly(digest(cmr_profile), CMR_SHA256, "Create More Recipes 1.2.1-fix1 profile SHA-256")
+        ponder_audit = core.audit_pair(ponder_effective, cmr_profile)
+        if not isinstance(ponder_audit, dict) or not ponder_audit:
+            raise ValueError("Ponder/CMR static audit did not return evidence")
+        expected_modlist_entry = {"modId": "newera_ponder_fix", "name": "新纪元：注液器演示修复", "version": "1.0.0"}
+        for modlist_path in ("config/crash_assistant/modlist.json",
+                             "config/modpack_defaults/config/crash_assistant/modlist.json"):
+            packaged = json.loads(c.read("overrides/" + modlist_path))
+            if isinstance(packaged, dict):
+                modlist = packaged.get("mods", packaged)
+                if isinstance(modlist, dict):
+                    entry = modlist.get("newera-ponder-fix-1.20.1-1.0.0.jar")
+                else:
+                    entry = next((v for v in modlist if v.get("file") == "newera-ponder-fix-1.20.1-1.0.0.jar"), None)
+            else:
+                entry = next((v for v in packaged if v.get("file") == "newera-ponder-fix-1.20.1-1.0.0.jar"), None)
+            exactly(entry, expected_modlist_entry, "CrashAssistant Ponder entry " + modlist_path)
         for visual in read(W / "visuals.json"):
             rel = visual["path"]
             for algorithm, expected in downloads[rel]["hashes"].items():
@@ -130,8 +191,15 @@ def main():
                                    "kubejs/server_scripts/", "kubejs/startup_scripts/", "tacz/")) or rel.endswith(
                                        ("greenhouse_builder.sm", "sell_bin.sm", "satellite_navigation_data_card.ui")):
                     expected = file.read_bytes()
-                    if c.read("overrides/" + rel) != expected or s.read(prefix + rel) != expected or (installed / rel).read_bytes() != expected:
-                        raise ValueError("Static game data differ: " + rel)
+                    if c.read("overrides/" + rel) != expected or s.read(prefix + rel) != expected:
+                        raise ValueError("Packaged static game data differ: " + rel)
+                    actual = (installed / rel).read_bytes()
+                    if rel == "tacz/tacz-pre.toml":
+                        # TaCZ rewrites its own comments/line endings on first start.
+                        # Require all of the same effective settings and preserve the live file.
+                        exactly(tomllib.loads(actual.decode("utf-8-sig")), tomllib.loads(expected.decode("utf-8-sig")), rel)
+                    elif actual != expected:
+                        raise ValueError("Installed static game data differ: " + rel)
         for rel in ("server.jar", "start-server.sh", "Start-Server.bat", "eula.txt", "server.properties",
                     "ic2newera-fixed-voice.jar", "LICENSE-Create-Delight-Remake.txt", "SERVER-BUILD-MANIFEST.json"):
             if prefix + rel not in sn: raise ValueError(rel)
@@ -229,24 +297,36 @@ def main():
     artifacts = {f.name: {"bytes": f.stat().st_size, "sha256": digest(f)} for f in (client, server)}
     receipt_path = W / "live-r71" / "dedicated-start.json"
     receipt = read(receipt_path) if receipt_path.is_file() else {}
-    online = (receipt.get("serverZipSha256") == artifacts[server.name]["sha256"]
+    online = (not args.artifacts_only and receipt.get("serverZipSha256") == artifacts[server.name]["sha256"]
               and receipt.get("questKnowledgeSha256") == digest(installed / "config/ic2newera/quest_knowledge.json")
               and receipt.get("ftbChapters") == len(files) and receipt.get("ftbQuests") == len(done)
               and receipt.get("answeredConsoleList") is True and receipt.get("answeredPublicStatus") is True)
     report = {"release": "r71", "minecraft": "1.20.1", "forge": "47.4.28", "clientJars": len(selections),
               "serverJars": sum(r["server"] for r in selections), "allSharedJarHashesMatch": True,
+              "verificationMode": "artifacts-staged" if args.artifacts_only else "installed-profile",
+              "artifactValidated": True,
+              "installationComplete": not args.artifacts_only and not bool(staged_only),
+              "stagedOnlyMods": staged_only,
+              "ponderFixInstalled": not args.artifacts_only and not bool(staged_only), "ponderFixAudit": ponder_audit,
               "chapters": len(files), "handbookQuests": len(done), "newQuests": len(new),
               "verifiedDistinctNewTaskAndRewardItems": len(wanted), "dynamicItems": sorted(pending),
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
               "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
               "runtimeFixes": {"justEnoughThreads": opt["version"], "cmmModelFix": PACK_NAME,
+                               "ponderFix": {"modId": "newera_ponder_fix", "version": "1.0.0",
+                                             "clientOnly": True,
+                                             "installed": not args.artifacts_only and not bool(staged_only)},
                                "megaCellsOeiScopedLookupPackaged": True, "extendedAeOfficialVersion": ae["version"],
                                "extendedAeOfficialJarSha256": ae["sha256"], "fallbackModelCount": lod_count,
                                "jeiVersion": next(r["version"] for r in selections if r["primary"] == "jei")},
               "compatibilityHotfixes": hotfix_rows, "artifacts": artifacts}
-    write(W / "verified-release.json", report)
-    write(OUT / "r71-release-manifest.json", report)
+    if args.artifacts_only:
+        write(W / "verified-release-staged.json", report)
+        write(OUT / "r71-release-manifest.json", report)
+    else:
+        write(W / "verified-release.json", report)
+        write(OUT / "r71-release-manifest.json", report)
     print(json.dumps(report, ensure_ascii=False))
 
 

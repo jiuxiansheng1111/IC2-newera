@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[47.0.0,)"
+license="MIT"
+
+[[mods]]
+modId="newera_ponder_fix"
+version="1.0.0"
+displayName="新纪元：注液器演示修复"
+authors="IC2 New Era"
+displayTest="IGNORE_ALL_VERSION"
+description='''客户端兼容修复：保持 Create More Recipes 的注液器 Ponder 演示在语言生成时可编译。'''
+
+[[dependencies.newera_ponder_fix]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.20.2)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.newera_ponder_fix]]
+modId="forge"
+mandatory=true
+versionRange="[47.4.28,)"
+ordering="NONE"
+side="CLIENT"

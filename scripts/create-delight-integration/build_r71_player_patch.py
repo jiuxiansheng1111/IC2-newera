@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import os
+import shutil
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 from advisory_lock import serialize_r71_release
@@ -20,7 +21,8 @@ INSTRUCTIONS = """机械动力：齿轮盛宴 × IC2：新纪元 r71 玩家更�
 3. 把本压缩包里的 mods、tacz、config、resourcepacks、IC2-NewEra-info 目录合并到版本目录，允许覆盖。
    如已装过其中的新版，只保留每个模组的一份 JAR。
 4. 正常启动。JEI 应显示 15.74.0.234，ExtendedAE Plus 应显示 1.6.4，Just Enough Threads 应显示 0.14.9。如启用了怪物娘化包，可把随附 NewEra-CMM-Model-Fix.zip 在资源包列表里移到该包上方。
-这是手动覆盖包，不用 PCL 导入，也不要上传到服务器。已包含上一轮启动和远景资源修正。
+5. mods 中的 newera-ponder-fix-1.20.1-1.0.0.jar 是客户端专用的 Ponder 兼容修正，只放入客户端，不要放进专用服务器。
+这是手动覆盖包，不用 PCL 导入，也不要上传到服务器。已累积包含此前启动、远景资源和 Ponder 修正。
 """
 
 
@@ -29,12 +31,17 @@ def main():
     receipt = read(OUT / "r71-release-manifest.json")
     if (receipt["runtimeFixes"].get("extendedAeOfficialVersion") != "1.6.4"
             or receipt["runtimeFixes"].get("justEnoughThreads") != "0.14.9"
+            or receipt["runtimeFixes"].get("ponderFix", {}).get("modId") != "newera_ponder_fix"
+            or receipt["runtimeFixes"].get("ponderFix", {}).get("version") != "1.0.0"
             or receipt["forgeDependencyErrors"]):
-        raise ValueError("Verify the matching JEI, optimizer and AE release before publishing the player update")
+        raise ValueError("Verify the matching JEI, optimizer, AE and client-only Ponder fix before publishing the player update")
     by_id = {r["primary"]: r for r in read(W / "selection.json")}
     files = {}
-    for mod_id in ("ic2newera", "jei", "extendedae_plus", "justenoughthreads"):
+    for mod_id in ("ic2newera", "jei", "extendedae_plus", "justenoughthreads", "newera_ponder_fix"):
         r = by_id[mod_id]
+        if mod_id == "newera_ponder_fix" and (r["name"] != "newera-ponder-fix-1.20.1-1.0.0.jar"
+                                                or r["ids"] != ["newera_ponder_fix"] or r["server"]):
+            raise ValueError("The Ponder compatibility JAR must remain an exact client-only artifact")
         src = Path(r["path"])
         if digest(src) != r["sha256"]:
             raise ValueError(f"Source JAR changed: {src.name}")
@@ -60,7 +67,20 @@ def main():
     finally:
         temp.unlink(missing_ok=True)
     sums = [f"{v['sha256']}  {n}" for n, v in receipt["artifacts"].items()]
-    (OUT / "SHA256SUMS.txt").write_text("\n".join(sums + [f"{digest(dest)}  {dest.name}"]) + "\n", encoding="ascii")
+    fix = by_id["newera_ponder_fix"]
+    standalone = OUT / fix["name"]
+    source = Path(fix["path"])
+    if not standalone.is_file() or digest(standalone) != fix["sha256"]:
+        stage = standalone.with_name(standalone.name + f".tmp-{os.getpid()}")
+        try:
+            shutil.copyfile(source, stage)
+            if digest(stage) != fix["sha256"]:
+                raise ValueError("Standalone Ponder JAR changed during publication")
+            os.replace(stage, standalone)
+        finally:
+            stage.unlink(missing_ok=True)
+    (OUT / "SHA256SUMS.txt").write_text("\n".join(sums + [f"{digest(dest)}  {dest.name}",
+                                        f"{fix['sha256']}  {standalone.name}"]) + "\n", encoding="ascii")
     print(dest.name, dest.stat().st_size, digest(dest))
 
 

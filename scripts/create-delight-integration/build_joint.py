@@ -194,6 +194,22 @@ def select(built=None):
         chosen["server"] = any(r["server"] for r in rows)
         picks.append(chosen)
     picks.sort(key=lambda r: r["name"].lower())
+    cmr_rows = [row for row in picks if "cmr" in row["ids"]]
+    if len(cmr_rows) != 1:
+        raise ValueError(f"Expected exactly one selected CMR mod, found {len(cmr_rows)}")
+    from stage_ponder_fix import stage as stage_ponder_fix
+    ponder_path, ponder_audit = stage_ponder_fix(W, Path(cmr_rows[0]["path"]))
+    ponder_metadata = description(ponder_path)
+    ponder_ids = tuple(sorted(mod[0] for mod in ponder_metadata))
+    if ponder_ids != ("newera_ponder_fix",):
+        raise ValueError(f"Unexpected first-party Ponder mod IDs: {ponder_ids}")
+    if any(ponder_ids[0] in row["ids"] for row in picks):
+        raise ValueError("The first-party Ponder fix mod ID is already selected")
+    picks.append(dict(name=ponder_path.name, path=str(ponder_path.resolve()), origin="first-party",
+                      server=False, ids=list(ponder_ids), version=ponder_metadata[0][1], display=ponder_metadata[0][2],
+                      primary="newera_ponder_fix", index=None, sha256=digest(ponder_path),
+                      ponderAudit=ponder_audit))
+    picks.sort(key=lambda r: r["name"].lower())
     write(W / "selection.json", picks)
     write(W / "overlap.json", duplicates)
     print(f"Selected {len(picks)} client / {sum(r['server'] for r in picks)} server; {len(sources) - len(picks)} redundant files")
@@ -204,7 +220,7 @@ def refresh_mod_metadata(picks):
     modlist = OVERLAY / "config/crash_assistant/modlist.json"
     original = read(modlist)
     patched = {p["filename"] for p in read(HOTFIX_LOCK)["patches"]}
-    current = {r["name"]: (original[r["name"]] if r["name"] in original and r["name"] not in patched
+    current = {r["name"]: (original[r["name"]] if r["name"] in original and r["name"] not in patched and r.get("origin") != "first-party"
                            else {"modId": r["primary"], "name": r["display"], "version": r["version"]})
                for r in picks}
     write(modlist, current)

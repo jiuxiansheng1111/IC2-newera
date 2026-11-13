@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ic2newera.ponderfix.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "plugin": "com.ic2newera.ponderfix.PonderConfigPlugin",
+  "client": [
+    "BlockSpoutPonderMarkerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
