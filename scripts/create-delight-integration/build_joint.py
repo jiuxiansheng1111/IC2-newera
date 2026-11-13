@@ -12,7 +12,6 @@ from zipfile import ZipFile, ZIP_DEFLATED, ZIP_STORED
 
 from advisory_lock import serialize_r71_release
 from quest_knowledge import build_catalogue
-from repair_extendedae_refmap import repair_extendedae_refmap, UPSTREAM_FIX_SHA256
 from repair_tacz_lod import repair_installed_tree
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -124,22 +123,12 @@ def select(built=None):
             if mod_ids != (locked["modId"],):
                 raise ValueError(f"Locked Modrinth version has unexpected mod identity: {name}: {mod_ids}")
         index_row = byname.get(name)
-        if name == "extendedae_plus-1.5.5.jar":
-            # The official 1.6.4 target mapping works with 1.5.5. Updating the entire
-            # mod would require a different installed JEI; do not re-download stock 1.5.5 in PCL.
-            reference = W / "r71-three-fixes/vendor/extendedae_plus-1.6.4-forge-1.20.1.jar"
-            if not reference.is_file():
-                from urllib.request import urlopen
-                reference.parent.mkdir(parents=True, exist_ok=True)
-                with urlopen("https://cdn.modrinth.com/data/xr109llC/versions/auasuDQR/extendedae_plus-1.6.4.jar", timeout=45) as response:
-                    payload = response.read()
-                if hashlib.sha256(payload).hexdigest() != UPSTREAM_FIX_SHA256:
-                    raise ValueError("Author reference SHA-256 mismatch")
-                reference.write_bytes(payload)
-            repaired = repair_extendedae_refmap(path, reference, W / "r71-three-fixes/ae" / name)
-            if repaired.output_sha256 != "e66afb708b3266ed762d7b55b05cd6c01251a081d02829b3dbc28f0a6515821b":
-                raise ValueError("Unexpected r71 ExtendedAE Plus refmap output")
-            path, index_row = repaired.output_jar, None
+        if locked and locked.get("useOfficialDownloadInMrpack"):
+            if (description(path)[0][1] != locked["version"] or digest(path, "sha1") != locked["sha1"]
+                    or digest(path) != locked["sha256"]):
+                raise ValueError(f"Published version/hash mismatch: {name}")
+            index_row = {"path": "mods/" + name, "hashes": {k: locked[k] for k in ("sha1", "sha512")},
+                         "downloads": [locked["source"]["downloadUrl"]], "fileSize": locked["fileSize"]}
         sources.append((name, path, "delight", name in both, index_row))
     for name in sorted(raw.keys() | rfiles.keys()):
         path = PROFILE / "mods" / name
@@ -161,6 +150,7 @@ def select(built=None):
                                                ids=list(ids), version=desc[0][1], display=desc[0][2], primary=desc[0][0],
                                                index=index, sha256=digest(path)))
     prefer_r70 = {"ic2newera", "farmersdelight", "ae2", "jei", "immersive_aircraft", "xaerominimap", "yes_steve_model", "imblocker"}
+    prefer_r70.difference_update(p["modId"] for p in patches if p.get("preferOverLegacy"))
     picks, duplicates, known = [], [], set()
     for ids, rows in groups.items():
         if "irisflw" in ids and any("colorwheel" in identity for identity in groups):
@@ -181,6 +171,25 @@ def select(built=None):
     write(W / "overlap.json", duplicates)
     print(f"Selected {len(picks)} client / {sum(r['server'] for r in picks)} server; {len(sources) - len(picks)} redundant files")
     return picks
+
+
+def refresh_mod_metadata(picks):
+    modlist = OVERLAY / "config/crash_assistant/modlist.json"
+    original = read(modlist)
+    patched = {p["filename"] for p in read(HOTFIX_LOCK)["patches"]}
+    current = {r["name"]: (original[r["name"]] if r["name"] in original and r["name"] not in patched
+                           else {"modId": r["primary"], "name": r["display"], "version": r["version"]})
+               for r in picks}
+    write(modlist, current)
+    write(OVERLAY / "config/modpack_defaults/config/crash_assistant/modlist.json", current)
+    notices = OVERLAY / "IC2-NewEra-info/THIRD-PARTY-NOTICES.txt"
+    raw = notices.read_bytes()
+    originals = [line for line in raw.splitlines() if line.startswith(b"- JEI ")]
+    if len(originals) != 1:
+        raise ValueError("Expected one JEI entry in third-party notices")
+    official = next(p for p in read(HOTFIX_LOCK)["patches"] if p["modId"] == "jei")
+    line = f"- JEI {official['version']} — https://modrinth.com/mod/jei/version/{official['versionId']}"
+    notices.write_bytes(raw.replace(originals[0], line.encode("utf-8")))
 
 
 def overlay(picks):
@@ -272,16 +281,7 @@ def overlay(picks):
                     packs.extend(["file/CMMRP_Release_1.0_[1.20-1.20.1].zip", "file/CMM_FIX_EMF_v.1_[1.20-1.20.1].zip"])
                     lines[i] = "resourcePacks:" + json.dumps(list(dict.fromkeys(packs)), separators=(",", ":"))
             path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    modlist = OVERLAY / "config/crash_assistant/modlist.json"
-    original = read(modlist)
-    current = {r["name"]: original.get(r["name"], {"modId": r["primary"], "name": r["display"], "version": r["version"]})
-               for r in picks}
-    for patch in read(HOTFIX_LOCK)["patches"]:
-        current[patch["filename"]] = {"modId": patch["modId"],
-                                      "name": next(r["display"] for r in picks if r["name"] == patch["filename"]),
-                                      "version": next(r["version"] for r in picks if r["name"] == patch["filename"])}
-    write(modlist, current)
-    write(OVERLAY / "config/modpack_defaults/config/crash_assistant/modlist.json", current)
+    refresh_mod_metadata(picks)
     assets = PROFILE.parents[1] / "assets"
     index = read(PROFILE / (PROFILE.name + ".json"))["assetIndex"]["id"]
     zh = read(assets / "indexes" / (index + ".json"))["objects"]["minecraft/lang/zh_cn.json"]["hash"]

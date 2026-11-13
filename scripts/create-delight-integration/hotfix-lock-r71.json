@@ -5,6 +5,38 @@
   "preserveLocalOverlayFiles": ["PCL/Setup.ini"],
   "patches": [
     {
+      "versionId": "6E4ps2ER",
+      "version": "15.74.0.234",
+      "source": { "service": "Modrinth", "projectId": "u6dRKJwZ", "projectSlug": "jei", "fileId": "ZI2DZOC0", "downloadUrl": "https://cdn.modrinth.com/data/u6dRKJwZ/versions/6E4ps2ER/jei-1.20.1-forge-15.74.0.234.jar" },
+      "filename": "jei-1.20.1-forge-15.74.0.234.jar",
+      "modId": "jei",
+      "fileSize": 4805946,
+      "sha1": "1ae408badfe8b57417f465a06fc4d03215dba993",
+      "sha256": "0bbd27c886b974be6906fe16f5e5e3ace8a87350b32e4361cca0213df1e7e86e",
+      "sha512": "ea5f2b8bfe602e33fb8ac82633ccb1d0214cdf27f124d0c395bf8d2a2e691df758948930e64d23171ab919e2542b9d96b16b06b7e42936489fba6240d4363424",
+      "replaces": "jei-1.20.1-forge-15.20.0.134.jar",
+      "previouslyInstalled": "jei-1201-15.56.0.205.jar",
+      "preferOverLegacy": true,
+      "useOfficialDownloadInMrpack": true,
+      "client": true,
+      "server": true
+    },
+    {
+      "versionId": "auasuDQR",
+      "version": "1.6.4",
+      "source": { "service": "Modrinth", "projectId": "xr109llC", "projectSlug": "extendedae-plus", "fileId": "qQAk5BYB", "downloadUrl": "https://cdn.modrinth.com/data/xr109llC/versions/auasuDQR/extendedae_plus-1.6.4.jar" },
+      "filename": "extendedae_plus-1.6.4.jar",
+      "modId": "extendedae_plus",
+      "fileSize": 2525364,
+      "sha1": "11daea36fd718959e0e2f66f64054aa4e90677ef",
+      "sha256": "d917d5c7ed095ce974a1b8135f1ebfd0dff65bb1e67b2504567afad03ec8d2ae",
+      "sha512": "2958329946f45512f0f0b4a5a4da41d63968d992b14b80475506463c3106022ea2c665ccf39652a46a75f6b50e3e605da638f19f2620dbdf832f919104051d41",
+      "replaces": "extendedae_plus-1.5.5.jar",
+      "useOfficialDownloadInMrpack": true,
+      "client": true,
+      "server": true
+    },
+    {
       "versionId": "QGCbNkTy",
       "source": { "service": "Modrinth", "projectId": "SzzJttH8", "fileId": "ME7LTsh4", "downloadUrl": "https://cdn.modrinth.com/data/SzzJttH8/versions/QGCbNkTy/tacz-forge-1.20.1-1.2.0.jar" },
       "filename": "tacz-forge-1.20.1-1.2.0.jar",

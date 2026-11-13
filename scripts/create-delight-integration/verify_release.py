@@ -7,7 +7,7 @@ from zipfile import ZipFile
 
 from build_joint import HOTFIX_LOCK, NAME, OUT, PROFILE, W, digest, read, write
 from merge_quests import read as read_snbt
-from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, SELECTOR_KEY_155, TARGET_SRG
+from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, UPSTREAM_SELECTOR_KEY_164, TARGET_SRG
 from repair_tacz_lod import PACKS as LOD_PACKS
 
 
@@ -118,13 +118,22 @@ def main():
     deps = read(W / "deps.json")["summary"]
     exactly(deps["issues"]["error"], 0, "dependency errors")
     hotfix_rows = []
-    ae = byname["extendedae_plus-1.5.5.jar"]
-    exactly(ae["index"], None, "PCL must embed the repaired AE2 addon")
-    exactly(ae["sha256"], "e66afb708b3266ed762d7b55b05cd6c01251a081d02829b3dbc28f0a6515821b", "AE2 refmap fix")
+    pair = {p["modId"]: p for p in hotfix_locks if p.get("useOfficialDownloadInMrpack")}
+    for mod_id in ("jei", "extendedae_plus"):
+        pinned = pair[mod_id]
+        selected = byname[pinned["filename"]]
+        rel = "mods/" + pinned["filename"]
+        exactly(selected["version"], pinned["version"], mod_id + " version")
+        exactly(downloads[rel]["downloads"], [pinned["source"]["downloadUrl"]], mod_id + " official download")
+        exactly(downloads[rel]["hashes"], {h: pinned[h] for h in ("sha1", "sha512")}, mod_id + " PCL hashes")
+        exactly("overrides/" + rel in cn, False, mod_id + " must not also be embedded")
+        for old_name in {pinned["replaces"], pinned.get("previouslyInstalled", pinned["replaces"])}:
+            exactly("mods/" + old_name in files, False, "superseded " + old_name)
+    ae = byname[pair["extendedae_plus"]["filename"]]
     with ZipFile(installed / "mods" / ae["name"]) as lib:
         mapping = json.loads(lib.read(REFMAP_NAME))
         for table in [mapping["mappings"], mapping["data"]["named:intermediary"]]:
-            exactly(table[MIXIN_CLASS_NAME][SELECTOR_KEY_155], TARGET_SRG, "AE2 CPU status mapping")
+            exactly(table[MIXIN_CLASS_NAME][UPSTREAM_SELECTOR_KEY_164], TARGET_SRG, "AE2 CPU status mapping")
     mod = next(r for r in selections if r["primary"] == "ic2newera")
     cfg = "ic2newera.bulk-compat.mixins.json"
     with ZipFile(installed / "mods" / mod["name"]) as lib:
@@ -171,8 +180,8 @@ def main():
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
               "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
-              "runtimeFixes": {"megaCellsOeiScopedLookupPackaged": True, "extendedAeOriginalVersion": ae["version"],
-                               "extendedAePatchedJarSha256": ae["sha256"], "fallbackModelCount": lod_count,
+              "runtimeFixes": {"megaCellsOeiScopedLookupPackaged": True, "extendedAeOfficialVersion": ae["version"],
+                               "extendedAeOfficialJarSha256": ae["sha256"], "fallbackModelCount": lod_count,
                                "jeiVersion": next(r["version"] for r in selections if r["primary"] == "jei")},
               "compatibilityHotfixes": hotfix_rows, "artifacts": artifacts}
     write(W / "verified-release.json", report)

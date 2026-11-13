@@ -31,4 +31,4 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 
 本次交付的任务数、检索示例与实机验收范围见 [r71 交付记录](../../docs/delivery-r71-delight-quests-2026-11-13.md)。
 
-2026-11-13 夜间的 r71 修订保留现有 JEI。构建新纪元后运行 `build_joint.py select`，会从已锁定的 ExtendedAE Plus 1.5.5 生成修正版，并将其直接放入玩家包，防止 PCL 再下载未修正版。1.6.4 仅作为上游映射的参考输入。生成 overlay 时会校验原始两个 TaCZ 外部包，只修正指向不存在远景文件的 display 定义。已有实例和两端发布包的实际替换范围见[交付记录](../../docs/delivery-r71-runtime-fixes-2026-11-13.md)。
+夜间第一轮 r71 更新为 MEGA/OEI 配方扫描和两份 TaCZ 外观包提供修正；保留的 1.5.5 refmap 工具仅用于复现[历史交付](../../docs/delivery-r71-runtime-fixes-2026-11-13.md)。当前使用作者发布的 JEI 15.74.0.234 和 ExtendedAE Plus 1.6.4。运行 `build_joint.py select` 会按来源和散列选择新版 JEI，优先于旧 r70 实例的 JEI；PCL 从作者 CDN 获取这两个文件。按既有流程导出和安装后，`verify_release.py` 核对两端与下载清单，`build_r71_player_patch.py` 输出适合已有 r71 的累计覆盖包和校验文件。[当前版本记录](../../docs/delivery-r71-jei-extendedae-2026-11-13.md)
