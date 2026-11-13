@@ -1,5 +1,6 @@
 """Compare the distributed and installed bytes, quest references, and source item data."""
 import hashlib
+import io
 import json
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
@@ -41,6 +42,21 @@ def main():
         for rel in excluded_overlay_files:
             if "overrides/" + rel in cn or prefix + rel in sn or (installed / rel).exists():
                 raise ValueError("Locked incompatible override remains in release or installed instance: " + rel)
+        gunpack_rel = "tacz/tacz_default_gun.zip"
+        gunpack_source = W / "compat-work/tacz-overlay-1200/overrides" / gunpack_rel
+        gunpack_bytes = gunpack_source.read_bytes()
+        exactly(hashlib.sha256(c.read("overrides/" + gunpack_rel)).hexdigest(), digest(gunpack_source),
+                "client TaCZ default asset bundle")
+        exactly(hashlib.sha256(s.read(prefix + gunpack_rel)).hexdigest(), digest(gunpack_source),
+                "server TaCZ default asset bundle")
+        with ZipFile(io.BytesIO(gunpack_bytes)) as gunpack:
+            if gunpack.testzip(): raise ValueError("TaCZ default asset bundle failed CRC verification")
+            gun_ids = {PurePosixPath(n).stem for n in gunpack.namelist()
+                       if n.startswith("data/tacz/index/guns/") and n.endswith(".json")}
+            exactly(len(gun_ids), 70, "TaCZ default asset bundle index count")
+            exactly({"ai_awp", "mk18"} <= gun_ids, True, "required TaCZ fieldwork entries")
+            if any(n.startswith("data/tacz/recipes/") for n in gunpack.namelist()):
+                raise ValueError("TaCZ default asset bundle unexpectedly contains recipe definitions")
         for row in selections:
             rel = "mods/" + row["name"]
             exactly(digest(installed / rel), row["sha256"], "installed " + rel)
@@ -110,8 +126,10 @@ def main():
         exactly(selected["ids"], [lock["modId"]], "hotfix mod ID " + lock["filename"])
         exactly(bool(selected["server"]), bool(lock["server"]), "hotfix server classification " + lock["filename"])
         exactly(True, bool(lock["client"]), "hotfix client classification " + lock["filename"])
-        hotfix_rows.append({"filename": lock["filename"], "modrinthVersionId": lock["versionId"],
-                            "sha256": selected["sha256"], "sha512": lock["sha512"],
+        hotfix_rows.append({"filename": lock["filename"], "modrinthVersionId": lock.get("versionId"),
+                            "source": lock.get("source", {"service": "Modrinth"}),
+                            "sha256": selected["sha256"], "sha512": lock.get("sha512"),
+                            "sha1": lock.get("sha1"), "fileSize": lock["fileSize"],
                             "replaces": lock["replaces"], "client": lock["client"], "server": lock["server"],
                             "excludeOverlayFiles": lock.get("excludeOverlayFiles", [])})
     artifacts = {f.name: {"bytes": f.stat().st_size, "sha256": digest(f)} for f in (client, server)}

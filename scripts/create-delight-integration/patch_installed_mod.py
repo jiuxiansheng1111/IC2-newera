@@ -54,9 +54,17 @@ def main():
     if not source.is_file():
         raise FileNotFoundError(f"Selected replacement JAR is missing: {source}")
     new_ids = sorted(x[0] for x in description(source))
-    # First verify the whole isolated installation against its recorded bytes.
+    lock = read(HOTFIX_LOCK)
+    preserve_local = set(lock.get("preserveLocalOverlayFiles", []))
+    local_preserved = {}
+    # Launcher-owned settings may be edited after installation; keep their
+    # bytes and fold the observed digest into the refreshed installation receipt.
     for row in receipt["installedFiles"]:
         path = dest / Path(row["path"])
+        if row.get("kind") == "pack-file" and row["path"] in preserve_local:
+            actual = digest(path) if path.is_file() else None
+            local_preserved[row["path"]] = actual
+            continue
         if not path.is_file() or digest(path) != row["sha256"]:
             raise ValueError(f"Installation differs from receipt; no changes made: {row['path']}")
     old_rows = []
@@ -79,9 +87,12 @@ def main():
     overlay = work / "client-overlay"
     old_overlay_rows = {r["path"]: r for r in receipt["installedFiles"] if r.get("kind") == "pack-file"}
     overlay_sources = {p.relative_to(overlay).as_posix(): p for p in overlay.rglob("*") if p.is_file()}
-    exclusions = {rel for patch in read(HOTFIX_LOCK)["patches"] for rel in patch.get("excludeOverlayFiles", [])}
+    for rel in local_preserved:
+        overlay_sources.pop(rel, None)
+    exclusions = {rel for patch in lock["patches"] for rel in patch.get("excludeOverlayFiles", [])}
     overlay_removed = exclusions & set(old_overlay_rows)
-    if set(old_overlay_rows) - exclusions != set(overlay_sources) or exclusions & set(overlay_sources):
+    preserved_paths = set(local_preserved)
+    if set(old_overlay_rows) - exclusions - preserved_paths != set(overlay_sources) or exclusions & set(overlay_sources):
         raise ValueError("Overlay file set changed; targeted updater only accepts byte replacements")
     overlay_changes = {rel for rel, src in overlay_sources.items()
                        if digest(src) != old_overlay_rows[rel]["sha256"]}
@@ -93,19 +104,26 @@ def main():
     fingerprint_data["selection"].remove(old_entry)
     fingerprint_data["selection"].append([target_rel, new_hash, bool(selected["server"])])
     fingerprint_data["selection"].sort()
-    fingerprint_data["overlay"] = sorted((rel, digest(src)) for rel, src in overlay_sources.items())
+    fingerprint_overlay = [(rel, digest(src)) for rel, src in overlay_sources.items()]
+    fingerprint_overlay.extend((rel, value) for rel, value in local_preserved.items() if value is not None)
+    fingerprint_data["overlay"] = sorted(fingerprint_overlay)
     new_receipt = json.loads(json.dumps(receipt))
     new_receipt["inputFingerprintData"] = fingerprint_data
     new_receipt["inputFingerprint"] = canonical_fingerprint(fingerprint_data)
     new_receipt["installedFiles"] = [r for r in new_receipt["installedFiles"]
                                       if not (r.get("path") == old_rel and r.get("kind") == "mod")
-                                      and not (r.get("kind") == "pack-file" and r.get("path") in overlay_removed)]
+                                      and not (r.get("kind") == "pack-file" and r.get("path") in overlay_removed)
+                                      and not (r.get("kind") == "pack-file" and r.get("path") in local_preserved
+                                               and local_preserved[r.get("path")] is None)]
     new_receipt["installedFiles"].append({"path": target_rel, "sha256": new_hash, "kind": "mod",
                                            "server": bool(selected["server"])})
     for row in new_receipt["installedFiles"]:
         if row.get("kind") == "pack-file":
-            row["sha256"] = digest(overlay_sources[row["path"]])
-    backup_dir = work / "deployment-history" / "r71-mod-hotfix"
+            if row["path"] in local_preserved:
+                row["sha256"] = local_preserved[row["path"]]
+            else:
+                row["sha256"] = digest(overlay_sources[row["path"]])
+    backup_dir = work / "deployment-history" / "r71-mod-hotfix" / "tacz12"
     backup_dir.mkdir(parents=True, exist_ok=True)
     backup = backup_dir / (Path(old_rel).name + ".pre-hotfix.bak")
     if mod_changed and backup.exists():
@@ -120,6 +138,11 @@ def main():
         raise FileExistsError("Instance receipt changed during patch preparation; no files were changed")
     for row in receipt["installedFiles"]:
         path = dest / Path(row["path"])
+        if row.get("kind") == "pack-file" and row["path"] in local_preserved:
+            actual = digest(path) if path.is_file() else None
+            if actual != local_preserved[row["path"]]:
+                raise FileExistsError(f"Preserved local setting changed during preparation: {row['path']}")
+            continue
         if not path.is_file() or digest(path) != row["sha256"]:
             raise FileExistsError(f"Instance changed during patch preparation; no files were changed: {row['path']}")
     if mod_changed:

@@ -2,7 +2,57 @@
   "schema": 1,
   "service": "Modrinth",
   "versionApi": "https://api.modrinth.com/v2/version/{versionId}",
+  "preserveLocalOverlayFiles": ["PCL/Setup.ini"],
   "patches": [
+    {
+      "versionId": "QGCbNkTy",
+      "source": { "service": "Modrinth", "projectId": "SzzJttH8", "fileId": "ME7LTsh4", "downloadUrl": "https://cdn.modrinth.com/data/SzzJttH8/versions/QGCbNkTy/tacz-forge-1.20.1-1.2.0.jar" },
+      "filename": "tacz-forge-1.20.1-1.2.0.jar",
+      "modId": "tacz",
+      "sha256": "1c2f2915f76908d396a0da577665c977564c279ccb89d459a00a29225aa45a92",
+      "sha512": "7784dd103fbaa5d26a6130ae6a716a1909f93c126fd226193b21dec38f8c345b0044e9e392a1aa6737e468a346b7e95dc38a3e76f22ecaf37cef438ae57874c1",
+      "fileSize": 69001578,
+      "replaces": "tacz-1.20.1-1.1.8-hotfix.jar",
+      "client": true,
+      "server": true,
+      "excludeOverlayFiles": [
+        "hotai/com/tacz/guns/init/ModCreativeTabs.badiff"
+      ]
+    },
+    {
+      "versionId": "ObdwJQ6q",
+      "source": { "service": "Modrinth", "projectId": "3Ihyt5WL", "fileId": "5it0KJSV", "downloadUrl": "https://cdn.modrinth.com/data/3Ihyt5WL/versions/ObdwJQ6q/taczaddon-1.2.0-forge-1.20.1.jar" },
+      "filename": "taczaddon-1.2.0-forge-1.20.1.jar",
+      "modId": "taczaddon",
+      "sha256": "18f08410e46e9c31c1043240a22c86cca08243a0ea60220ea3759f0c58a3c180",
+      "sha512": "0d16f17b056f9a539e25932744db4c02e793610189bfafe38bbac2b3417f10c8d86090ce04c1e9bbf409a0e7c44e46eaa2397ebb98e1b4f3ef2d110206381b64",
+      "fileSize": 522309,
+      "replaces": "taczaddon.jar",
+      "client": true,
+      "server": true,
+      "excludeOverlayFiles": [
+        "hotai/com/mafuyu404/taczaddon/compat/ShoulderSurfingCompatInner.badiff"
+      ]
+    },
+    {
+      "source": {
+        "service": "CurseForge",
+        "projectId": 1130998,
+        "fileId": 9503464,
+        "metadataApi": "https://www.curseforge.com/api/v1/mods/1130998/files/9503464",
+        "downloadApi": "https://www.curseforge.com/api/v1/mods/1130998/files/9503464/download",
+        "releasePage": "https://www.curseforge.com/minecraft/mc-mods/tacz-js/files/9503464"
+      },
+      "filename": "taczjs-forge-1.5.0-mc1.20.1.jar",
+      "modId": "taczjs",
+      "sha1": "385f01752eff4818796e152dce31649b456deb9c",
+      "sha256": "1b94cc4357fcd6f281992b0ff24bbc935541c607323af830e2b6bab4a7ae8f0a",
+      "sha512": "11f70e08859df13e684e42a7d6303d65066abff8d354aae28ff535d64a10504d5062e05f02c161a3d9736e7d3a5e7ae0d4c9190de1eed5eaebea81d2cfe7abf0",
+      "fileSize": 99609,
+      "replaces": "taczjs-forge-1.4.2+mc1.20.1.jar",
+      "client": true,
+      "server": true
+    },
     {
       "versionId": "eTAXn3Y2",
       "filename": "supermartijn642corelib-1.1.25a-forge-mc1.20.1.jar",

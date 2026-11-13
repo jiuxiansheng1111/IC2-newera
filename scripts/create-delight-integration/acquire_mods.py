@@ -38,19 +38,41 @@ def digest(path,alg):
 def acquire_locked_hotfix(patch,api_template):
     name=patch['filename'];target=stage/name
     def checked(path):
-        return path.is_file() and path.stat().st_size==patch['fileSize'] and digest(path,'sha512')==patch['sha512'].lower()
+        return (path.is_file() and path.stat().st_size==patch['fileSize']
+                and all(digest(path,alg)==patch[key].lower() for alg,key in
+                        (('sha512','sha512'),('sha1','sha1'),('sha256','sha256')) if key in patch))
+    source=patch.get('source',{})
+    headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'application/json'}
+    if source.get('service')=='CurseForge':
+        req=Request(source['metadataApi'],headers=headers)
+        with closing(urlopen(req,timeout=30)) as resp: metadata=json.load(resp).get('data',{})
+        if (metadata.get('id')!=source['fileId'] or metadata.get('projectId')!=source['projectId']
+                or metadata.get('fileLength')!=patch['fileSize'] or metadata.get('fileName')!=name
+                or not {'1.20.1','Forge','Client','Server'}.issubset(set(metadata.get('gameVersions',[])))):
+            raise ValueError('CurseForge published metadata differs from release lock: '+name)
+        url=source['downloadApi']
+    else:
+        api_url=api_template.format(versionId=patch['versionId'])
+        req=Request(api_url,headers=headers)
+        with closing(urlopen(req,timeout=30)) as resp:version=json.load(resp)
+        if version.get('id')!=patch['versionId']:raise ValueError('Modrinth version ID mismatch: '+name)
+        files=[row for row in version.get('files',[]) if row.get('filename')==name]
+        if len(files)!=1:raise ValueError('Locked filename is not unique in Modrinth version: '+name)
+        published=files[0]
+        if (published.get('size')!=patch['fileSize'] or
+                published.get('hashes',{}).get('sha512','').lower()!=patch['sha512'].lower()):
+            raise ValueError('Modrinth published size/SHA-512 differs from release lock: '+name)
+        if source.get('fileId') and published.get('id')!=source['fileId']:
+            raise ValueError('Modrinth published file ID differs from release lock: '+name)
+        if source.get('downloadUrl') and published.get('url')!=source['downloadUrl']:
+            raise ValueError('Modrinth published download URL differs from release lock: '+name)
+        if source.get('service')=='Modrinth' and (version.get('project_id')!=source.get('projectId')
+                or '1.20.1' not in version.get('game_versions',[]) or 'forge' not in version.get('loaders',[])):
+            raise ValueError('Modrinth project or Forge target differs from release lock: '+name)
+        url=published['url']
     if checked(target):return target
-    api_url=api_template.format(versionId=patch['versionId'])
-    req=Request(api_url,headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'application/json'})
-    with closing(urlopen(req,timeout=30)) as resp:version=json.load(resp)
-    if version.get('id')!=patch['versionId']:raise ValueError('Modrinth version ID mismatch: '+name)
-    files=[row for row in version.get('files',[]) if row.get('filename')==name]
-    if len(files)!=1:raise ValueError('Locked filename is not unique in Modrinth version: '+name)
-    published=files[0]
-    if published.get('size')!=patch['fileSize'] or published.get('hashes',{}).get('sha512','').lower()!=patch['sha512'].lower():
-        raise ValueError('Modrinth published size/SHA-512 differs from release lock: '+name)
     part=target.with_name(target.name+'.partial')
-    req=Request(published['url'],headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'*/*'})
+    req=Request(url,headers={'User-Agent':'NewEra-Modpack-Installer/1.0','Accept':'*/*'})
     with closing(urlopen(req,timeout=45)) as resp,part.open('wb') as out:
         count=0
         while chunk:=resp.read(256*1024):
@@ -59,7 +81,7 @@ def acquire_locked_hotfix(patch,api_template):
             out.write(chunk)
     if not checked(part):
         part.unlink(missing_ok=True)
-        raise ValueError('Downloaded hotfix failed locked size/SHA-512: '+name)
+        raise ValueError('Downloaded hotfix failed locked size/digests: '+name)
     part.replace(target)
     return target
 index=json.loads((work/'reference-index.json').read_text('utf-8'))
@@ -116,13 +138,18 @@ with ThreadPoolExecutor(max_workers=12) as pool:
 hotfix_lock=json.loads((Path(__file__).with_name('hotfix-lock-r71.json')).read_text('utf-8-sig'))
 if hotfix_lock.get('schema')!=1:raise ValueError('Unsupported r71 hotfix lock schema')
 for patch in hotfix_lock['patches']:
-    if patch['replaces'] not in results and patch['filename'] not in results:
+    if (patch['replaces'] not in results and patch['replaces'] not in embedded
+            and patch['filename'] not in results and not (stage/patch['filename']).is_file()):
         raise ValueError('Base acquisition does not contain the superseded mod: '+patch['replaces'])
     acquire_locked_hotfix(patch,hotfix_lock['versionApi'])
     results.pop(patch['replaces'],None)
+    embedded.pop(patch['replaces'],None)
     results[patch['filename']]='verified-stage'
 record={'manifest':len(rows),'embedded':embedded,'rows':results,
-        'lockedHotfixes':[{'versionId':p['versionId'],'filename':p['filename'],'sha512':p['sha512']} for p in hotfix_lock['patches']]}
+        'lockedHotfixes':[{'versionId':p.get('versionId'),'source':p.get('source'),
+                           'filename':p['filename'],'sha1':p.get('sha1'),
+                           'sha256':p.get('sha256'),'sha512':p.get('sha512')}
+                          for p in hotfix_lock['patches']]}
 record_path=work/'acquisition.json';record_temp=record_path.with_name(record_path.name+f'.tmp-{os.getpid()}')
 record_temp.write_text(json.dumps(record,ensure_ascii=False,indent=2),encoding='utf-8')
 os.replace(record_temp,record_path)

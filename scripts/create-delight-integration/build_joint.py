@@ -18,13 +18,16 @@ M = ROOT / "build-isolated/migration-1201/newera"
 W = ROOT / "build-isolated/player-packaging/20261113-delight-joint"
 HOTFIX_LOCK = Path(__file__).with_name("hotfix-lock-r71.json")
 BASE = W / "quests-work/base.mrpack"
-R70 = ROOT / "dist/IC2-New-Era-r70"
+R70 = Path(os.environ.get("NEWERA_R70_RELEASE") or (
+    ROOT / "W/r70-release" if (ROOT / "W/r70-release").is_dir() else ROOT / "dist/IC2-New-Era-r70"
+))
 PROFILE = Path(os.environ.get("NEWERA_R70_PROFILE") or json.loads((M / "build/deployment/pcl-installation-1201.json").read_text("utf-8-sig"))["versionDirectory"])
 CLIENT = next(R70.glob("*Windows*.mrpack"))
 SERVER = next(R70.glob("*Server*.zip"))
 OVERLAY = W / "client-overlay"
 OUT = ROOT / "dist/Create-Delight-New-Era-r71"
 NAME = "Create-Delight-New-Era-r71"
+R71_TASK_SNAPSHOT = ROOT / "build-isolated/.r71-tacz12-pre-overlay"
 
 
 def read(path):
@@ -100,7 +103,9 @@ def select(built=None):
                      if name not in superseded and name not in patched_names}
     for patch in patches:
         acquired_rows[patch["filename"]] = "verified-stage"
-    for name, value in {**acquired_rows, **dict.fromkeys(acquisition["embedded"], "verified-stage")}.items():
+    embedded_rows = {name: "verified-stage" for name in acquisition["embedded"]
+                     if name not in superseded and name not in patched_names}
+    for name, value in {**acquired_rows, **embedded_rows}.items():
         path = W / "incoming-mods" / name if value in ("download", "verified-stage") else Path(value)
         if not (name in both or name in client_only):
             raise ValueError(f"Unclassified server file {name}")
@@ -155,6 +160,20 @@ def select(built=None):
 
 
 def overlay(picks):
+    backup = ROOT / "build-isolated/.r71-tacz12-pre-overlay"
+    if OVERLAY.is_dir() and not backup.exists():
+        backup.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(OVERLAY, backup)
+    previous_overlay = W / "client-overlay.pre-rebuild"
+    if previous_overlay.exists():
+        if not previous_overlay.resolve().is_relative_to(W.resolve()): raise ValueError(previous_overlay)
+        try:
+            shutil.rmtree(previous_overlay)
+        except OSError:
+            previous_overlay = W / f"client-overlay.pre-rebuild-{os.getpid()}"
+    if OVERLAY.exists():
+        if not OVERLAY.resolve().is_relative_to(W.resolve()): raise ValueError(OVERLAY)
+        os.replace(OVERLAY, previous_overlay)
     OVERLAY.mkdir(parents=True, exist_ok=True)
     locked_exclusions = {rel for patch in read(HOTFIX_LOCK)["patches"]
                          for rel in patch.get("excludeOverlayFiles", [])}
@@ -180,6 +199,11 @@ def overlay(picks):
     for rel in locked_exclusions:
         target = safe(OVERLAY, rel)
         if target.exists(): target.unlink()
+    canonical_emc = R71_TASK_SNAPSHOT / "config/ProjectE/custom_emc.json"
+    if canonical_emc.is_file():
+        emc_dest = OVERLAY / "config/ProjectE/custom_emc.json"
+        emc_dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(canonical_emc, emc_dest)
     quests = OVERLAY / "config/ftbquests/quests"
     # The base export contained generated YSM 2.6.5 models and multiplayer
     # caches. Let the selected 2.6.3 JAR provide its own built-ins on first run.
@@ -195,8 +219,12 @@ def overlay(picks):
     if not all((machines / "assets/mbd2/machine" / name).is_file() for name in ("greenhouse_builder.sm", "sell_bin.sm")):
         raise FileNotFoundError("Recover the matching upstream LDLib machine definitions before packaging")
     shutil.copytree(machines, OVERLAY / "ldlib", dirs_exist_ok=True)
-    shutil.copytree(W / "quests-work/merged", quests, dirs_exist_ok=True, ignore=shutil.ignore_patterns("merge_report.json"))
-    shutil.copytree(W / "compat-work/tacz-overlay/overrides", OVERLAY, dirs_exist_ok=True)
+    canonical_quests = R71_TASK_SNAPSHOT / "config/ftbquests/quests"
+    canonical_index = R71_TASK_SNAPSHOT / "config/ic2newera/quest_knowledge.json"
+    use_snapshot = canonical_quests.is_dir() and canonical_index.is_file()
+    quest_source = canonical_quests if use_snapshot else W / "quests-work/merged"
+    shutil.copytree(quest_source, quests, dirs_exist_ok=True, ignore=shutil.ignore_patterns("merge_report.json"))
+    shutil.copytree(W / "compat-work/tacz-overlay-1200/overrides", OVERLAY, dirs_exist_ok=True)
     for rel in ("PCL/Setup.ini", "PCL/config.json", "config/oculus.properties", "options.txt"):
         path = OVERLAY / rel
         original = path.read_bytes()
@@ -223,17 +251,31 @@ def overlay(picks):
     original = read(modlist)
     current = {r["name"]: original.get(r["name"], {"modId": r["primary"], "name": r["display"], "version": r["version"]})
                for r in picks}
+    for patch in read(HOTFIX_LOCK)["patches"]:
+        current[patch["filename"]] = {"modId": patch["modId"],
+                                      "name": next(r["display"] for r in picks if r["name"] == patch["filename"]),
+                                      "version": next(r["version"] for r in picks if r["name"] == patch["filename"])}
     write(modlist, current)
     write(OVERLAY / "config/modpack_defaults/config/crash_assistant/modlist.json", current)
     assets = PROFILE.parents[1] / "assets"
     index = read(PROFILE / (PROFILE.name + ".json"))["assetIndex"]["id"]
     zh = read(assets / "indexes" / (index + ".json"))["objects"]["minecraft/lang/zh_cn.json"]["hash"]
     zh_file = assets / "objects" / zh[:2] / zh
+    final_index = OVERLAY / "config/ic2newera/quest_knowledge.json"
+    final_index.parent.mkdir(parents=True, exist_ok=True)
+    generated_index = W / "compat-work/generated-quest-index-preview.json" if use_snapshot else final_index
     data = build_catalogue(quests, [Path(r["path"]) for r in picks], PROFILE / (PROFILE.name + ".jar"),
                            [zh_file, *list((OVERLAY / "kubejs/assets").glob("*/lang/zh_cn.json"))],
-                           OVERLAY / "config/ic2newera/quest_knowledge.json")
+                           generated_index)
     if data != {"chapters": 61, "quests": 2676, "own": 167}: raise ValueError(data)
+    if use_snapshot:
+        shutil.copy2(canonical_index, final_index)
     print(data)
+    if previous_overlay.exists():
+        try:
+            shutil.rmtree(previous_overlay)
+        except OSError:
+            pass
 
 
 def export(picks):

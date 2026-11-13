@@ -4,7 +4,7 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 
 ## 数据来源与生成
 
-1. 将 r70 的服务端 ZIP 和 Windows MRPack 放在 `dist/IC2-New-Era-r70`，准备玩家提供的原始导入包。运行 `acquire_mods.py --base <原始ZIP> --profile <r70实例>` 获取原清单与原任务，逐文件核对下载的 SHA-1、SHA-512 及长度。
+1. 准备玩家提供的原始导入包和 r70 服务端 ZIP、Windows MRPack。本机归档在 `W/r70-release`，其他位置可通过 `NEWERA_R70_RELEASE` 指定。运行 `acquire_mods.py --base <原始ZIP> --profile <r70实例>` 获取原清单与原任务，并核对下载字节和锁定散列。
 2. 构建新纪元 Forge 发布 JAR。运行 `build_joint.py select --built <新纪元发布JAR>` 生成两端去重清单。默认工作目录为 `build-isolated/player-packaging/20261113-delight-joint`。
 3. 运行 `merge_quests.py --base-quests <工作目录>/quests-work/base-extracted --newera-quests scripts/field-guide/config/ftbquests/quests --output <工作目录>/quests-work/merged`。原章节、奖励表和既有进度 ID 沿用底包与 r70。新增任务来自 `merge_quests.py`、`extra_chapters.py` 与 `extra_routes_b.py`。各任务写明持有检测或实际交货，匠魂交货通过注册物品匹配不同合法材料组合。
 4. 用原始包、r70 两端文件与已获取模组运行 `tacz_compat.py`。从作者仓库获取带历史的源码后，运行 `repair_ldlib.py --work <工作目录> --upstream <齿轮盛宴Git仓库>` 恢复 PCL 导出漏掉的机器定义及其随附资源。脚本将附件内的 MBD2 脚本与上游历史逐个核对。[作者仓库](https://github.com/Jasons-impart/Create-Delight-Remake)
@@ -14,7 +14,7 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 
 ## 对已验收 r71 的兼容性补丁
 
-`hotfix-lock-r71.json` 是两项兼容补丁的共享版本锁，记录 Modrinth version ID、目标文件名、SHA-512、字节数、端侧、被替换文件名，以及唯一的旧 Hotai 覆盖排除项。`acquire_mods.py` 读取原始齿轮盛宴包并从 Modrinth 版本 API 获取锁定版本；同时验证 API 返回的散列元数据和下载字节的 SHA-512。已缓存且散列匹配的文件可离线复用。`build_joint.py select` 直接将锁定项叠加到底包选择和端侧分类中；`overlay` 按锁中路径排除旧补丁。流程不要求手动改 `acquisition.json`、`reference-index.json` 或 `server-sides.json`，这些原始输入始终保留为底包记录。既有工作目录兼容：`select` 会忽略旧文件名、验证并选用锁定文件，旧文件名或已更新的工作目录分类均可识别。
+`hotfix-lock-r71.json` 锁定 SuperMartijn642 核心库、食物品质、TaCZ 1.2.0、TaCZ addon 1.2.0 和 TaCZ JS 1.5.0。锁中记录发布平台的文件标识、目标文件名、SHA-512、字节数、端侧、被替换文件和需排除的旧 Hotai 补丁。TaCZ JS 来自 CurseForge 文件 9503464，其余锁定构件来自 Modrinth。获取工具核对发布元数据和实际下载字节，已缓存且散列匹配的文件可离线复用。选择步骤依据模组 ID 和版本锁去重，生成游戏目录时排除旧补丁。
 
 1. 运行 `acquire_mods.py --base <原始包ZIP> --profile <r70实例>`，再运行 `build_joint.py select --built <r71新纪元JAR>` 和 `audit_mods.py`。
 2. 运行 `build_joint.py overlay` 和 `build_joint.py export`。

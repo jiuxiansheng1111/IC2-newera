@@ -2,7 +2,7 @@
 
 ## 联合包的装备工位
 
-齿轮盛宴联合包使用 TaCZ 1.1.8 与 Create Armorer。在游戏的 TaCZ 工位，6 个 IC2 高级电路、3 个 Create 精密构件、2 个 IC2 碳板可兑换“起重机”工坊装备（`create_armorer:rifle_assult_crane`）。AI AWP 的游戏配料为 8 个高级电路、4 个精密构件、3 个碳板。原 r70 独立包使用另一个版本，型号不同。
+齿轮盛宴联合包使用 TaCZ 1.2.0 与 Create Armorer。联合包沿用选定的 Create Armorer 型号：TaCZ 工位中“起重机”工坊装备的型号 ID 为 `create_armorer:rifle_assult_crane`，配方仍为 6 个 IC2 高级电路、3 个 Create 精密构件、2 个 IC2 碳板；AI AWP 的型号 ID 为 `tacz:ai_awp`，游戏配料仍为 8 个高级电路、4 个精密构件、3 个碳板。TaCZ 1.2.0 的枪械索引、工位配方格式和枪械物品 NBT 接口已逐项核对；两种装备与原有任务和工艺保持一致。
 
 游戏的 Create 装配线也能产出这两种型号。FTB 验收读取物品内的型号信息。其他外观相同的物品不能代替。
 
