@@ -1,0 +1,9 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.ic2newera.bulkcompat.mixin",
+  "plugin": "com.ic2newera.compat.BulkReplacementMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": ["MegaCellsReplacementLookupScopeMixin", "OneEnoughItemSourceLookupCacheMixin"],
+  "injectors": { "defaultRequire": 1 }
+}

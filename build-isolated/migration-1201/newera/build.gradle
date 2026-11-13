@@ -171,7 +171,7 @@ jar {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.version,
                 'Implementation-Vendor'   : 'IC2: New Era',
-                'MixinConfigs'            : 'ic2newera.mixins.json'
+                'MixinConfigs'            : 'ic2newera.mixins.json,ic2newera.bulk-compat.mixins.json'
         ])
     }
     finalizedBy 'reobfJar'

@@ -30,3 +30,5 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 `server-sides.json` 固定本次附件的两端分类。`server-config-policy.json` 定义玩法配置与客户端专用文件的处理。专用服需要 KubeJS 的启动和服务端脚本、数据包、MBD2 机器定义、服务器加载的卫星导航界面以及两端同一份任务知识。家庭实例的存档与账户数据不属于发布包。
 
 本次交付的任务数、检索示例与实机验收范围见 [r71 交付记录](../../docs/delivery-r71-delight-quests-2026-11-13.md)。
+
+2026-11-13 夜间的 r71 修订保留现有 JEI。构建新纪元后运行 `build_joint.py select`，会从已锁定的 ExtendedAE Plus 1.5.5 生成修正版，并将其直接放入玩家包，防止 PCL 再下载未修正版。1.6.4 仅作为上游映射的参考输入。生成 overlay 时会校验原始两个 TaCZ 外部包，只修正指向不存在远景文件的 display 定义。已有实例和两端发布包的实际替换范围见[交付记录](../../docs/delivery-r71-runtime-fixes-2026-11-13.md)。

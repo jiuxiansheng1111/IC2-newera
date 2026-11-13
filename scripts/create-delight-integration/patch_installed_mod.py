@@ -123,7 +123,8 @@ def main():
                 row["sha256"] = local_preserved[row["path"]]
             else:
                 row["sha256"] = digest(overlay_sources[row["path"]])
-    backup_dir = work / "deployment-history" / "r71-mod-hotfix" / "tacz12"
+    backup_dir = (work / "deployment-history" / "r71-mod-hotfix" /
+                  f"{selected['primary']}-{receipt['inputFingerprint'][:12]}-{new_receipt['inputFingerprint'][:12]}")
     backup_dir.mkdir(parents=True, exist_ok=True)
     backup = backup_dir / (Path(old_rel).name + ".pre-hotfix.bak")
     if mod_changed and backup.exists():

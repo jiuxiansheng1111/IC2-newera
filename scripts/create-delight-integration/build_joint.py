@@ -12,6 +12,8 @@ from zipfile import ZipFile, ZIP_DEFLATED, ZIP_STORED
 
 from advisory_lock import serialize_r71_release
 from quest_knowledge import build_catalogue
+from repair_extendedae_refmap import repair_extendedae_refmap, UPSTREAM_FIX_SHA256
+from repair_tacz_lod import repair_installed_tree
 
 ROOT = Path(__file__).resolve().parents[2]
 M = ROOT / "build-isolated/migration-1201/newera"
@@ -68,6 +70,11 @@ def description(path):
 
 
 def select(built=None):
+    if built is None:
+        built = M / "build/libs/ic2newera-0.2.0-migration1201-all.jar"
+    with ZipFile(built) as newera:
+        if "ic2newera.bulk-compat.mixins.json" not in newera.namelist():
+            raise ValueError("Build the r71 startup fix before selecting the release JARs")
     acquisition = read(W / "acquisition.json")
     source_side = read(Path(__file__).with_name("server-sides.json"))["sideClassification"]
     both = set(source_side["baseServerFiles"] + source_side["upstreamOverrideAddedFiles"])
@@ -116,7 +123,24 @@ def select(built=None):
             mod_ids = tuple(sorted(m[0] for m in description(path)))
             if mod_ids != (locked["modId"],):
                 raise ValueError(f"Locked Modrinth version has unexpected mod identity: {name}: {mod_ids}")
-        sources.append((name, path, "delight", name in both, byname.get(name)))
+        index_row = byname.get(name)
+        if name == "extendedae_plus-1.5.5.jar":
+            # The official 1.6.4 target mapping works with 1.5.5. Updating the entire
+            # mod would require a different installed JEI; do not re-download stock 1.5.5 in PCL.
+            reference = W / "r71-three-fixes/vendor/extendedae_plus-1.6.4-forge-1.20.1.jar"
+            if not reference.is_file():
+                from urllib.request import urlopen
+                reference.parent.mkdir(parents=True, exist_ok=True)
+                with urlopen("https://cdn.modrinth.com/data/xr109llC/versions/auasuDQR/extendedae_plus-1.6.4.jar", timeout=45) as response:
+                    payload = response.read()
+                if hashlib.sha256(payload).hexdigest() != UPSTREAM_FIX_SHA256:
+                    raise ValueError("Author reference SHA-256 mismatch")
+                reference.write_bytes(payload)
+            repaired = repair_extendedae_refmap(path, reference, W / "r71-three-fixes/ae" / name)
+            if repaired.output_sha256 != "e66afb708b3266ed762d7b55b05cd6c01251a081d02829b3dbc28f0a6515821b":
+                raise ValueError("Unexpected r71 ExtendedAE Plus refmap output")
+            path, index_row = repaired.output_jar, None
+        sources.append((name, path, "delight", name in both, index_row))
     for name in sorted(raw.keys() | rfiles.keys()):
         path = PROFILE / "mods" / name
         if name not in raw:
@@ -225,6 +249,7 @@ def overlay(picks):
     quest_source = canonical_quests if use_snapshot else W / "quests-work/merged"
     shutil.copytree(quest_source, quests, dirs_exist_ok=True, ignore=shutil.ignore_patterns("merge_report.json"))
     shutil.copytree(W / "compat-work/tacz-overlay-1200/overrides", OVERLAY, dirs_exist_ok=True)
+    repair_installed_tree(OVERLAY / "tacz")
     for rel in ("PCL/Setup.ini", "PCL/config.json", "config/oculus.properties", "options.txt"):
         path = OVERLAY / rel
         original = path.read_bytes()

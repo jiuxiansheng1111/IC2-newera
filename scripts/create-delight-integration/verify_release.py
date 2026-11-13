@@ -7,6 +7,8 @@ from zipfile import ZipFile
 
 from build_joint import HOTFIX_LOCK, NAME, OUT, PROFILE, W, digest, read, write
 from merge_quests import read as read_snbt
+from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, SELECTOR_KEY_155, TARGET_SRG
+from repair_tacz_lod import PACKS as LOD_PACKS
 
 
 def exactly(value, expected, label):
@@ -116,6 +118,29 @@ def main():
     deps = read(W / "deps.json")["summary"]
     exactly(deps["issues"]["error"], 0, "dependency errors")
     hotfix_rows = []
+    ae = byname["extendedae_plus-1.5.5.jar"]
+    exactly(ae["index"], None, "PCL must embed the repaired AE2 addon")
+    exactly(ae["sha256"], "e66afb708b3266ed762d7b55b05cd6c01251a081d02829b3dbc28f0a6515821b", "AE2 refmap fix")
+    with ZipFile(installed / "mods" / ae["name"]) as lib:
+        mapping = json.loads(lib.read(REFMAP_NAME))
+        for table in [mapping["mappings"], mapping["data"]["named:intermediary"]]:
+            exactly(table[MIXIN_CLASS_NAME][SELECTOR_KEY_155], TARGET_SRG, "AE2 CPU status mapping")
+    mod = next(r for r in selections if r["primary"] == "ic2newera")
+    cfg = "ic2newera.bulk-compat.mixins.json"
+    with ZipFile(installed / "mods" / mod["name"]) as lib:
+        attrs = lib.read("META-INF/MANIFEST.MF").decode().replace("\r\n ", "")
+        configs = next(line.split(": ", 1)[1] for line in attrs.splitlines() if line.startswith("MixinConfigs: ")).split(",")
+        exactly(cfg in configs, True, "active MEGA/OEI compatibility config")
+        mc = json.loads(lib.read(cfg))
+        for name in [mc["plugin"], *(mc["package"] + "." + v for v in mc["mixins"])]:
+            exactly(name.replace(".", "/") + ".class" in lib.namelist(), True, "included " + name)
+    lod_count = 0
+    for name, pack in LOD_PACKS.items():
+        with ZipFile(installed / "tacz" / name) as gz:
+            for model in pack["expected_broken"]:
+                doc = json.loads(gz.read(f"assets/{pack['namespace']}/display/guns/{model}_display.json"))
+                exactly("lod" in doc, False, "broken distant resource: " + model)
+                lod_count += 1
     for lock in hotfix_locks:
         selected = byname.get(lock["filename"])
         if not selected:
@@ -146,6 +171,9 @@ def main():
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
               "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
+              "runtimeFixes": {"megaCellsOeiScopedLookupPackaged": True, "extendedAeOriginalVersion": ae["version"],
+                               "extendedAePatchedJarSha256": ae["sha256"], "fallbackModelCount": lod_count,
+                               "jeiVersion": next(r["version"] for r in selections if r["primary"] == "jei")},
               "compatibilityHotfixes": hotfix_rows, "artifacts": artifacts}
     write(W / "verified-release.json", report)
     write(OUT / "r71-release-manifest.json", report)
