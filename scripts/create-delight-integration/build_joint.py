@@ -13,6 +13,7 @@ from zipfile import ZipFile, ZIP_DEFLATED, ZIP_STORED
 from advisory_lock import serialize_r71_release
 from quest_knowledge import build_catalogue
 from repair_tacz_lod import repair_installed_tree
+import cmm_model_fix
 
 ROOT = Path(__file__).resolve().parents[2]
 M = ROOT / "build-isolated/migration-1201/newera"
@@ -29,6 +30,30 @@ OVERLAY = W / "client-overlay"
 OUT = ROOT / "dist/Create-Delight-New-Era-r71"
 NAME = "Create-Delight-New-Era-r71"
 R71_TASK_SNAPSHOT = ROOT / "build-isolated/.r71-tacz12-pre-overlay"
+
+
+def frozen_source(candidate, name, algorithm, expected, embedded=None):
+    """Keep original locked inputs independent of the player's upgradable Forge directory."""
+    if not re.fullmatch(r"[0-9a-f]+", expected) or Path(name).name != name:
+        raise ValueError("Invalid locked package key")
+    cached = W / "locked-source-cache" / expected[:20] / name
+    if cached.is_file() and digest(cached, algorithm) == expected:
+        return cached
+    if cached.exists():
+        raise ValueError(f"Corrupt locked input cache: {name}")
+    cached.parent.mkdir(parents=True, exist_ok=True)
+    if embedded is not None and hashlib.new(algorithm, embedded).hexdigest() == expected:
+        raw = embedded
+    else:
+        if not candidate.is_file() or digest(candidate, algorithm) != expected:
+            raise ValueError(f"Locked input is missing from cache and original source: {name}")
+        raw = candidate.read_bytes()
+    if hashlib.new(algorithm, raw).hexdigest() != expected:
+        raise ValueError(f"Locked input changed during staging: {name}")
+    temp = cached.with_suffix(".part")
+    temp.write_bytes(raw)
+    os.replace(temp, cached)
+    return cached
 
 
 def read(path):
@@ -113,6 +138,9 @@ def select(built=None):
                      if name not in superseded and name not in patched_names}
     for name, value in {**acquired_rows, **embedded_rows}.items():
         path = W / "incoming-mods" / name if value in ("download", "verified-stage") else Path(value)
+        if path.parent == PROFILE / "mods":
+            row = byname[name]
+            path = frozen_source(path, name, "sha512", row["hashes"]["sha512"])
         if not (name in both or name in client_only):
             raise ValueError(f"Unclassified server file {name}")
         locked = next((p for p in patches if p["filename"] == name), None)
@@ -134,10 +162,9 @@ def select(built=None):
         path = PROFILE / "mods" / name
         if name not in raw:
             row = rfiles[name]
-            if digest(path, "sha512") != row["hashes"]["sha512"]:
-                raise ValueError(f"Local r70 file diverges from its locked install {name}")
-        elif hashlib.sha256(raw[name]).hexdigest() != digest(path):
-            raise ValueError(f"Local custom file diverges from its locked r70 archive {name}")
+            path = frozen_source(path, name, "sha512", row["hashes"]["sha512"])
+        else:
+            path = frozen_source(path, name, "sha256", hashlib.sha256(raw[name]).hexdigest(), raw[name])
         if built and name.startswith("ic2newera-"):
             path = built
         sources.append((name, path, "newera", name in old_server, None if name in raw else rfiles[name]))
@@ -282,6 +309,7 @@ def overlay(picks):
                     lines[i] = "resourcePacks:" + json.dumps(list(dict.fromkeys(packs)), separators=(",", ":"))
             path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     refresh_mod_metadata(picks)
+    cmm_model_fix.stage(OVERLAY, read(W / "visuals.json"))
     assets = PROFILE.parents[1] / "assets"
     index = read(PROFILE / (PROFILE.name + ".json"))["assetIndex"]["id"]
     zh = read(assets / "indexes" / (index + ".json"))["objects"]["minecraft/lang/zh_cn.json"]["hash"]

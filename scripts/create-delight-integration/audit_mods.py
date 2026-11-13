@@ -411,6 +411,7 @@ def audit_plan(
     report_path: Path,
     minecraft: str = "1.20.1",
     forge: str = "47.4.28",
+    forge_libraries: Path | None = None,
 ) -> dict[str, Any]:
     global _MAVEN_CHECKER
     plan_path, report_path = Path(plan_path), Path(report_path)
@@ -459,6 +460,8 @@ def audit_plan(
         _scan_jar(path.read_bytes(), origin, row, mods, libraries, issues)
 
     library_roots = [Path.home() / ".gradle" / "caches" / "modules-2" / "files-2.1"]
+    if forge_libraries is not None:
+        library_roots.append(forge_libraries.resolve(strict=True))
     for row in normalized_rows:
         path = Path(row["path"])
         for ancestor in path.parents:
@@ -675,9 +678,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report", required=True, type=Path, help="Write JSON audit report here")
     parser.add_argument("--minecraft", default="1.20.1", help="Minecraft version if not in plan")
     parser.add_argument("--forge", default="47.4.28", help="Forge version if not in plan")
+    parser.add_argument("--forge-libraries", type=Path, help="Launcher's libraries directory when inputs are in the verified source cache")
     args = parser.parse_args(argv)
     try:
-        report = audit_plan(args.plan, args.report, minecraft=args.minecraft, forge=args.forge)
+        report = audit_plan(args.plan, args.report, minecraft=args.minecraft, forge=args.forge, forge_libraries=args.forge_libraries)
     except Exception as exc:
         print(f"audit_mods: {exc}", file=sys.stderr)
         return 2

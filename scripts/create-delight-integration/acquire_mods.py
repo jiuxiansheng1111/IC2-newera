@@ -48,7 +48,7 @@ def acquire_locked_hotfix(patch,api_template):
         with closing(urlopen(req,timeout=30)) as resp: metadata=json.load(resp).get('data',{})
         if (metadata.get('id')!=source['fileId'] or metadata.get('projectId')!=source['projectId']
                 or metadata.get('fileLength')!=patch['fileSize'] or metadata.get('fileName')!=name
-                or not {'1.20.1','Forge','Client','Server'}.issubset(set(metadata.get('gameVersions',[])))):
+                or not ({'1.20.1','Forge','Client'} | ({'Server'} if patch['server'] else set())).issubset(set(metadata.get('gameVersions',[])))):
             raise ValueError('CurseForge published metadata differs from release lock: '+name)
         url=source['downloadApi']
     else:

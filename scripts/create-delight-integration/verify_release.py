@@ -2,6 +2,7 @@
 import hashlib
 import io
 import json
+import os
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
@@ -9,6 +10,7 @@ from build_joint import HOTFIX_LOCK, NAME, OUT, PROFILE, W, digest, read, write
 from merge_quests import read as read_snbt
 from repair_extendedae_refmap import REFMAP_NAME, MIXIN_CLASS_NAME, UPSTREAM_SELECTOR_KEY_164, TARGET_SRG
 from repair_tacz_lod import PACKS as LOD_PACKS
+from cmm_model_fix import PACK_NAME, MODEL
 
 
 def exactly(value, expected, label):
@@ -16,11 +18,48 @@ def exactly(value, expected, label):
         raise ValueError(f"{label}: {value!r} != {expected!r}")
 
 
+def class_signatures(data):
+    """Read class methods with erased JVM descriptors, without launching Minecraft or loading a class."""
+    pos, pool = 8, [None]
+    def num(size):
+        nonlocal pos
+        value = int.from_bytes(data[pos:pos+size], "big")
+        pos += size
+        return value
+    count = num(2)
+    while len(pool) < count:
+        tag = num(1)
+        if tag == 1:
+            length = num(2)
+            pool.append(data[pos:pos+length].decode("utf-8", errors="replace"))
+            pos += length
+        else:
+            pos += {3:4, 4:4, 5:8, 6:8, 7:2, 8:2, 9:4, 10:4, 11:4, 12:4,
+                    15:3, 16:2, 17:4, 18:4, 19:2, 20:2}[tag]
+            pool.extend([None] * (2 if tag in (5,6) else 1))
+    pos += 6
+    interfaces = num(2)
+    pos += interfaces * 2
+    def members():
+        nonlocal pos
+        found = set()
+        for i in range(num(2)):
+            num(2)
+            found.add((pool[num(2)], pool[num(2)]))
+            for _ in range(num(2)):
+                num(2)
+                length = num(4)
+                pos += length
+        return found
+    members()
+    return members()
+
+
 def main():
     selections = read(W / "selection.json")
     hotfix_locks = read(HOTFIX_LOCK)["patches"]
     excluded_overlay_files = {rel for lock in hotfix_locks for rel in lock.get("excludeOverlayFiles", [])}
-    installed = PROFILE.parent / NAME
+    installed = Path(os.environ.get("NEWERA_INSTALLED_PROFILE") or PROFILE).resolve()
     client = next(OUT.glob("*Windows.mrpack"))
     server = next(OUT.glob("*Server.zip"))
     byname = {r["name"]: r for r in selections}
@@ -38,7 +77,11 @@ def main():
         files = {n.removeprefix("overrides/") for n in cn if n.startswith("overrides/mods/")}
         files.update(n for n in downloads if n.startswith("mods/"))
         exactly(files, {"mods/" + n for n in byname}, "client mods")
-        exactly({p.name for p in (installed / "mods").glob("*.jar")}, set(byname), "installed mods")
+        active = {p.name for p in (installed / "mods").glob("*.jar")}
+        exactly(set(byname) - active, set(), "missing installed mods")
+        for patch in hotfix_locks:
+            for old in (patch["replaces"], patch.get("previouslyInstalled", "")):
+                exactly(old in active, False, "obsolete or duplicate JAR: " + old)
         exactly({n.removeprefix(prefix + "mods/") for n in sn if n.startswith(prefix + "mods/")},
                 {r["name"] for r in selections if r["server"]}, "server mods")
         for rel in excluded_overlay_files:
@@ -72,6 +115,10 @@ def main():
             rel = visual["path"]
             for algorithm, expected in downloads[rel]["hashes"].items():
                 exactly(digest(installed / rel, algorithm), expected, rel)
+        fix_path = "resourcepacks/" + PACK_NAME
+        exactly(c.read("overrides/" + fix_path), (installed / fix_path).read_bytes(), "CMM client model fix")
+        with ZipFile(installed / fix_path) as asset:
+            exactly(set(json.loads(asset.read(MODEL))["display"].keys()), {"thirdperson_righthand", "thirdperson_lefthand"}, MODEL)
         for n in sn:
             rel = n.removeprefix(prefix)
             if rel.startswith(("world/", "saves/", "resourcepacks/", "shaderpacks/", "PCL/", "kubejs/client_scripts/")):
@@ -106,7 +153,7 @@ def main():
     exactly(len(new), 120, "new task count")
     wanted = {entry["item"] for q in new for entry in q["tasks"] + q["rewards"] if isinstance(entry.get("item"), str)}
     pending = set(wanted)
-    for f in [installed / (NAME + ".jar"), *sorted((installed / "mods").glob("*.jar"))]:
+    for f in [installed / (installed.name + ".jar"), *sorted((installed / "mods").glob("*.jar"))]:
         with ZipFile(f) as jar:
             keys = set(jar.namelist())
             for item in pending.copy():
@@ -119,7 +166,7 @@ def main():
     exactly(deps["issues"]["error"], 0, "dependency errors")
     hotfix_rows = []
     pair = {p["modId"]: p for p in hotfix_locks if p.get("useOfficialDownloadInMrpack")}
-    for mod_id in ("jei", "extendedae_plus"):
+    for mod_id in ("jei", "extendedae_plus", "justenoughthreads"):
         pinned = pair[mod_id]
         selected = byname[pinned["filename"]]
         rel = "mods/" + pinned["filename"]
@@ -134,6 +181,19 @@ def main():
         mapping = json.loads(lib.read(REFMAP_NAME))
         for table in [mapping["mappings"], mapping["data"]["named:intermediary"]]:
             exactly(table[MIXIN_CLASS_NAME][UPSTREAM_SELECTOR_KEY_164], TARGET_SRG, "AE2 CPU status mapping")
+    opt = byname[pair["justenoughthreads"]["filename"]]
+    exactly(opt["server"], False, "JEI optimizer is client-only")
+    with ZipFile(installed / "mods" / opt["name"]) as addon, ZipFile(installed / "mods" / pair["jei"]["filename"]) as jei:
+        cfg = json.loads(addon.read("justenoughthreads.mixins.json"))
+        exactly(cfg["plugin"], "com.tonywww.jeioptimize.JeiOptMixinPlugin", "guarded JEI optimizations")
+        exactly(cfg["injectors"]["defaultRequire"], 0, "optional JEI hooks")
+        exactly("IngredientFilterDirectSearchMixin" in cfg.get("mixins", []) + cfg.get("client", []), True, "current JEI search implementation")
+        direct = addon.read("com/tonywww/jeioptimize/mixin/IngredientFilterDirectSearchMixin.class")
+        targets = class_signatures(jei.read("mezz/jei/gui/ingredients/IngredientFilter.class"))
+        exactly(any((n + desc).encode() in direct for n, desc in targets if n == "<init>"), True,
+                "JEI search constructor matches the optimizer selector in this actual JAR")
+        brewing = class_signatures(jei.read("mezz/jei/forge/platform/RecipeHelper.class"))
+        exactly(any(n == "getBrewingRecipes" for n, _ in brewing), False, "legacy brewing hook is unavailable")
     mod = next(r for r in selections if r["primary"] == "ic2newera")
     cfg = "ic2newera.bulk-compat.mixins.json"
     with ZipFile(installed / "mods" / mod["name"]) as lib:
@@ -180,7 +240,8 @@ def main():
               "aiQuestCount": index["count"], "aiSha256": digest(installed / "config/ic2newera/quest_knowledge.json"),
               "forgeDependencyErrors": 0, "forgeMetadataWarnings": deps["issues"]["warning"],
               "minecraftOrDedicatedServerStarted": online, "clientJoinVerified": False,
-              "runtimeFixes": {"megaCellsOeiScopedLookupPackaged": True, "extendedAeOfficialVersion": ae["version"],
+              "runtimeFixes": {"justEnoughThreads": opt["version"], "cmmModelFix": PACK_NAME,
+                               "megaCellsOeiScopedLookupPackaged": True, "extendedAeOfficialVersion": ae["version"],
                                "extendedAeOfficialJarSha256": ae["sha256"], "fallbackModelCount": lod_count,
                                "jeiVersion": next(r["version"] for r in selections if r["primary"] == "jei")},
               "compatibilityHotfixes": hotfix_rows, "artifacts": artifacts}

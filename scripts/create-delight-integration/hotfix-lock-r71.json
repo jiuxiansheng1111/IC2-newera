@@ -5,6 +5,27 @@
   "preserveLocalOverlayFiles": ["PCL/Setup.ini"],
   "patches": [
     {
+      "version": "0.14.9",
+      "source": {
+        "service": "CurseForge", "projectId": 1605658, "fileId": 9568167,
+        "metadataApi": "https://www.curseforge.com/api/v1/mods/1605658/files/9568167",
+        "downloadApi": "https://www.curseforge.com/api/v1/mods/1605658/files/9568167/download",
+        "downloadUrl": "https://mediafilez.forgecdn.net/files/9568/167/justenoughthreads-0.14.9-1.20.1.jar",
+        "releasePage": "https://www.curseforge.com/minecraft/mc-mods/just-enough-threads/files/9568167"
+      },
+      "filename": "justenoughthreads-0.14.9-1.20.1.jar",
+      "modId": "justenoughthreads",
+      "replacesModId": "jei_optimize",
+      "fileSize": 474892,
+      "sha1": "bede0864b1fe4986acfa208601cb191fa18b6894",
+      "sha256": "3a04fcaae3c686b50e784d42cc8d3edfbbc9d26821af6dbcd49a359a6b381885",
+      "sha512": "5663522f1c96c2768384a991f69a0056757541021e68d51c10e7a20d26dc2ff74d250ff7052cb5abe0188a4e974650933a79c4e5ab81e5a58f6f92648aa0708a",
+      "replaces": "jei_optimize-forge-0.5.0+1.20.1.jar",
+      "useOfficialDownloadInMrpack": true,
+      "client": true,
+      "server": false
+    },
+    {
       "versionId": "6E4ps2ER",
       "version": "15.74.0.234",
       "source": { "service": "Modrinth", "projectId": "u6dRKJwZ", "projectSlug": "jei", "fileId": "ZI2DZOC0", "downloadUrl": "https://cdn.modrinth.com/data/u6dRKJwZ/versions/6E4ps2ER/jei-1.20.1-forge-15.74.0.234.jar" },

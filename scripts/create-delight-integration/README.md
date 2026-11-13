@@ -4,6 +4,8 @@ r71 使用玩家提供的 Create-Delight-Remake 导入包和新纪元 r70 的两
 
 ## 数据来源与生成
 
+同日启动修复将旧 JEI Optimize 换成与当前 JEI 匹配的 Just Enough Threads 0.14.9（仅客户端）。用已有 Forge 实例时，按 [故障与交付记录](../../docs/delivery-r71-create-startup-and-local-profile-2026-11-13.md) 运行 `install_existing_forge.py`：先生成只读计划，核对后按相同的包与计划散列安装。初次发布时用 `--candidate-sha256` 指定新导出 Windows 包散列；发布完成后默认使用正式清单。运行 `verify_release.py` 前将 `NEWERA_INSTALLED_PROFILE` 指向实际已装好的版本目录。原始输入经过散列校验后缓存在工作目录；离线复核 Forge 版本范围可用 `audit_mods.py --forge-libraries <启动器的libraries目录>`。
+
 1. 准备玩家提供的原始导入包和 r70 服务端 ZIP、Windows MRPack。本机归档在 `W/r70-release`，其他位置可通过 `NEWERA_R70_RELEASE` 指定。运行 `acquire_mods.py --base <原始ZIP> --profile <r70实例>` 获取原清单与原任务，并核对下载字节和锁定散列。
 2. 构建新纪元 Forge 发布 JAR。运行 `build_joint.py select --built <新纪元发布JAR>` 生成两端去重清单。默认工作目录为 `build-isolated/player-packaging/20261113-delight-joint`。
 3. 运行 `merge_quests.py --base-quests <工作目录>/quests-work/base-extracted --newera-quests scripts/field-guide/config/ftbquests/quests --output <工作目录>/quests-work/merged`。原章节、奖励表和既有进度 ID 沿用底包与 r70。新增任务来自 `merge_quests.py`、`extra_chapters.py` 与 `extra_routes_b.py`。各任务写明持有检测或实际交货，匠魂交货通过注册物品匹配不同合法材料组合。
