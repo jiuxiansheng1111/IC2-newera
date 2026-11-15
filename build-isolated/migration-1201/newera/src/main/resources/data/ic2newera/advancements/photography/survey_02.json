@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "E级·入门 · 林缘赤狐",
+    "description": "拍摄赤狐本体；狐狸物品、画廊图片和空镜不计。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "confirmed_photo": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "confirmed_photo"
+    ]
+  ]
+}

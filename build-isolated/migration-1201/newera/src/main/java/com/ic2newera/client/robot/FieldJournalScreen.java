@@ -84,7 +84,7 @@ public final class FieldJournalScreen extends Screen {
         } else if (tab==Tab.ITINERARY) {
             String stop=archived.isEmpty()?"":archived.get(record).id();
             String job=candidates.isEmpty()?"":candidates.get(shot).id();
-            button(y-22,0,2,stop.isEmpty()?"暂无路标":"站 "+(record+1)+"　"+archived.get(record).label(),"点击轮选要调整或出发的站点。",()->selectRecord(1)).active=!stop.isEmpty();
+            button(y-22,0,2,stop.isEmpty()?"暂无路标":"站 "+(record+1)+"　"+com.ic2newera.client.robot.camera.PhoneEntityNames.translateLeadingEntity(archived.get(record).label()),"点击轮选要调整或出发的站点。",()->selectRecord(1)).active=!stop.isEmpty();
             button(y-22,1,2,"记录当前位置","把脚下位置加到路线末尾。",()->request("pin_here",""));
             button(y,0,4,"出发","从所选站出发，到达后自动导航至下一站。",()->request("run",stop)).active=!stop.isEmpty();
             button(y,1,4,"前移","把所选站点提前。",()->request("up",stop)).active=record>0;
@@ -222,7 +222,7 @@ public final class FieldJournalScreen extends Screen {
         scroll = Math.min(scroll, Math.max(0, text.size() - visible));
         for (int i = 0; i < visible && i + scroll < text.size(); i++) g.drawString(font, text.get(i + scroll), x + 3, top + i * 11, 0xD6E5E6);
         if (tab == Tab.ALBUM) {
-            String selected = archived.isEmpty() ? "尚未收录照片" : (record + 1) + " / " + archived.size() + "　" + archived.get(record).label();
+            String selected = archived.isEmpty() ? "尚未收录照片" : (record + 1) + " / " + archived.size() + "　" + com.ic2newera.client.robot.camera.PhoneEntityNames.translateLeadingEntity(archived.get(record).label());
             g.drawString(font, UiText.fit(font, Component.literal(selected), w), x + 1, height - 135, 0xF0D79C);
             if (my >= height - 137 && my < height - 123) g.renderTooltip(font, font.split(Component.literal(selected), w - 12), mx, my);
         }

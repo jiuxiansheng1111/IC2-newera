@@ -116,6 +116,8 @@ dependencies {
     implementation fg.deobf("top.theillusivec4.curios:curios-forge:5.14.1+1.20.1")
     implementation fg.deobf("curse.maven:the-one-probe-245211:${the_one_probe_file_id}")
     compileOnly fg.deobf("curse.maven:jei-238222:${jei_file_id}")
+    def mantleJar = file('../dependencies/Mantle-1.20.1-1.11.104.jar')
+    compileOnly(mantleJar.isFile() ? files(mantleJar) : fg.deobf('maven.modrinth:Cg6Uc79H:SOJzuYxC'))
     implementation fg.deobf("curse.maven:farmers-delight-398521:8765179")
     implementation fg.deobf("maven.modrinth:v17FatAc:Ghp0qCKY")
     // Planet exploration only; NPC campaigns and extra overworld dungeons are retired.
@@ -171,7 +173,7 @@ jar {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.version,
                 'Implementation-Vendor'   : 'IC2: New Era',
-                'MixinConfigs'            : 'ic2newera.mixins.json,ic2newera.bulk-compat.mixins.json'
+                'MixinConfigs'            : 'ic2newera.mixins.json,ic2newera.bulk-compat.mixins.json,ic2newera.jei-compat.mixins.json,ic2newera.spawn-compat.mixins.json'
         ])
     }
     finalizedBy 'reobfJar'

@@ -28,6 +28,8 @@
   "key.ic2newera.phone_camera_upload": "手机取景：拍照并保存到服务器",
   "key.ic2newera.phone_camera_exit": "手机取景：退出",
   "key.ic2newera.phone_gallery": "手机取景：打开图库",
+  "gui.ic2newera.phone_camera.controls": "%s 切换三个视角；%s 保存本机照片；%s 拍摄并保存到服务器；%s 打开图库；%s 退出取景。按键可在控制设置中自定义。",
+  "gui.ic2newera.phone_camera.gallery_empty": "本机相册暂无照片。取景时按 %s 保存本机照片，或按 %s 存到服务器。",
   "key.ic2newera.open_assistant": "打开个人工业智能助手",
   "screen.ic2newera.assistant": "个人工业智能助手",
   "screen.ic2newera.llm.api_key": "API密钥（留空保留已存密钥）",

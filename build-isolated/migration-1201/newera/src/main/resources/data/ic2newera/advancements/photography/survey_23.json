@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "SS级·远征 · 月球轨道记录",
+    "description": "在 Ad Astra 月球轨道拍摄一张真实含主体的照片；记录中的相机维度必须为 ad_astra:moon_orbit。",
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "confirmed_photo": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "confirmed_photo"
+    ]
+  ]
+}

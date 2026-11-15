@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "A级·稀有 · 岩岸鬣蜥",
+    "description": "拍摄 Spawn 鬣蜥本体；物品和图鉴图片不计。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "confirmed_photo": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "confirmed_photo"
+    ]
+  ]
+}

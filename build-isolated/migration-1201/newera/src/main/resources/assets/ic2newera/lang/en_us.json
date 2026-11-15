@@ -28,6 +28,8 @@
   "key.ic2newera.phone_camera_upload": "Phone camera: capture and save to server",
   "key.ic2newera.phone_camera_exit": "Phone camera: exit",
   "key.ic2newera.phone_gallery": "Phone camera: open gallery",
+  "gui.ic2newera.phone_camera.controls": "%s change perspective; %s save locally; %s capture and save to server; %s open gallery; %s exit viewfinder. Change these in Controls.",
+  "gui.ic2newera.phone_camera.gallery_empty": "No local photos yet. In the viewfinder, press %s to save locally or %s to save to the server.",
   "key.ic2newera.open_assistant": "打开个人工业智能助手",
   "screen.ic2newera.assistant": "个人工业智能助手",
   "screen.ic2newera.llm.api_key": "API key (saved locally)",

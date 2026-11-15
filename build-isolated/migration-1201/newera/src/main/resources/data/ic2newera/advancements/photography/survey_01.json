@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "E级·入门 · 花间传粉者",
+    "description": "拍摄蜜蜂本体；照片实体记录必须精确为 minecraft:bee。",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "confirmed_photo": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "confirmed_photo"
+    ]
+  ]
+}

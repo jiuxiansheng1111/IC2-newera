@@ -1,0 +1,24 @@
+{
+  "parent": "ic2newera:newera/root",
+  "display": {
+    "icon": {
+      "item": "ic2newera:industrial_phone"
+    },
+    "title": "B级·进阶 · 梭鱼掠影",
+    "description": "拍摄 Spawn 梭鱼本体；服务器需识别目标实体。",
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "confirmed_photo": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "confirmed_photo"
+    ]
+  ]
+}

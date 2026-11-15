@@ -1,0 +1,124 @@
+{
+  "assignments": [
+    {
+      "kind": "entity",
+      "target": "minecraft:bee",
+      "advancement": "ic2newera:photography/survey_01"
+    },
+    {
+      "kind": "entity",
+      "target": "minecraft:fox",
+      "advancement": "ic2newera:photography/survey_02"
+    },
+    {
+      "kind": "entity",
+      "target": "minecraft:turtle",
+      "advancement": "ic2newera:photography/survey_03"
+    },
+    {
+      "kind": "entity",
+      "target": "minecraft:allay",
+      "advancement": "ic2newera:photography/survey_04"
+    },
+    {
+      "kind": "entity",
+      "target": "minecraft:camel",
+      "advancement": "ic2newera:photography/survey_05"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:angler_fish",
+      "advancement": "ic2newera:photography/survey_06"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:clam",
+      "advancement": "ic2newera:photography/survey_07"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:tuna",
+      "advancement": "ic2newera:photography/survey_08"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:seahorse",
+      "advancement": "ic2newera:photography/survey_09"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:sea_cow",
+      "advancement": "ic2newera:photography/survey_10"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:octopus",
+      "advancement": "ic2newera:photography/survey_11"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:herring",
+      "advancement": "ic2newera:photography/survey_12"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:pilot_fish",
+      "advancement": "ic2newera:photography/survey_13"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:blenny",
+      "advancement": "ic2newera:photography/survey_14"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:bluefish",
+      "advancement": "ic2newera:photography/survey_15"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:sunfish",
+      "advancement": "ic2newera:photography/survey_16"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:barracuda",
+      "advancement": "ic2newera:photography/survey_17"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:dodo",
+      "advancement": "ic2newera:photography/survey_18"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:iguana",
+      "advancement": "ic2newera:photography/survey_19"
+    },
+    {
+      "kind": "entity",
+      "target": "spawn:coastal_crab",
+      "advancement": "ic2newera:photography/survey_20"
+    },
+    {
+      "kind": "entity",
+      "target": "ic2newera:companion_robot",
+      "advancement": "ic2newera:photography/survey_21"
+    },
+    {
+      "kind": "dimension",
+      "target": "ad_astra:moon",
+      "advancement": "ic2newera:photography/survey_22"
+    },
+    {
+      "kind": "dimension",
+      "target": "ad_astra:moon_orbit",
+      "advancement": "ic2newera:photography/survey_23"
+    },
+    {
+      "kind": "dimension",
+      "target": "ad_astra:mars",
+      "advancement": "ic2newera:photography/survey_24"
+    }
+  ]
+}

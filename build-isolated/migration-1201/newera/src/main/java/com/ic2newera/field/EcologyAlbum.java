@@ -41,6 +41,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 /** Server witnessed, Exposure-backed field photographs shared by the expedition album. */
 @Mod.EventBusSubscriber(modid = "ic2newera", bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -61,7 +66,7 @@ public final class EcologyAlbum {
     private static final int MAX_EVIDENCE = 1024;
     private static final int MAX_LOCAL_WITNESSES = 2048;
     private static final long PHONE_TICKET_TTL_MS = 120_000L;
-    private static final double MAX_RANGE = 24.0;
+    private static final double MAX_RANGE = PhoneCameraView.MAX_SUBJECT_RANGE;
     private static final double MIN_VIEW_DOT = 0.82; // strict camera-view cone; Exposure already supplied an in-frame UUID
 
     private static final List<Species> SPECIES = List.of(
@@ -224,9 +229,40 @@ public final class EcologyAlbum {
     }
 
     private static void recordObservation(ServerPlayer player, PhotoEvidence evidence) {
+        awardPhotographySurvey(player, evidence);
         Species species = findSpecies(evidence.speciesId());
         if (species != null && species.fromDelight()) FieldMilestones.award(player, "delight_wildlife_photo");
         DailyContracts.onPhotoEvidence(player, evidence);
+    }
+
+    /** Grants the first-party photography assignments only from already confirmed, server-owned photo evidence. */
+    private static void awardPhotographySurvey(ServerPlayer player, PhotoEvidence evidence) {
+        if (player == null || evidence == null || !player.getUUID().equals(evidence.playerId())) return;
+        var resource = player.server.getResourceManager().getResource(
+                new ResourceLocation("ic2newera", "photography/survey.json"));
+        if (resource.isEmpty()) return;
+        try (var reader = new InputStreamReader(resource.get().open(), StandardCharsets.UTF_8)) {
+            JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
+            JsonElement assignmentsElement = root.get("assignments");
+            if (assignmentsElement == null || !assignmentsElement.isJsonArray()) return;
+            String photographedEntity = evidence.speciesId();
+            String photographedDimension = evidence.cameraPosition().dimension().location().toString();
+            for (JsonElement element : assignmentsElement.getAsJsonArray()) {
+                if (!element.isJsonObject()) continue;
+                JsonObject assignment = element.getAsJsonObject();
+                if (!assignment.has("kind") || !assignment.has("target") || !assignment.has("advancement")) continue;
+                String kind = assignment.get("kind").getAsString();
+                String target = assignment.get("target").getAsString();
+                if (!(kind.equals("entity") && target.equals(photographedEntity)
+                        || kind.equals("dimension") && target.equals(photographedDimension))) continue;
+                ResourceLocation advancementId = ResourceLocation.tryParse(assignment.get("advancement").getAsString());
+                if (advancementId == null) continue;
+                var advancement = player.server.getAdvancements().getAdvancement(advancementId);
+                if (advancement != null) player.getAdvancements().award(advancement, "confirmed_photo");
+            }
+        } catch (Exception malformedOrUnavailable) {
+            // An absent or temporarily unreadable optional survey file must never disrupt photo capture.
+        }
     }
 
     public static boolean hasPhoneCaptureTicket(ServerPlayer player, UUID captureId) {
@@ -264,7 +300,15 @@ public final class EcologyAlbum {
         if (player == null || captureId == null) return null;
         CompoundTag row = data(player.server).localPhotos.stream().filter(item -> captureId.toString().equals(item.getString("PhotoId"))
                 && item.hasUUID("Player") && player.getUUID().equals(item.getUUID("Player"))).findFirst().orElse(null);
-        if (row == null || subject && !row.getBoolean("HasSubject")) return null;
+        if (row == null) {
+            // The upload shutter also saves a local PNG, but its verified coordinates
+            // live with the uploaded photo in this world's private gallery.
+            var uploaded = PhoneCameraServerData.row(player, captureId);
+            if (uploaded == null || !player.getUUID().equals(uploaded.owner())
+                    || subject && uploaded.speciesId().isBlank()) return null;
+            return subject ? uploaded.subject() : uploaded.camera();
+        }
+        if (subject && !row.getBoolean("HasSubject")) return null;
         AlbumData data = data(player.server);
         if (!row.hasUUID("WorldIdentity") || !data.worldIdentity.equals(row.getUUID("WorldIdentity"))) return null;
         ResourceLocation dimension = ResourceLocation.tryParse(row.getString("Dimension"));
@@ -450,12 +494,11 @@ public final class EcologyAlbum {
         witness.putDouble("LookX", look.x); witness.putDouble("LookY", look.y); witness.putDouble("LookZ", look.z);
         witness.putString("Camera", BuiltInRegistries.ITEM.getKey(event.cameraStack.getItem()).toString());
         ListTag subjects = new ListTag();
-        for (Entity entity : level.getEntities(player, player.getBoundingBox().inflate(MAX_RANGE), candidate -> speciesOf(candidate) != null)) {
+        for (Entity entity : level.getEntities(player, player.getBoundingBox().inflate(MAX_RANGE), candidate -> candidate.isAlive() && candidate != player)) {
             if (subjects.size() >= MAX_SHUTTER_SUBJECTS) break;
-            Species species = speciesOf(entity);
-            if (species == null || !visibleAtShutter(player, level, entity, eye, look)) continue;
+            if (!visibleAtShutter(player, level, entity, eye, look)) continue;
             CompoundTag subject = new CompoundTag();
-            subject.putString("Species", species.key());
+            subject.putString("Species", BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString());
             subject.putUUID("Id", entity.getUUID());
             subject.putLong("Pos", entity.blockPosition().asLong());
             subjects.add(subject);
@@ -493,10 +536,16 @@ public final class EcologyAlbum {
         frame.putString(FrameData.DIMENSION, shutter.getString("Dimension"));
         for (int i = 0; i < event.entitiesInFrame.size() && i < MAX_SHUTTER_SUBJECTS; i++) {
             Entity entity = event.entitiesInFrame.get(i);
+            String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()).toString();
             Species species = speciesOf(entity);
-            CompoundTag shutterSubject = species == null ? null : shutterSubject(shutter, entity, species);
-            if (species == null || shutterSubject == null
+            CompoundTag shutterSubject = shutterSubject(shutter, entity, entityId);
+            if (shutterSubject == null
                     || !serverConfirmsFrame(player, level, entity, exposureEntities, shutterSubject)) continue;
+            PhotoEvidence confirmed = new PhotoEvidence(id, shutter.getLong("WitnessedAtMillis"), player.getUUID(), entityId,
+                    GlobalPos.of(level.dimension(), BlockPos.of(shutter.getLong("CameraPos"))),
+                    GlobalPos.of(level.dimension(), BlockPos.of(shutterSubject.getLong("Pos"))), id);
+            awardPhotographySurvey(player, confirmed);
+            if (species == null) continue;
             if (hasPending(data, id, species.key())) continue;
             CompoundTag proof = new CompoundTag();
             proof.putString("Species", species.key());
@@ -598,12 +647,12 @@ public final class EcologyAlbum {
         return sight.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
     }
 
-    private static CompoundTag shutterSubject(CompoundTag shutter, Entity entity, Species species) {
+    private static CompoundTag shutterSubject(CompoundTag shutter, Entity entity, String entityId) {
         ListTag subjects = shutter.getList("Subjects", Tag.TAG_COMPOUND);
         for (int i = 0; i < subjects.size(); i++) {
             CompoundTag subject = subjects.getCompound(i);
             if (subject.hasUUID("Id") && entity.getUUID().equals(subject.getUUID("Id"))
-                    && species.key().equals(subject.getString("Species"))) return subject;
+                    && entityId.equals(subject.getString("Species"))) return subject;
         }
         return null;
     }

@@ -107,7 +107,7 @@ public final class PhoneGalleryScreen extends Screen {
         for (int i = 0; i < visibleRows && rowOffset + i < serverRows.size(); i++) {
             int index = rowOffset + i;
             PhoneCameraServerData.PhotoRow row = serverRows.get(index);
-            String name = com.ic2newera.field.EcologyAlbum.speciesName(row.speciesId()) + " · " + row.camera().pos().toShortString() + (row.published() ? " · 公开" : "");
+            String name = PhoneEntityNames.speciesName(row.speciesId()) + " · " + row.camera().pos().toShortString() + (row.published() ? " · 公开" : "");
             addRenderableWidget(Button.builder(Component.literal(name), b -> selectServer(index))
                     .bounds(10, 60 + i * 21, 232, 19).build());
         }
@@ -193,7 +193,11 @@ public final class PhoneGalleryScreen extends Screen {
 
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics); graphics.drawCenteredString(font, title, width / 2, 12, 0xFFFFFF);
-        if (mode == 0 && localPhotos.isEmpty()) graphics.drawCenteredString(font, "还没有本机照片；相机取景时按 P 拍摄。", width / 2, height / 2, 0xD8E8ED);
+        if (mode == 0 && localPhotos.isEmpty()) graphics.drawCenteredString(font,
+                Component.translatable("gui.ic2newera.phone_camera.gallery_empty",
+                        PhoneCameraEvents.CAPTURE.getTranslatedKeyMessage(),
+                        PhoneCameraEvents.CAPTURE_UPLOAD.getTranslatedKeyMessage()),
+                width / 2, height / 2, 0xD8E8ED);
         else if (mode != 0 && serverRows.isEmpty()) graphics.drawCenteredString(font, mode == 2 ? "公开生态相册暂无照片。" : "服务器私有相册暂无照片。", width / 2, height / 2, 0xD8E8ED);
         if (textureId != null) {
             int maxW = Math.max(64, width - 278), maxH = Math.max(64, height - 92);

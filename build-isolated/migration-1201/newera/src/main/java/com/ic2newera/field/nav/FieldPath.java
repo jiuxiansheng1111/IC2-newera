@@ -215,6 +215,14 @@ public final class FieldPath {
         return neighbors(from, options, cells, grid).contains(to);
     }
 
+    /** True only when a player-sized land cell (or swim cell) is safe to occupy. */
+    public static boolean occupiable(Grid grid, Node node, Mode mode) {
+        Objects.requireNonNull(grid, "grid");
+        Objects.requireNonNull(node, "node");
+        Objects.requireNonNull(mode, "mode");
+        return occupiable(node, mode, new HashMap<>(), grid);
+    }
+
     private static List<Node> neighbors(Node from, Options options, Map<Node, Cell> cells, Grid grid) {
         ArrayList<Node> out = new ArrayList<>(16);
         Cell fromCell = sample(cells, grid, from);
@@ -236,7 +244,8 @@ public final class FieldPath {
                     for (int dy = minDy; dy <= maxDy; dy++) {
                         Node shore = new Node(from.x() + dx, from.y() + dy, from.z() + dz);
                         if (isLandStandable(shore, cells, grid)
-                                && clearDrop(from, shore, cells, grid)) out.add(shore);
+                                && (dy <= 0 || hasJumpClearance(from, cells, grid))
+                                && clearDrop(from, shore, options, cells, grid)) out.add(shore);
                     }
                 }
             }
@@ -263,7 +272,7 @@ public final class FieldPath {
                             Node n = new Node(from.x() + dx, from.y() + dy, from.z() + dz);
                             if (sample(cells, grid, n) == Cell.WATER
                                     && occupiable(n, options.mode(), cells, grid)
-                                    && clearDrop(from, n, cells, grid)) out.add(n);
+                                    && clearDrop(from, n, options, cells, grid)) out.add(n);
                         }
                     }
                 }
@@ -280,7 +289,8 @@ public final class FieldPath {
         if (sample(cells, grid, n) != Cell.WATER && isLandStandable(n, cells, grid)) {
             int rise = n.y() - from.y();
             if (rise <= 1 && rise >= -options.maxSafeDrop()
-                    && clearDrop(from, n, cells, grid)) out.add(n);
+                    && (rise <= 0 || hasJumpClearance(from, cells, grid))
+                    && clearDrop(from, n, options, cells, grid)) out.add(n);
         }
     }
 
@@ -288,7 +298,9 @@ public final class FieldPath {
                                          Options options, Map<Node, Cell> cells, Grid grid) {
         for (int dy = 1; dy >= -options.maxSafeDrop(); dy--) {
             Node n = new Node(from.x() + dx, from.y() + dy, from.z() + dz);
-            if (isLandStandable(n, cells, grid) && clearDrop(from, n, cells, grid)) {
+            if (isLandStandable(n, cells, grid)
+                    && (dy <= 0 || hasJumpClearance(from, cells, grid))
+                    && clearDrop(from, n, options, cells, grid)) {
                 out.add(n);
                 return; // Prefer the nearest reachable level in this direction.
             }
@@ -321,13 +333,21 @@ public final class FieldPath {
         return feet == Cell.AIR && head == Cell.AIR && support == Cell.SOLID;
     }
 
-    private static boolean clearDrop(Node from, Node to, Map<Node, Cell> cells, Grid grid) {
+    private static boolean clearDrop(Node from, Node to, Options options, Map<Node, Cell> cells, Grid grid) {
         if (to.y() >= from.y()) return true;
+        Cell headHeight = sample(cells, grid, new Node(to.x(), from.y() + 1, to.z()));
+        if (headHeight != Cell.AIR
+                && !(options.mode() == Mode.SWIM && headHeight == Cell.WATER)) return false;
         for (int y = from.y(); y > to.y(); y--) {
             Cell c = sample(cells, grid, new Node(to.x(), y, to.z()));
             if (c != Cell.AIR) return false;
         }
         return true;
+    }
+
+    /** A one-block step needs room above the departure cell while the player jumps. */
+    private static boolean hasJumpClearance(Node from, Map<Node, Cell> cells, Grid grid) {
+        return sample(cells, grid, new Node(from.x(), from.y() + 2, from.z())) == Cell.AIR;
     }
 
     private static Cell sample(Map<Node, Cell> cells, Grid grid, Node node) {

@@ -59,11 +59,11 @@ public final class FieldRouteScreen extends Screen {
                 case "minecraft:overworld" -> "主世界";
                 case "ad_astra:moon" -> "月球（Ad Astra）";
                 case "ad_astra:mars" -> "火星（Ad Astra）";
-                case "northstar:moon" -> "月球（Northstar）";
-                case "northstar:mars" -> "火星（Northstar）";
+                case "northstar:moon" -> "旧航点（northstar:moon）";
+                case "northstar:mars" -> "旧航点（northstar:mars）";
                 default -> route.dimension();
             };
-            line(g, route.label() + "　" + dim + "　" + route.target().toShortString(), 23, TARGET);
+            line(g, com.ic2newera.client.robot.camera.PhoneEntityNames.translateLeadingEntity(route.label()) + "　" + dim + "　" + route.target().toShortString(), 23, TARGET);
             line(g, route.status(), 38, 0xE7EEF1);
             line(g, "下一步　" + route.next(), 52, PLAYER);
             boolean same = minecraft.player.level().dimension().location().toString().equals(route.dimension());

@@ -4,12 +4,15 @@ import com.ic2newera.robot.IndustrialPhoneItem;
 import com.ic2newera.field.camera.PhoneCameraView;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.CameraType;
-import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.HitResult;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.nio.charset.StandardCharsets;
@@ -89,7 +92,7 @@ public final class PhoneCameraController {
             case THIRD_PERSON_FRONT -> PhoneCameraView.THIRD_PERSON_FRONT;
             default -> PhoneCameraView.FIRST_PERSON;
         };
-        Entity capturedEntity = mc.hitResult instanceof EntityHitResult hit ? hit.getEntity() : null;
+        Entity capturedEntity = aimedCameraEntity(mc);
         UUID target = capturedEntity == null ? null : capturedEntity.getUUID();
         CaptureRequest request = new CaptureRequest(id, view, target, uploadToServer);
         Vec3 camera = mc.gameRenderer.getMainCamera().getPosition();
@@ -102,11 +105,44 @@ public final class PhoneCameraController {
         if (shutterRequest != null) { shutterRequests.put(id, System.currentTimeMillis()); shutterRequest.accept(request); }
         PhoneCameraStorage.capture(id);
     }
+
+    /** Resolve the live entity centered in the actual camera view, using the same range the server enforces. */
+    private static Entity aimedCameraEntity(Minecraft mc) {
+        if (mc.level == null || mc.player == null || mc.gameRenderer == null) return null;
+        var camera = mc.gameRenderer.getMainCamera();
+        Vec3 origin = camera.getPosition();
+        var lookVector = camera.getLookVector();
+        Vec3 direction = new Vec3(lookVector.x(), lookVector.y(), lookVector.z()).normalize();
+        Vec3 desiredEnd = origin.add(direction.scale(PhoneCameraView.MAX_SUBJECT_RANGE));
+        BlockHitResult obstruction = mc.level.clip(new ClipContext(origin, desiredEnd,
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, mc.player));
+        Vec3 visibleEnd = obstruction.getType() == HitResult.Type.MISS ? desiredEnd : obstruction.getLocation();
+        AABB search = new AABB(origin, visibleEnd).inflate(2.0);
+        Entity nearest = null;
+        double nearestIntersectionDistance = Double.MAX_VALUE;
+        for (Entity candidate : mc.level.getEntities(mc.player, search,
+                entity -> entity != mc.player && entity.isAlive())) {
+            Vec3 center = candidate.getBoundingBox().getCenter();
+            Vec3 toCenter = center.subtract(origin);
+            double centerDistance = toCenter.lengthSqr();
+            if (centerDistance < 0.04
+                    || centerDistance > PhoneCameraView.MAX_SUBJECT_RANGE * PhoneCameraView.MAX_SUBJECT_RANGE
+                    || direction.dot(toCenter.normalize()) < 0.55) continue;
+            var intersection = candidate.getBoundingBox().inflate(Math.max(0.0, candidate.getPickRadius()))
+                    .clip(origin, visibleEnd);
+            if (intersection.isEmpty()) continue;
+            double intersectionDistance = origin.distanceToSqr(intersection.get());
+            if (intersectionDistance < nearestIntersectionDistance) {
+                nearestIntersectionDistance = intersectionDistance;
+                nearest = candidate;
+            }
+        }
+        return nearest;
+    }
     /** Call on the client thread only after the matching server shutter ticket is accepted. */
     public static void approveCapture(UUID captureId, CaptureMetadata metadata) {
         Minecraft.getInstance().execute(() -> {
-            if (captureId == null || metadata == null) return;
-            shutterRequests.remove(captureId);
+            if (captureId == null || metadata == null || shutterRequests.remove(captureId) == null) return;
             captureMetadata.put(captureId, metadata);
             if (savedFrames.contains(captureId)) finalizeCapture(captureId, metadata);
         });
@@ -163,7 +199,7 @@ public final class PhoneCameraController {
         CaptureMetadata metadata = captureMetadata.get(captureId);
         if (metadata == null) { savedFrames.remove(captureId); pendingCaptureTimes.remove(captureId); return; }
         PhoneCameraStorage.writeSidecar(captureId, metadata);
-        if (!metadata.uploadToServer()) {
+        if (!metadata.serverWitnessed()) {
             if (!uploadRequests.containsKey(captureId) && !shutterRequests.containsKey(captureId)) {
                 savedFrames.remove(captureId); captureMetadata.remove(captureId); pendingCaptureTimes.remove(captureId);
             }

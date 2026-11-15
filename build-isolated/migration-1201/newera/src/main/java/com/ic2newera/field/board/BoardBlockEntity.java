@@ -187,7 +187,9 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
         synchronized (energyLock) { storedEU = Math.max(0, Math.min(CAPACITY, tag.getInt(ENERGY_KEY))); }
         paidTicks = Math.max(0, Math.min(PERIOD_TICKS, tag.getInt(PERIOD_KEY)));
         lastTickGameTime = tag.contains(LAST_TICK_KEY) ? tag.getLong(LAST_TICK_KEY) : Long.MIN_VALUE;
-        powered = tag.getBoolean(POWERED_KEY) && paidTicks > 0;
+        // A paid period's final tick is still powered. This is also the tick sent
+        // to the client, so the saved server state is authoritative here.
+        powered = tag.getBoolean(POWERED_KEY);
     }
     @Override public CompoundTag getUpdateTag() { return saveWithoutMetadata(); }
     @Override public void handleUpdateTag(CompoundTag tag) { load(tag); }

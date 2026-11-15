@@ -157,7 +157,8 @@ public final class IndustrialPhoneScreen extends Screen {
                 b -> minecraft.setScreen(new FieldJournalScreen(this, device != null && device.kind() == 1 ? device.id() : null)),
                 Component.literal("月球远征、生态相册和队友邀请。选中自己的机器人后可让它带路。")));
         addRenderableWidget(new UiButton(left + 4 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("相机"),
-                b -> com.ic2newera.client.robot.camera.PhoneCameraController.open(),Component.literal("V 切换三个视角，P 拍到本机，O 同时存服务器，G 打开图库，退格退出。按键可在控制设置修改。")));
+                b -> com.ic2newera.client.robot.camera.PhoneCameraController.open(),
+                com.ic2newera.client.robot.camera.PhoneCameraEvents.controlsHint()));
         addRenderableWidget(new UiButton(left + 5 * (footerWidth + 4), height - 24, footerWidth, 20, Component.literal("图库"),
                 b -> com.ic2newera.client.robot.camera.PhoneCameraController.openGallery(this),Component.literal("查看自己的照片和已公开的照片。")));
     }
