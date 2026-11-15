@@ -33,6 +33,7 @@ final class PhoneRobotChatScreen extends Screen {
     private RobotTaskIntent taskDraft;
     private RobotControlTabs.Page page = RobotControlTabs.Page.CHAT;
     private final List<Button> onlineControls = new ArrayList<>();
+    private RobotWorkChoice tooltipChoice;
     private CompletableFuture<RobotChatBridge.Reply> pending;
     private int generation, ticks, scroll, left, panelWidth, transcriptTop, transcriptBottom, statusY, inputY;
     private boolean voiceStatusFocused;
@@ -47,9 +48,9 @@ final class PhoneRobotChatScreen extends Screen {
     void receiveSnapshot(IndustrialMobileAccess.Snapshot snapshot) {
         parent.updateSnapshot(snapshot); network = snapshot.network();
         device = snapshot.devices().stream().filter(row -> row.id().equals(robot) && row.kind() == 1
-                && row.character().equals(character) && row.controllable()).findFirst().orElse(null);
-        if (device == null) {
-            cancelPending(true); status = "机器人离线、手机缺电或权限已改变，请返回设备列表刷新。问题已保留。";
+                && row.character().equals(character)).findFirst().orElse(null);
+        if (device == null || !device.controllable()) {
+            cancelPending(true); status = (device == null ? "联系人已离线，请返回列表刷新。" : device.status()) + "问题已保留。";
         } else if (!snapshot.message().isBlank() && !snapshot.message().startsWith("已连接；")) {
             status = snapshot.message(); voiceStatusFocused = false;
         }
@@ -67,6 +68,7 @@ final class PhoneRobotChatScreen extends Screen {
         if (input != null) draft = input.getValue();
         panelWidth = Math.max(100, Math.min(620, width - 24)); left = (width - panelWidth) / 2;
         onlineControls.clear();
+        tooltipChoice = null;
         addRenderableWidget(new UiButton(left + panelWidth - 60, 8, 60, 18, Component.literal("返回设备"), b -> onClose()));
         tabs = new RobotControlTabs(left, panelWidth, page, this::addRenderableWidget, this::selectPage);
         follow = work("跟随主人", "跟随主人；跟随中再次点击可切换为待命。", b -> command(following() ? 2 : 1));
@@ -128,7 +130,7 @@ final class PhoneRobotChatScreen extends Screen {
     }
     private Button work(String label, String hint, Button.OnPress action) {
         Button button = tabs.add(RobotControlTabs.Page.WORK, label, hint, action);
-        button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(hint + "；远程操作需手机有可用电量，服务器还会校验权限与设备状态。")));
+        button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(hint + " 手机和机器人都需要有电。")));
         onlineControls.add(button); return button;
     }
     private boolean following() { return device != null && device.status().startsWith("跟随"); }
@@ -164,7 +166,8 @@ final class PhoneRobotChatScreen extends Screen {
                     : pending != null ? "取消当前文字请求；取消后会把问题放回输入框。"
                     : taskUsage ? task.error()
                     : !heldPhone() ? "手持或副手持手机后才能远程聊天。"
-                    : device == null || !device.controllable() ? "机器人离线或当前玩家没有控制权限；返回设备列表刷新。"
+                    : device == null ? "联系人已离线；返回机器人列表刷新。"
+                    : !device.controllable() ? device.status()
                     : task != null ? (taskUsage ? task.error() : taskRead ? canRead ? "常用任务操作成功后手机耗电 20 EU。" : "常用任务读取、保存和删除需要手机至少有 20 EU。"
                     : device != null && device.energy() < 200 ? "重复任务需要机器人至少有 200 EU。" : "执行常用任务按普通命令扣手机 100 EU，并从机器人扣 200 EU。")
                     : memory ? (canRead ? "从服务器读取回忆，手机耗电 20 EU。" : "读取回忆需要手机至少有 20 EU。")
@@ -177,6 +180,12 @@ final class PhoneRobotChatScreen extends Screen {
         if (follow != null) follow.setMessage(Component.literal(following() ? "改为待命" : "跟随主人"));
         if (workTypeButton != null) workTypeButton.setMessage(Component.literal("类型：" + workChoice.title));
         if (startWorkButton != null) startWorkButton.setMessage(Component.literal("开始" + workChoice.title));
+        if (workTypeButton != null && startWorkButton != null && tooltipChoice != workChoice) {
+            tooltipChoice = workChoice;
+            var info = Component.literal(workChoice.hint + " 点击左侧类型可切换工作。");
+            workTypeButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(info));
+            startWorkButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(info));
+        }
         if (voice != null) voice.setMessage(Component.literal("语音：" + (RobotVoiceSettings.enabled() ? "开" : "关")));
         for (Button b : onlineControls) b.active = phonePower;
         if (combat != null) combat.setMessage(Component.literal("攻击动物：" + (device != null && device.details().contains("杀戮模式开启") ? "开" : "关")));
@@ -271,9 +280,8 @@ final class PhoneRobotChatScreen extends Screen {
         if (height >= 300 && page != RobotControlTabs.Page.VOICE && !voiceStatusFocused) pose.drawString(font, UiText.fit(font, Component.literal(RobotVoiceClient.statusGlobal()), panelWidth), left, statusY + font.lineHeight, 0xBCEFE8);
         super.render(pose, x, y, partial);
         tabs.render(pose, font);
-        Component hint = tabs.hoveredHint(x, y);
-        if (hint != null && (workTypeButton.isHoveredOrFocused() || startWorkButton.isHoveredOrFocused()))
-            hint = Component.literal(workChoice.hint + " 点击左侧类型可切换工作。");
+        // Work widgets already render native mouse and keyboard tooltips.
+        Component hint = page == RobotControlTabs.Page.WORK ? null : tabs.hoveredHint(x, y);
         if (hint != null) pose.renderTooltip(font, font.split(hint, Math.min(300, panelWidth)), x, y);
         if (x >= left && x < left + panelWidth && y >= statusY && y < statusY + (height >= 300 ? 2 : 1) * font.lineHeight) pose.renderTooltip(font, font.split(Component.literal(shown), Math.min(300, panelWidth)), x, y);
     }

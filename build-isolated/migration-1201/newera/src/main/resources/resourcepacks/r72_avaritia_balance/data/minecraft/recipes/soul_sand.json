@@ -1,0 +1,13 @@
+{
+  "type": "avaritia:shaped_table",
+  "category": "misc",
+  "tier": 1,
+  "show_notification": true,
+  "pattern": ["abq", "ba "],
+  "key": {
+    "a": {"item": "minecraft:soul_soil"},
+    "b": {"item": "minecraft:sand"},
+    "q": {"item": "minecraft:quartz"}
+  },
+  "result": {"item": "minecraft:soul_sand", "count": 2}
+}

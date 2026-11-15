@@ -21,7 +21,7 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
     public static final int TIER = 2;
     private static final String ENERGY_KEY = "WormholeEU";
     private static final String OWNER_KEY = "WormholeOwner";
-    private int stored;
+    private double stored;
     private final Object energyLock = new Object();
     private final AtomicBoolean energyDirty = new AtomicBoolean();
     private UUID owner;
@@ -32,7 +32,7 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
     }
 
     public UUID owner() { return owner; }
-    public int storedEU() { synchronized (energyLock) { return stored; } }
+    public int storedEU() { synchronized (energyLock) { return (int) stored; } }
     public boolean canManage(Player player) {
         return player != null && player.getUUID().equals(owner);
     }
@@ -86,15 +86,17 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
     @Override public void onChunkUnloaded() { stopEnergy(); super.onChunkUnloaded(); }
 
     @Override public int getSinkTier() { return TIER; }
-    @Override public double getDemandedEnergy() { return Math.max(0, CAPACITY - storedEU()); }
+    @Override public double getDemandedEnergy() {
+        synchronized (energyLock) { return Math.max(0, CAPACITY - stored); }
+    }
     @Override public boolean acceptsEnergyFrom(IEnergyEmitter emitter, Direction direction) { return true; }
     @Override public double injectEnergy(Direction direction, double amount, double voltage) {
         if (level == null || level.isClientSide || !Double.isFinite(amount) || amount <= 0
                 || !Double.isFinite(voltage) || EnergyNet.instance == null
                 || voltage > TIER) return amount;
-        int accepted;
+        double accepted;
         synchronized (energyLock) {
-            accepted = (int) Math.min(Math.floor(amount), CAPACITY - stored);
+            accepted = Math.min(amount, CAPACITY - stored);
             stored += accepted;
         }
         if (accepted > 0) EnergyThreading.markChanged(this, energyDirty);
@@ -108,7 +110,7 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
     @Override public int addEnergy(int amount) {
         int accepted;
         synchronized (energyLock) {
-            accepted = Math.min(Math.max(0, amount), CAPACITY - stored);
+            accepted = Math.min(Math.max(0, amount), (int) (CAPACITY - stored));
             stored += accepted;
         }
         if (accepted > 0) EnergyThreading.markChanged(this, energyDirty);
@@ -121,12 +123,13 @@ public final class WormholeDeviceBlockEntity extends BlockEntity implements IEne
 
     @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt(ENERGY_KEY, storedEU());
+        synchronized (energyLock) { tag.putDouble(ENERGY_KEY, stored); }
         if (owner != null) tag.putUUID(OWNER_KEY, owner);
     }
     @Override public void load(CompoundTag tag) {
         super.load(tag);
-        synchronized (energyLock) { stored = Math.max(0, Math.min(CAPACITY, tag.getInt(ENERGY_KEY))); }
+        double saved = tag.getDouble(ENERGY_KEY);
+        synchronized (energyLock) { stored = Double.isFinite(saved) ? Math.max(0, Math.min(CAPACITY, saved)) : 0; }
         owner = tag.hasUUID(OWNER_KEY) ? tag.getUUID(OWNER_KEY) : null;
     }
 }

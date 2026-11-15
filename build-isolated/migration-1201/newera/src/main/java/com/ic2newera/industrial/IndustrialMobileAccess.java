@@ -66,8 +66,14 @@ public final class IndustrialMobileAccess {
                     + (robot.getMainHandItem().isEmpty() ? "空手" : robot.getMainHandItem().getHoverName().getString())
                     + "；" + robot.collectionSummary();
             else detail += "；最后位置；目标区块未加载，不会远程强制加载。";
-            result.add(new Device(contact.id(), contact.pos(), contact.name(), contact.status(), detail,
-                    1, robot != null && canReachRobot(player, robot), contact.energy(), contact.lives(), contact.character(), contact.dimension(),
+            boolean reachable = robot != null && canReachRobot(player, robot);
+            String status = reachable ? contact.status()
+                    : robot == null || !robot.isAlive() ? "机器人不在线；先到它最后所在的位置查看。"
+                    : !robot.isOwnedBy(player) ? "这台机器人的主人不是你，不能远程控制。"
+                    : !robot.powered() ? "机器人没电；把充好电的机器人电池放进它的电池槽。"
+                    : "暂时联系不上机器人，请刷新联系人。";
+            result.add(new Device(contact.id(), contact.pos(), contact.name(), status, detail,
+                    1, reachable, robot == null ? contact.energy() : robot.energy(), contact.lives(), contact.character(), contact.dimension(),
                     robot == null ? "" : robot.workAlertSummary(), 0));
             if (result.size() >= 64) break;
         }
@@ -114,7 +120,8 @@ public final class IndustrialMobileAccess {
         if (!hasPhone(player)) return result(false, "请手持手机。");
         // Rebuild membership on each command; client coordinates or a reused network name never authorize a target.
         Device device = snapshot(player, "").devices().stream().filter(row -> row.id().equals(id)).findFirst().orElse(null);
-        if (device == null || !device.controllable()) return result(false, "设备离线、缺电、没有权限或不支持该命令。");
+        if (device == null) return result(false, "当前设备不在列表里，请刷新后重试。");
+        if (!device.controllable()) return result(false, device.kind() == 1 ? device.status() : "设备离线、没有权限或不支持该命令；请查看设备详情。");
         var component = component(player);
         if (device.kind() == 1) {
             RobotEntity robot = RobotContacts.resolve(player.server, id);

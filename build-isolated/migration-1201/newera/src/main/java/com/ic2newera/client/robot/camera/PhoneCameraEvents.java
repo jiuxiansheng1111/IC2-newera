@@ -1,6 +1,7 @@
 package com.ic2newera.client.robot.camera;
 
 import com.ic2newera.IC2NewEra;
+import com.ic2newera.robot.IndustrialPhoneItem;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -71,19 +72,25 @@ public final class PhoneCameraEvents {
         PhoneCameraController.restoreIfWorldClosed();
         PhoneCameraController.prunePendingCaptures();
         if (!PhoneCameraController.active()) return;
+        if (minecraft.player == null || minecraft.level == null || !IndustrialPhoneItem.hasCarriedPhone(minecraft.player)) {
+            PhoneCameraController.close();
+            return;
+        }
         minecraft.options.hideGui = true;
         while (VIEW.consumeClick()) PhoneCameraController.cycleView();
         while (CAPTURE.consumeClick()) PhoneCameraController.requestCapture(false);
         while (CAPTURE_UPLOAD.consumeClick()) PhoneCameraController.requestCapture(true);
-        while (EXIT.consumeClick()) PhoneCameraController.close();
-        while (GALLERY.consumeClick()) {
+        if (EXIT.consumeClick()) {
             PhoneCameraController.close();
-            Minecraft.getInstance().setScreen(new PhoneGalleryScreen(null));
+            return;
         }
+        if (GALLERY.consumeClick()) PhoneCameraController.openGalleryFromViewfinder();
     }
 
     @SubscribeEvent public static void screenOpening(ScreenEvent.Opening event) {
-        if (PhoneCameraController.active() && event.getNewScreen() instanceof net.minecraft.client.gui.screens.PauseScreen)
-            PhoneCameraController.close();
+        if (PhoneCameraController.active() && event.getNewScreen() instanceof net.minecraft.client.gui.screens.PauseScreen) {
+            var parent = PhoneCameraController.finishViewfinder();
+            if (parent != null) event.setNewScreen(parent);
+        }
     }
 }

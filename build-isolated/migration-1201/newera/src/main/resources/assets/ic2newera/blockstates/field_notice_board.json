@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "ic2newera:block/field_notice_board"
     },
-    "facing=east": {
+    "facing=north,lit=true": {
+      "model": "ic2newera:block/field_notice_board_on"
+    },
+    "facing=east,lit=false": {
       "model": "ic2newera:block/field_notice_board",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,lit=true": {
+      "model": "ic2newera:block/field_notice_board_on",
+      "y": 90
+    },
+    "facing=south,lit=false": {
       "model": "ic2newera:block/field_notice_board",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,lit=true": {
+      "model": "ic2newera:block/field_notice_board_on",
+      "y": 180
+    },
+    "facing=west,lit=false": {
       "model": "ic2newera:block/field_notice_board",
+      "y": 270
+    },
+    "facing=west,lit=true": {
+      "model": "ic2newera:block/field_notice_board_on",
       "y": 270
     }
   }

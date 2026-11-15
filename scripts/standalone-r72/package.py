@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import importlib.util
 import io
 import json
 import os
@@ -32,8 +33,19 @@ PROFILE_RESOURCEPACKS = PCL_PROFILE / "resourcepacks"
 CLIENT_BASE = BASE / "IC2-New-Era-Windows-1.20.1-r70-Grove-CMM.mrpack"
 SERVER_BASE = BASE / "IC2-New-Era-Server-1.20.1-r70-Voice.zip"
 OWN = "ic2newera-0.2.0-migration1201-all.jar"
+VS_JAR = "valkyrienskies-120-2.4.11.jar"
+VS_COMPAT_DIR = WORK / "vs-compat"
+VS_OLD_CANDIDATE_SHA256 = "0CA11689706524FA6D80A28C91BD4EBB53A773AFBE6F42597643C8BEA5E36D9D"
+CMM_NAME = "CMMRP_Release_1.0_[1.20-1.20.1].zip"
+FIX_NAME = "NewEra-CMM-Model-Fix.zip"
+FALLBACK_NAME = "NewEra-Grove-Fallback.zip"
 GEAR_FEAST_MOD_IDS = {"create_delight_remake", "create_delight", "create_delight_remake"}
 GEAR_FEAST_NAME_HINTS = ("create-delight-remake", "create_delight_remake", "gearsfeast")
+_EMC_SPEC = importlib.util.spec_from_file_location("r72_emc_balance", ROOT / "scripts/standalone-r72/emc_balance.py")
+if _EMC_SPEC is None or _EMC_SPEC.loader is None:
+    raise RuntimeError("Cannot load the r72 ProjectE balance helper")
+_EMC = importlib.util.module_from_spec(_EMC_SPEC)
+_EMC_SPEC.loader.exec_module(_EMC)
 
 
 def sha(data: bytes) -> str:
@@ -123,6 +135,127 @@ def validate_inputs() -> tuple[dict, list[dict]]:
     if not mods:
         raise RuntimeError("No server mod JARs found in r70 baseline")
     return index, mods
+
+
+def vs_compat_artifact() -> dict:
+    if not VS_COMPAT_DIR.is_dir():
+        raise FileNotFoundError("Reusable r72 Valkyrien Skies compatibility work directory is missing")
+    expected_source = "F99F24DE62015451A047F90484CF9D25970CAC350105B581C22B2D5247EBFD53"
+    matches = []
+    for receipt_path in sorted(VS_COMPAT_DIR.glob("*.manifest.json")):
+        try:
+            receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if (str(receipt.get("source_sha256", "")).upper() != expected_source
+                or receipt.get("method") != "forge_sculk_caller_wrappers"):
+            continue
+        artifact_name = str(receipt.get("artifact", ""))
+        if not artifact_name or Path(artifact_name).name != artifact_name:
+            continue
+        output = VS_COMPAT_DIR / artifact_name
+        if not output.is_file():
+            continue
+        actual = sha_file(output)
+        expected = str(receipt.get("sha256", "")).upper()
+        if expected and actual == expected:
+            mapping_file = ROOT / str(receipt.get("mapping_file", ""))
+            mapping_hash = str(receipt.get("mapping_sha256", "")).upper()
+            if not mapping_file.is_file() or not mapping_hash or sha_file(mapping_file) != mapping_hash:
+                continue
+            if receipt.get("disabled_common_mixin") != "feature.sculk.MixinVibrationSystemTicker":
+                continue
+            matches.append((receipt_path, output, receipt, actual, mapping_hash))
+    matches = [item for item in matches if item[3] != VS_OLD_CANDIDATE_SHA256]
+    if len(matches) != 1:
+        raise RuntimeError(f"Expected one receipt-verified caller-wrapper VS patch from the locked official source, found {len(matches)}")
+    receipt_path, output, receipt, actual, mapping_hash = matches[0]
+    return {"path": output, "manifestPath": receipt_path, "sha256": actual,
+            "sizeBytes": output.stat().st_size, "sourceSha256": expected_source,
+            "mappingSha256": mapping_hash, "method": receipt["method"],
+            "disabledCommonMixin": receipt["disabled_common_mixin"],
+            "forgeMixins": receipt["forge_mixins"], "injectedClasses": receipt["injected_classes"],
+            "receipt": receipt}
+
+
+def atomic_stage_copy(source: Path, dest: Path) -> None:
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    temporary = dest.with_name(dest.name + ".pending")
+    temporary.unlink(missing_ok=True)
+    try:
+        try:
+            os.link(source, temporary)
+        except OSError:
+            shutil.copy2(source, temporary)
+        if sha_file(temporary) != sha_file(source):
+            raise RuntimeError(f"Staged copy hash mismatch: {dest}")
+        os.replace(temporary, dest)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def stage_vs_compat() -> dict:
+    artifact = vs_compat_artifact()
+    staged_rows = []
+    for mods_dir in (PACK / "inputs/client/mods", PACK / "inputs/r71-debug/mods"):
+        dest = mods_dir / VS_JAR
+        if not dest.is_file():
+            raise FileNotFoundError(f"Locked Valkyrien Skies source is not staged: {dest}")
+        atomic_stage_copy(artifact["path"], dest)
+        if sha_file(dest) != artifact["sha256"]:
+            raise RuntimeError(f"Valkyrien Skies staged hash mismatch: {dest}")
+        staged_rows.append(dest)
+
+    client_jars_path = PACK / "target-manifest-client-jars.json"
+    client_jars = json.loads(client_jars_path.read_text(encoding="utf-8"))
+    row = next((item for item in client_jars["items"] if Path(item["path"]).name.lower() == VS_JAR.lower()), None)
+    if row is None:
+        raise RuntimeError("Client JAR manifest lacks the locked Valkyrien Skies entry")
+    row.update(sourcePath=str(artifact["path"].resolve()), sha256=artifact["sha256"],
+               sizeBytes=artifact["sizeBytes"], method="verified local derivative",
+               sourceKind="r72 Forge sculk caller-wrapper compatibility",
+               mappingSha256=artifact["mappingSha256"], patchMethod=artifact["method"])
+    write_json(client_jars_path, client_jars)
+
+    client_path = PACK / "target-manifest-client.json"
+    client = json.loads(client_path.read_text(encoding="utf-8"))
+    client["mods"] = [item for item in client["mods"] if Path(item["path"]).name.lower() != VS_JAR.lower()]
+    override_rows = client.setdefault("overrideMods", [])
+    override_rows[:] = [item for item in override_rows if Path(item["path"]).name.lower() != VS_JAR.lower()]
+    override_rows.append({"path": "mods/" + VS_JAR, "sha256": artifact["sha256"],
+                          "sizeBytes": artifact["sizeBytes"], "sourcePath": str(artifact["path"].resolve()),
+                          "sourceSha256": artifact["sourceSha256"],
+                          "sourceKind": "local derivative; official r70/r71 JARs retained unchanged",
+                          "patchMethod": artifact["method"], "mappingSha256": artifact["mappingSha256"]})
+    write_json(client_path, client)
+
+    server_path = PACK / "target-manifest-server.json"
+    server = json.loads(server_path.read_text(encoding="utf-8"))
+    server_row = next((item for item in server["mods"] if Path(item["path"]).name.lower() == VS_JAR.lower()), None)
+    if server_row is None:
+        raise RuntimeError("Server JAR manifest lacks the locked Valkyrien Skies entry")
+    server_row.update(sha256=artifact["sha256"], sizeBytes=artifact["sizeBytes"],
+                      stagedPath=staged_rows[1].relative_to(ROOT).as_posix(),
+                      sourcePath=str(artifact["path"].resolve()), sourceSha256=artifact["sourceSha256"],
+                      sourceKind="local derivative; official r70/r71 JARs retained unchanged",
+                      patchMethod=artifact["method"], mappingSha256=artifact["mappingSha256"])
+    server_row.pop("sourceArchive", None)
+    server_row.pop("method", None)
+    server_row.pop("modIds", None)
+    server_row.pop("nestedJarjarModIds", None)
+    server_row.update(jar_mod_metadata(staged_rows[1]))
+    write_json(server_path, server)
+
+    audit_path = PACK / "target-manifest-audit.json"
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    server_names = {Path(item["path"]).name.lower() for item in server["mods"]}
+    client_names = {Path(item["path"]).name.lower() for item in client["mods"] + client["overrideMods"]}
+    audit["clientManifestServerOverlapByFilename"] = sorted(server_names & client_names)
+    audit["serverOnly"] = sorted(server_names - client_names)
+    audit["clientOnly"] = sorted(client_names - server_names)
+    write_json(audit_path, audit)
+    return {"path": str(staged_rows[0]), "sha256": artifact["sha256"], "sourceSha256": artifact["sourceSha256"],
+            "sizeBytes": artifact["sizeBytes"], "clientAndServerSameHash": True}
 
 
 def archive_mod_overrides() -> list[dict]:
@@ -257,6 +390,7 @@ def integrate_first_party() -> dict | None:
     expected = str(manifest.get("result_sha256", "")).upper()
     if not expected or actual != expected:
         raise RuntimeError(f"r72 first-party JAR disagrees with its sibling manifest: {actual} != {expected}")
+    validate_native_appearance(source, manifest)
     client_dest = PACK / "inputs/client/mods" / OWN
     debug_dest = PACK / "inputs/r71-debug/mods" / OWN
     for dest in (client_dest, debug_dest):
@@ -341,39 +475,116 @@ def integrate_first_party() -> dict | None:
     return {"path": str(client_dest), "sha256": actual, "sizeBytes": source.stat().st_size}
 
 
-def stage_client_model_fix() -> dict:
-    filename = "NewEra-CMM-Model-Fix.zip"
-    source_options = [
-        PROFILE_RESOURCEPACKS / filename,
-        ROOT / "build-isolated/player-packaging/20261113-delight-joint/client-overlay/resourcepacks" / filename,
+def validate_native_appearance(source: Path, manifest: dict) -> None:
+    """Independently audit r72 appearance members before accepting native packaging input."""
+    required = {
+        "com/ic2newera/field/board/FieldBoardBlock.class",
+        "com/ic2newera/field/board/FieldBoardBlock$1.class",
+        "com/ic2newera/field/board/BoardBlockEntity.class",
+        "com/ic2newera/field/board/FieldBoardContent.class",
+        "com/ic2newera/client/robot/PhoneHomeView.class",
+        "assets/ic2newera/textures/gui/industrial_phone/home_icons.png",
+        "assets/ic2newera/textures/gui/industrial_phone/home_wallpaper.png",
+        "assets/ic2newera/textures/gui/industrial_phone/home_icons.png.mcmeta",
+        "assets/ic2newera/textures/gui/industrial_phone/home_wallpaper.png.mcmeta",
+        "data/ic2newera/ai/ui_operations_zh.md",
+        "data/ic2newera/pe_custom_conversions/r72_runtime_cycle_closures.json",
+    }
+    visual_assets = manifest.get("visual_asset_sha256")
+    if not isinstance(visual_assets, dict) or not visual_assets:
+        raise RuntimeError("r72 native receipt lacks the visual asset hash inventory")
+    receipt_members = set(manifest.get("replaced_members", [])) | set(manifest.get("added_members", []))
+    if not required.issubset(receipt_members):
+        raise RuntimeError(f"r72 native receipt omits required appearance members: {sorted(required - receipt_members)}")
+    if not any(name.startswith("com/ic2newera/client/robot/PhoneHomeView") and name.endswith(".class")
+               for name in receipt_members):
+        raise RuntimeError("r72 native receipt omits the PhoneHomeView class family")
+    with zipfile.ZipFile(source) as jar:
+        names = jar.namelist()
+        if len(names) != len(set(names)):
+            raise RuntimeError("r72 native JAR contains duplicate member names")
+        available = set(names)
+        missing = receipt_members - available
+        if missing:
+            raise RuntimeError(f"r72 native JAR is missing members declared by its receipt: {sorted(missing)}")
+        if not required.issubset(available):
+            raise RuntimeError(f"r72 native JAR is missing required appearance members: {sorted(required - available)}")
+        for name, expected_hash in visual_assets.items():
+            if name not in available or sha(jar.read(name)).upper() != str(expected_hash).upper():
+                raise RuntimeError(f"r72 native visual resource is missing or differs from receipt: {name}")
+        ai_ui_name = manifest.get("ai_ui_operations_resource")
+        ai_ui_hash = manifest.get("ai_ui_operations_sha256")
+        if ai_ui_name != "data/ic2newera/ai/ui_operations_zh.md" or not ai_ui_hash:
+            raise RuntimeError("r72 native receipt lacks the synchronized AI UI operations resource hash")
+        if sha(jar.read(ai_ui_name)).upper() != str(ai_ui_hash).upper():
+            raise RuntimeError("r72 native AI UI operations text differs from receipt")
+        conversion_name = "data/ic2newera/pe_custom_conversions/r72_runtime_cycle_closures.json"
+        conversion_source = (ROOT / "build-isolated/migration-1201/newera/src/main/resources" / conversion_name)
+        if not conversion_source.is_file():
+            raise RuntimeError("r72 runtime ProjectE conversion source is missing")
+        if jar.read(conversion_name) != conversion_source.read_bytes():
+            raise RuntimeError("r72 native ProjectE conversion resource differs from reviewed source")
+        if manifest.get("runtime_emc_conversion_resource") != conversion_name or \
+                str(manifest.get("runtime_emc_conversion_sha256", "")).upper() != sha(conversion_source.read_bytes()).upper():
+            raise RuntimeError("r72 native receipt lacks the runtime ProjectE conversion resource SHA")
+
+
+def stage_client_assets(mods_dir: Path) -> dict:
+    helper_path = Path(__file__).with_name("client_assets.py")
+    if not helper_path.is_file():
+        raise FileNotFoundError(f"Client resourcepack builder is missing: {helper_path}")
+    spec = importlib.util.spec_from_file_location("r72_client_assets", helper_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("Could not load the r72 client resourcepack builder")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if getattr(module, "FIX_NAME", None) != FIX_NAME or getattr(module, "FALLBACK_NAME", None) != FALLBACK_NAME:
+        raise RuntimeError("Client resourcepack builder constants do not match the r72 package contract")
+
+    old_fix_candidates = [
+        PROFILE_RESOURCEPACKS / FIX_NAME,
+        ROOT / "build-isolated/player-packaging/20261113-delight-joint/client-overlay/resourcepacks" / FIX_NAME,
     ]
-    source = next((p for p in source_options if p.is_file()), None)
-    if not source:
-        raise FileNotFoundError("Approved Windows NewEra CMM model fix resource pack is missing")
-    digest = sha_file(source)
-    expected = "B104D293F050FBCFFCEE84C505ED38ACD04509704ADCB813797AB01CA05D60E1"
-    if digest != expected:
-        raise RuntimeError(f"NewEra CMM model fix hash changed unexpectedly: {digest}")
-    dest = PACK / "overrides/resourcepacks" / filename
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.unlink(missing_ok=True)
-    os.link(source, dest)
-    order = ["vanilla", "Soartex Grove 1.0.4.zip", "CMMRP_Release_1.0_[1.20-1.20.1].zip",
-             filename, "CMM_FIX_EMF_v.1_[1.20-1.20.1].zip"]
-    write_json(PACK / "target-manifest-client-resourcepack.json", {
-        "path": dest.relative_to(ROOT).as_posix(), "sourcePath": str(source.resolve()),
-        "sha256": digest, "sizeBytes": dest.stat().st_size,
-        "orderObservedInReadOnlyWindowsOptions": order,
-        "newEraPhoneKeyMappings": {
-            "key_key.ic2newera.phone_camera_view": "key.keyboard.f6",
-            "key_key.ic2newera.phone_camera_capture": "key.keyboard.f8",
-            "key_key.ic2newera.phone_camera_upload": "key.keyboard.f9",
-            "key_key.ic2newera.phone_gallery": "key.keyboard.insert",
-            "key_key.ic2newera.phone_camera_exit": "key.keyboard.backspace",
-        },
+    expected_old_fix = str(getattr(module, "OLD_FIX", "")).upper()
+    cmm_source = next((candidate for candidate in old_fix_candidates
+                       if candidate.is_file() and sha_file(candidate) == expected_old_fix), None)
+    if cmm_source is None:
+        raise FileNotFoundError("Immutable original CMM repair resourcepack is missing")
+    generated = PACK / "inputs/client/generated-resourcepacks"
+    generated.mkdir(parents=True, exist_ok=True)
+    hashes = module.build_client_assets(mods_dir, cmm_source, generated)
+    if not isinstance(hashes, dict) or set(hashes) != {FIX_NAME, FALLBACK_NAME}:
+        raise RuntimeError("Client asset builder must return exactly the fallback and model-fix ZIP hashes")
+
+    rows = []
+    override_dir = PACK / "overrides/resourcepacks"
+    override_dir.mkdir(parents=True, exist_ok=True)
+    for filename in (FIX_NAME, FALLBACK_NAME):
+        source = generated / filename
+        if not source.is_file() or source.is_symlink():
+            raise FileNotFoundError(f"Generated client resourcepack is missing or a symlink: {source}")
+        digest = sha_file(source)
+        if digest != str(hashes[filename]).upper():
+            raise RuntimeError(f"Generated client resourcepack hash mismatch: {filename}")
+        dest = override_dir / filename
+        atomic_stage_copy(source, dest)
+        rows.append({"path": dest.relative_to(ROOT).as_posix(), "sourcePath": str(source.resolve()),
+                     "sha256": digest, "sizeBytes": dest.stat().st_size, "windowsOnly": True})
+
+    order = ["vanilla", "ic2newera:local_mips", FALLBACK_NAME, "Soartex Grove 1.0.4.zip", CMM_NAME,
+             FIX_NAME, "CMM_FIX_EMF_v.1_[1.20-1.20.1].zip"]
+    mappings = {
+        "key_key.ic2newera.phone_camera_view": "key.keyboard.f6",
+        "key_key.ic2newera.phone_camera_capture": "key.keyboard.f8",
+        "key_key.ic2newera.phone_camera_upload": "key.keyboard.f9",
+        "key_key.ic2newera.phone_gallery": "key.keyboard.insert",
+        "key_key.ic2newera.phone_camera_exit": "key.keyboard.backspace",
+    }
+    write_json(PACK / "target-manifest-client-resourcepacks.json", {
+        "resourcepacks": rows, "order": order, "newEraPhoneKeyMappings": mappings,
         "windowsOnly": True,
     })
-    return {"path": str(dest), "sha256": digest}
+    return {"resourcepacks": rows, "order": order}
 
 
 def quest_payload() -> dict[str, bytes]:
@@ -393,13 +604,40 @@ def quest_payload() -> dict[str, bytes]:
     if not any(k.endswith("/chapter_groups.snbt") for k in result) or not any(k.endswith("/data.snbt") for k in result):
         raise RuntimeError("The final quest overlay must contain chapter_groups.snbt and data.snbt")
     json.loads(result["config/ic2newera/quest_knowledge.json"].decode("utf-8"))
+    emc_data = _EMC.compose(_EMC.baseline_config())
+    emc_rel = "config/ProjectE/custom_emc.json"
+    emc_dest = PACK / "overrides" / emc_rel
+    emc_dest.parent.mkdir(parents=True, exist_ok=True)
+    emc_dest.write_bytes(emc_data)
+    emc_spec = json.loads((ROOT / "scripts/standalone-r72/emc_balance.json").read_text(encoding="utf-8"))
+    write_json(PACK / "target-manifest-projecte-emc.json", {
+        "revision": emc_spec["revision"], "path": emc_rel, "sha256": sha(emc_data),
+        "sizeBytes": len(emc_data), "baseline": str(CLIENT_BASE.relative_to(ROOT)),
+        "baselineClientSha256": sha_file(CLIENT_BASE), "baselineServerSha256": sha_file(SERVER_BASE),
+        "projecteJar": "projecte-1201-PE1.0.1.jar", "projecteJarSha256": emc_spec["projecteJarSha256"],
+        "recipeJarSha256s": emc_spec["recipeJarSha256s"],
+        "minecraftJarSha256": emc_spec["minecraftJarSha256"],
+        "sourceLogSha256": emc_spec["sourceLogSha256"],
+        "runtimeMapSha256": emc_spec["runtimeMapSha256"], "runtimeMapEntries": emc_spec["runtimeMapEntries"],
+        "values": emc_spec["values"], "managedItemValueCount": len(emc_spec["values"]),
+        "customEmcEntryCount": len(json.loads(emc_data.decode("utf-8"))["entries"]),
+        "protectedValues": {key: emc_spec["values"][key] for key in
+                             ("minecraft:quartz", "minecraft:gold_nugget", "minecraft:soul_sand")},
+        "runtimeConversionResource": "data/ic2newera/pe_custom_conversions/r72_runtime_cycle_closures.json",
+        "runtimeConversionResourceSha256": sha((ROOT / "build-isolated/migration-1201/newera/src/main/resources/data/ic2newera/pe_custom_conversions/r72_runtime_cycle_closures.json").read_bytes()),
+        "preservedBaselineCustomEntries": 72,
+        "preservedControlledIntermediateZeroEntries": 71,
+        "preservedQuartzValue": 94,
+        "sharedClientServer": True,
+    })
+    result[emc_rel] = emc_data
     return result
 
 
-def options_with_model_fix(raw: bytes) -> bytes:
+def options_with_client_assets(raw: bytes) -> bytes:
     text = raw.decode("utf-8")
-    desired = ["vanilla", "file/Soartex Grove 1.0.4.zip",
-               "file/CMMRP_Release_1.0_[1.20-1.20.1].zip", "file/NewEra-CMM-Model-Fix.zip",
+    desired = ["vanilla", "ic2newera:local_mips", f"file/{FALLBACK_NAME}", "file/Soartex Grove 1.0.4.zip",
+               f"file/{CMM_NAME}", f"file/{FIX_NAME}",
                "file/CMM_FIX_EMF_v.1_[1.20-1.20.1].zip"]
     line = "resourcePacks:" + json.dumps(desired, ensure_ascii=False, separators=(",", ":"))
     if re.search(r"(?m)^resourcePacks:.*$", text):
@@ -429,7 +667,8 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
     with zipfile.ZipFile(CLIENT_BASE) as source:
         index = json.loads(source.read("modrinth.index.json"))
         old_jei = "jei-1201-15.56.0.205.jar"
-        index["files"] = [f for f in index["files"] if Path(f["path"]).name.lower() != old_jei.lower()]
+        index["files"] = [f for f in index["files"]
+                           if Path(f["path"]).name.lower() not in {old_jei.lower(), VS_JAR.lower()}]
         jei = next(x for x in verified["compatibilityHotfixes"] if x.get("filename") == "jei-1.20.1-forge-15.74.0.234.jar")
         index["files"].append({
             "path": "mods/" + jei["filename"],
@@ -437,11 +676,12 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
             "env": {"client": "required", "server": "required"},
             "downloads": [jei["source"]["downloadUrl"]], "fileSize": jei["fileSize"],
         })
-        index.update(versionId="0.2.0-windows.20261114-r72-standalone",
+        index.update(versionId="0.2.0-windows.20261116-r72-lcd-emc",
                      name="IC2：新纪元 Windows 完整整合包 r72",
-                     summary="Forge 47.4.28；保留r70活动模组与资源，使用r72新纪元任务、摄影目标和内置助手资料。")
+                     summary="Forge 47.4.28；11月16日版：手机应用、液晶公告栏、摄影导航、258项任务、等价交换修正和船体兼容。")
         entries: dict[str, bytes] = {}
         old_own = "overrides/mods/" + OWN
+        vs_override = "overrides/mods/" + VS_JAR
         options_key = "overrides/options.txt"
         with zipfile.ZipFile(CLIENT_BASE) as z:
             replaced_info = {
@@ -452,21 +692,26 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
                 "overrides/IC2-NewEra-info/r72-artifact-audit.json",
             }
             for name in z.namelist():
-                if (name in {"modrinth.index.json", old_own} or name in overlay
-                        or name == "overrides/resourcepacks/NewEra-CMM-Model-Fix.zip" or name in replaced_info):
+                if (name in {"modrinth.index.json", old_own, vs_override} or name in overlay
+                        or name in {"overrides/resourcepacks/" + FIX_NAME,
+                                    "overrides/resourcepacks/" + FALLBACK_NAME} or name in replaced_info):
                     continue
                 if name == options_key:
-                    entries[name] = options_with_model_fix(z.read(name))
+                    entries[name] = options_with_client_assets(z.read(name))
                 else:
                     entries[name] = z.read(name)
         entries["modrinth.index.json"] = (json.dumps(index, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         entries[old_own] = (WORK / "native" / OWN).read_bytes()
-        entries["overrides/resourcepacks/NewEra-CMM-Model-Fix.zip"] = (PACK / "overrides/resourcepacks/NewEra-CMM-Model-Fix.zip").read_bytes()
+        entries[vs_override] = (PACK / "inputs/client/mods" / VS_JAR).read_bytes()
+        entries["overrides/resourcepacks/" + FIX_NAME] = (PACK / "overrides/resourcepacks" / FIX_NAME).read_bytes()
+        entries["overrides/resourcepacks/" + FALLBACK_NAME] = (PACK / "overrides/resourcepacks" / FALLBACK_NAME).read_bytes()
         for path, data in overlay.items():
             entries["overrides/" + path] = data
         chapter_count = len(list((WORK / "handbook-overlay/config/ftbquests/quests/chapters").glob("*.snbt")))
         knowledge = json.loads(overlay["config/ic2newera/quest_knowledge.json"])
         target_audit = json.loads((PACK / "target-manifest-audit.json").read_text(encoding="utf-8"))
+        resourcepack_audit = json.loads((PACK / "target-manifest-client-resourcepacks.json").read_text(encoding="utf-8"))
+        vs_audit = vs_compat_artifact()
         final_jar = WORK / "native" / OWN
         r72_audit = {
             "revision": "r72", "newEraJar": OWN, "newEraSha256": sha_file(final_jar),
@@ -474,10 +719,15 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
             "jei": {"version": "15.74.0.234", "sha256": jei["sha256"], "fileSize": jei["fileSize"]},
             "minecraft": "1.20.1", "forge": "47.4.28", "clientJarCount": 46, "serverJarCount": 35,
             "chapterCount": chapter_count, "indexedQuestCount": len(knowledge.get("quests", [])),
-            "questOverlayFiles": {p: {"sha256": sha(data), "sizeBytes": len(data)} for p, data in overlay.items()},
+            "sharedOverlayFiles": {p: {"sha256": sha(data), "sizeBytes": len(data)} for p, data in overlay.items()},
             "sharedModIds": target_audit.get("sharedModIds", []),
             "missingServerDependencies": target_audit.get("targetServerMissingMandatoryDependencies", []),
             "sharedJarSha256Mismatches": target_audit.get("targetSharedJarSha256Mismatches", {}),
+            "clientResourcepacks": resourcepack_audit["resourcepacks"],
+            "vsCompatibility": {"file": VS_JAR, "sourceSha256": vs_audit["sourceSha256"],
+                                "patchedSha256": vs_audit["sha256"],
+                                "method": vs_audit["method"], "mappingSha256": vs_audit["mappingSha256"],
+                                "patchManifest": vs_audit["manifestPath"].relative_to(ROOT).as_posix()},
             "status": "built; static package checks run; no gameplay acceptance claimed",
         }
         entries["overrides/IC2-NewEra-info/r72-artifact-audit.json"] = (json.dumps(r72_audit, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
@@ -485,14 +735,14 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
             "IC2：新纪元 Windows 完整整合包 r72\nMinecraft 1.20.1 / Forge 47.4.28 / Java 17 / 46个客户端JAR。\n"
             "保留r70活动模组和客户端资源，JEI更新至15.74.0.234；使用r72新纪元JAR、FTB任务书和助手资料。\n"
             f"FTB任务书含{chapter_count}章、{len(knowledge.get('quests', []))}项索引任务。\n"
-            "Grove、CMM与ITT仅用于客户端；内置独立CMM修复小包，资源顺序为Grove/CMMRP/新纪元小包/CMM_FIX_EMF。\n"
+            "Grove、CMM与ITT仅用于客户端；资源顺序为local_mips、Grove回退包、Grove、CMMRP、修复包、CMM_FIX_EMF。\n"
             "手机快捷键：F6取景、F8拍照、F9上传、Insert相册、Backspace退出。通过PCL导入；首次启动需联网下载清单中的模组。\n"
             "与r72完整服务端包配套。打包核验不代表游戏内玩法已完成验收。\n").encode("utf-8")
         entries["overrides/IC2-NewEra-info/README-en_US.txt"] = (
             "IC2: New Era Windows full pack r72\nMinecraft 1.20.1 / Forge 47.4.28 / Java 17 / 46 client JARs.\n"
             "Retains the r70 active mod set and client visuals; JEI is upgraded to 15.74.0.234.\n"
             "Includes the r72 New Era JAR, FTB quest book and assistant index. Import with PCL; first launch downloads listed mods.\n"
-            "Grove, CMM and ITT are client-side. Resource order: Grove / CMMRP / New Era model fix / CMM_FIX_EMF.\n"
+            "Grove, CMM and ITT are client-side. Resource order: built-in local_mips / fallback / Grove / CMMRP / model fix / CMM_FIX_EMF.\n"
             "Phone keys: F6 view, F8 capture, F9 upload, Insert gallery, Backspace exit. Use with the matching r72 server.\n"
             "Package checks do not claim in-game acceptance.\n").encode("utf-8")
         entries["overrides/IC2-NewEra-info/PLAYTEST-STATUS.txt"] = (
@@ -501,7 +751,7 @@ def package_client(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
         info = ("IC2：新纪元 r72 Windows 整合包\nMinecraft 1.20.1 / Forge 47.4.28\n"
                 "r70活动模组基线、Windows Grove/CMM视觉内容与服务器依赖保持；JEI升级到15.74.0.234。\n"
                 "新纪元JAR及任务书/助手资料为r72版本。首次导入需联网获取清单中的第三方模组。\n"
-                "资源包顺序：Grove → CMMRP → NewEra-CMM-Model-Fix → CMM_FIX_EMF。\n"
+                "资源包顺序：local_mips → Fallback → Grove → CMMRP → NewEra-CMM-Model-Fix → CMM_FIX_EMF。\n"
                 "手机：F6取景、F8拍照、F9上传、Insert相册、Backspace退出。\n")
         entries["overrides/IC2-NewEra-info/r72-release.txt"] = info.encode("utf-8")
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -524,9 +774,14 @@ def package_server(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
     overlay_paths = {quest_prefix + p.removeprefix("config/ftbquests/quests/"): data
                      for p, data in overlay.items() if p.startswith("config/ftbquests/quests/")}
     knowledge_key = "config/ic2newera/quest_knowledge.json"
+    projecte_key = "config/ProjectE/custom_emc.json"
     jei = next(x for x in verified["compatibilityHotfixes"] if x.get("filename") == "jei-1.20.1-forge-15.74.0.234.jar")
     own_data = (WORK / "native" / OWN).read_bytes()
     jei_data = (PACK / "inputs/client/mods" / jei["filename"]).read_bytes()
+    vs = vs_compat_artifact()
+    vs_data = (PACK / "inputs/r71-debug/mods" / VS_JAR).read_bytes()
+    if sha(vs_data) != vs["sha256"]:
+        raise RuntimeError("Server staging input does not match the verified VS compatibility artifact")
     server_manifest = None
     artifact_audit = None
     with zipfile.ZipFile(SERVER_BASE) as source:
@@ -545,6 +800,11 @@ def package_server(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
             elif mod.get("modId") == "jei":
                 mod.update(file=jei["filename"], sizeBytes=jei["fileSize"], sha256=jei["sha256"],
                            sha1=jei["sha1"], sha512=jei["sha512"], source=jei["source"]["downloadUrl"])
+            elif mod.get("file") == VS_JAR:
+                mod.update(sizeBytes=len(vs_data), sha256=sha(vs_data),
+                           sourceKind="r72 Forge sculk caller-wrapper compatibility",
+                           sourceSha256=vs["sourceSha256"], patchMethod=vs["method"],
+                           mappingSha256=vs["mappingSha256"])
         new_args = b"-Xms2G\n-Xmx9G\n--add-modules=jdk.httpserver\n-javaagent:ic2newera-fixed-voice.jar\n"
         readme_zh = ("# IC2：新纪元 r72 专用服务器\n\nMinecraft 1.20.1 / Forge 47.4.28 / Java 17。\n"
                      "包含r70活动服务端模组、FTB Teams/Quests、Create、IC2、匠魂、Spawn及固定语音。\n"
@@ -559,6 +819,7 @@ def package_server(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
                            "No game is started by the packaging script. Actual gameplay acceptance is tracked separately.\n").encode("utf-8")
         manifest_file_updates = {
             "mods/" + OWN: own_data,
+            "mods/" + VS_JAR: vs_data,
             "mods/jei-1201-15.56.0.205.jar": None,
             "mods/" + jei["filename"]: jei_data,
             "user_jvm_args.txt": new_args,
@@ -567,6 +828,7 @@ def package_server(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
             "PLAYTEST-STATUS.txt": playtest_status,
             **overlay_paths,
             knowledge_key: overlay[knowledge_key],
+            projecte_key: overlay[projecte_key],
         }
         file_rows = {row["path"]: row for row in server_manifest.get("files", [])}
         for path, data in manifest_file_updates.items():
@@ -582,7 +844,7 @@ def package_server(overlay: dict[str, bytes], out_path: Path, verified: dict) ->
         artifact_audit.update(revision="r72", newEraSha256=sha(own_data), newEraSizeBytes=len(own_data))
         manifest_bytes = (json.dumps(server_manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
         artifact_audit["serverManifestSha256"] = sha(manifest_bytes)
-        artifact_audit["questOverlay"] = {path: {"sha256": sha(data), "sizeBytes": len(data)} for path, data in overlay.items()}
+        artifact_audit["sharedOverlay"] = {path: {"sha256": sha(data), "sizeBytes": len(data)} for path, data in overlay.items()}
         changed = {**manifest_file_updates,
                    "server-manifest.json": manifest_bytes,
                    "artifact-audit.json": (json.dumps(artifact_audit, ensure_ascii=False, indent=2) + "\n").encode("utf-8")}
@@ -642,8 +904,8 @@ def verify_full_archives(client_path: Path, server_path: Path, overlay: dict[str
         idx = json.loads(client.read("modrinth.index.json"))
         downloads = [f for f in idx["files"] if f["path"].lower().endswith(".jar")]
         client_overrides = [n for n in client.namelist() if n.startswith("overrides/mods/") and n.lower().endswith(".jar")]
-        if len(downloads) != 43 or len(client_overrides) != 3:
-            raise RuntimeError(f"Windows mrpack target must have 43 downloaded JARs + 3 override JARs, got {len(downloads)} + {len(client_overrides)}")
+        if len(downloads) != 42 or len(client_overrides) != 4:
+            raise RuntimeError(f"Windows mrpack target must have 42 downloaded JARs + 4 override JARs, got {len(downloads)} + {len(client_overrides)}")
         if any(any(hint in Path(f["path"]).name.lower() for hint in GEAR_FEAST_NAME_HINTS) for f in idx["files"]):
             raise RuntimeError("A Gear Feast-specific JAR entered the r72 Windows mod list")
         if any("jei-1201-15.56.0.205.jar" in f["path"] for f in idx["files"]):
@@ -654,6 +916,12 @@ def verify_full_archives(client_path: Path, server_path: Path, overlay: dict[str
         client_own_members = [n for n in client.namelist() if n.lower().endswith("/mods/" + OWN.lower())]
         if len(client_own_members) != 1:
             raise RuntimeError("Windows pack must contain exactly one active New Era JAR")
+        vs_members = [n for n in client.namelist() if n.lower().endswith("/mods/" + VS_JAR.lower())]
+        vs = vs_compat_artifact()
+        if len(vs_members) != 1 or sha(client.read(vs_members[0])) != vs["sha256"]:
+            raise RuntimeError("Windows pack must contain exactly one receipt-verified local VS compatibility JAR")
+        if any(Path(item["path"]).name.lower() == VS_JAR.lower() for item in idx["files"]):
+            raise RuntimeError("Official VS download remains alongside the local compatibility JAR")
         for file in downloads:
             staged = PACK / "inputs/client/mods" / Path(file["path"]).name
             if not staged.is_file():
@@ -677,18 +945,32 @@ def verify_full_archives(client_path: Path, server_path: Path, overlay: dict[str
         }
         if not required_keys.issubset(set(new_options.splitlines())):
             raise RuntimeError("Windows options.txt does not contain the agreed conflict-free phone keys")
-        resourcepack = "overrides/resourcepacks/NewEra-CMM-Model-Fix.zip"
-        if sha(client.read(resourcepack)) != "B104D293F050FBCFFCEE84C505ED38ACD04509704ADCB813797AB01CA05D60E1":
-            raise RuntimeError("Windows CMM model fix resource pack hash mismatch")
+        resource_manifest = json.loads((PACK / "target-manifest-client-resourcepacks.json").read_text(encoding="utf-8"))
+        for row in resource_manifest["resourcepacks"]:
+            member = "overrides/resourcepacks/" + Path(row["path"]).name
+            if sha(client.read(member)) != row["sha256"]:
+                raise RuntimeError("Windows generated resource pack hash mismatch: " + member)
+        expected_order = ["vanilla", "ic2newera:local_mips", FALLBACK_NAME, "Soartex Grove 1.0.4.zip", CMM_NAME,
+                          FIX_NAME, "CMM_FIX_EMF_v.1_[1.20-1.20.1].zip"]
+        options_lines = new_options.splitlines()
+        resource_line = next((line for line in options_lines if line.startswith("resourcePacks:")), "")
+        encoded_order = json.loads(resource_line.removeprefix("resourcePacks:")) if resource_line else []
+        if encoded_order != ["vanilla", "ic2newera:local_mips"] + ["file/" + name for name in expected_order[2:]]:
+            raise RuntimeError("Windows resource pack order is not the approved fallback/Grove/CMM sequence")
         root = "IC2-New-Era-Server-1.20.1-r72-Voice/"
         server_manifest = json.loads(server.read(root + "server-manifest.json"))
         if server_manifest.get("releaseRevision") != "r72" or len(server_manifest.get("mods", [])) != 35:
             raise RuntimeError("Server manifest is not the 35-JAR r72 target")
         server_names_all = server.namelist()
         own_server_members = [n for n in server_names_all if n.lower().endswith("/mods/" + OWN.lower())]
+        vs_server_members = [n for n in server_names_all if n.lower().endswith("/mods/" + VS_JAR.lower())]
         jei_server_members = [n for n in server_names_all if n.lower().endswith("/mods/jei-1.20.1-forge-15.74.0.234.jar")]
         if len(own_server_members) != 1 or len(jei_server_members) != 1:
             raise RuntimeError("Server archive must contain exactly one New Era JAR and one JEI 15.74 JAR")
+        if len(vs_server_members) != 1 or sha(server.read(vs_server_members[0])) != vs["sha256"]:
+            raise RuntimeError("Server archive does not contain the matching single VS compatibility JAR")
+        if sha(client.read(vs_members[0])) != sha(server.read(vs_server_members[0])):
+            raise RuntimeError("Client/server VS compatibility JAR hashes differ")
         if any("/mods/jei-1201-15.56.0.205.jar" in n.lower() for n in server_names_all):
             raise RuntimeError("Old JEI 15.56 JAR remains in server archive")
         if sha(client.read(client_own_members[0])) != sha(server.read(own_server_members[0])):
@@ -722,7 +1004,7 @@ def verify_full_archives(client_path: Path, server_path: Path, overlay: dict[str
             client_member = "overrides/" + rel
             server_member = root + rel
             if client.read(client_member) != data or server.read(server_member) != data:
-                raise RuntimeError("Quest/assistant overlay differs between client and server: " + rel)
+                raise RuntimeError("Shared r72 overlay differs between client and server: " + rel)
         args = server.read(root + "user_jvm_args.txt").decode("utf-8")
         if "-Xmx9G" not in args or "-javaagent:ic2newera-fixed-voice.jar" not in args:
             raise RuntimeError("Server must retain fixed voice and 9GiB heap configuration")
@@ -775,6 +1057,7 @@ def package_release() -> None:
 
 
 def package_release_locked() -> None:
+    vs = vs_compat_artifact()
     native = WORK / "native" / OWN
     native_manifest = native.with_suffix(".manifest.json")
     verified_path = ROOT / "build-isolated/player-packaging/20261113-delight-joint/verified-release.json"
@@ -783,6 +1066,7 @@ def package_release_locked() -> None:
     receipts = json.loads(native_manifest.read_text(encoding="utf-8"))
     if sha_file(native) != str(receipts["result_sha256"]).upper():
         raise RuntimeError("r72 native JAR hash does not match its build receipt")
+    validate_native_appearance(native, receipts)
     verified = json.loads(verified_path.read_text(encoding="utf-8"))
     overlay = quest_payload()
     client_path = DIST / "IC2-New-Era-Windows-1.20.1-r72-Grove-CMM.mrpack"
@@ -830,12 +1114,17 @@ def package_release_locked() -> None:
                 f"{jar['sha256']}  {jar_path.name}\n")
         staged_paths["SHA256SUMS.txt"].write_text(sums, encoding="ascii")
         write_json(staged_paths["release-manifest.json"], {
-            "revision": "r72", "minecraft": "1.20.1", "forge": "47.4.28", "java": "17",
+            "revision": "r72", "buildId": "20261116-r72-lcd-emc", "minecraft": "1.20.1", "forge": "47.4.28", "java": "17",
             "client": {**client, "path": client_path.name},
             "server": {**server, "path": server_path.name},
             "standaloneFirstPartyJar": {**jar, "path": jar_path.name},
             "clientJarCount": 46, "serverJarCount": 35,
             "newEraJarSha256": sha_file(native), "questOverlayCount": len(overlay),
+            "vsCompatibility": {"file": VS_JAR, "sourceSha256": vs["sourceSha256"],
+                                "patchedSha256": vs["sha256"],
+                                "method": vs["method"], "mappingSha256": vs["mappingSha256"],
+                                "patchManifest": vs["manifestPath"].relative_to(ROOT).as_posix()},
+            "clientResourcepacks": json.loads((PACK / "target-manifest-client-resourcepacks.json").read_text(encoding="utf-8"))["resourcepacks"],
             "staticChecks": checks,
             "sourceBaseline": str(CLIENT_BASE.relative_to(ROOT)),
             "serverBaseline": str(SERVER_BASE.relative_to(ROOT)),
@@ -850,8 +1139,8 @@ def package_release_locked() -> None:
                 raise RuntimeError(f"Staged checksum manifest mismatch: {filename}")
         manifest = json.loads(staged_paths["release-manifest.json"].read_text(encoding="utf-8"))
         if (manifest["newEraJarSha256"] != sha_file(jar_tmp)
-                or manifest["client"]["downloadFileCount"] != 47
-                or manifest["client"]["downloadModCount"] != 43):
+                or manifest["client"]["downloadFileCount"] != 46
+                or manifest["client"]["downloadModCount"] != 42):
             raise RuntimeError("Staged release manifest failed validation")
         if any(not staged_paths[name].is_file() for name, _ in final_files):
             raise RuntimeError("Staged release is missing one or more of its five fixed output files")
@@ -940,7 +1229,7 @@ def materialize_stage(index: dict, server_mods: list[dict]) -> None:
     for item in index["files"]:
         name = Path(item["path"]).name.lower()
         modid_hint = Path(item["path"]).stem.lower()
-        if any(h in name or h in modid_hint for h in GEAR_FEAST_NAME_HINTS):
+        if name == VS_JAR.lower() or any(h in name or h in modid_hint for h in GEAR_FEAST_NAME_HINTS):
             continue
         client_files.append({"path": item["path"], "sha1": item["hashes"].get("sha1"),
                              "sha512": item["hashes"].get("sha512"), "fileSize": item.get("fileSize"),
@@ -954,6 +1243,12 @@ def materialize_stage(index: dict, server_mods: list[dict]) -> None:
                          "downloads": [jei["source"]["downloadUrl"]], "fileSize": jei["fileSize"],
                          "source": "r71 approved Modrinth release"})
     overrides = archive_mod_overrides()
+    vs = vs_compat_artifact()
+    overrides = [item for item in overrides if Path(item["path"]).name.lower() != VS_JAR.lower()]
+    overrides.append({"path": "mods/" + VS_JAR, "sha256": vs["sha256"], "sizeBytes": vs["sizeBytes"],
+                      "sourcePath": str(vs["path"].resolve()), "sourceSha256": vs["sourceSha256"],
+                      "sourceKind": "r72 Forge sculk caller-wrapper compatibility",
+                      "patchMethod": vs["method"], "mappingSha256": vs["mappingSha256"]})
     client_manifest = {
         "revision": "r72-target-client-bootstrap", "baseline": str(CLIENT_BASE.relative_to(ROOT)),
         "baselineSha256": sha_file(CLIENT_BASE), "minecraft": index.get("dependencies", {}).get("minecraft"),
@@ -1039,13 +1334,13 @@ def materialize_stage(index: dict, server_mods: list[dict]) -> None:
     (PACK / "inputs/client/README.txt").write_text(
         "r72 Windows 客户端 JAR 安装输入（共46个）\n"
         "mods/ 中所有文件均有逐项 SHA256 清单；共享文件优先使用硬链接以减少磁盘占用。\n"
-        "r70 Windows原清单与3个活动override JAR保留；JEI更新到已批准的15.74.0.234。\n"
-        "新纪元JAR是r72 native最终输出。Windows专用 NewEra-CMM-Model-Fix.zip 位于 pack/overrides/resourcepacks。\n"
+        "r70活动模组保持；JEI升级到15.74.0.234；VS由同名本地兼容JAR替换，客户端override共4个。\n"
+        "客户端资源包包含 NewEra-Grove-Fallback.zip 与 NewEra-CMM-Model-Fix.zip；均由活动资源生成。\n"
         "不包含Gear Feast专属模组、Just Enough Threads、TaCZ addon/JS或玩家存档/账户配置。\n",
         encoding="utf-8")
     with zipfile.ZipFile(CLIENT_BASE) as source:
         base_options = source.read("overrides/options.txt")
-    (PACK / "inputs/client/options.txt").write_bytes(options_with_model_fix(base_options))
+    (PACK / "inputs/client/options.txt").write_bytes(options_with_client_assets(base_options))
 
 
 def main() -> None:
@@ -1059,13 +1354,16 @@ def main() -> None:
     elif args.stage:
         materialize_stage(index, mods)
         client = stage_client_mods(index)
+        vs_compat = stage_vs_compat()
         native = integrate_first_party()
-        model_fix = stage_client_model_fix()
+        client_assets = stage_client_assets(PACK / "inputs/client/mods")
         print(f"Prepared r72 bootstrap in {PACK}")
         print(f"Prepared {client['count']} client JARs at {client['directory']}")
+        print(f"Staged matching client/server VS compatibility JAR {vs_compat['sha256']}")
         if native:
             print(f"Integrated first-party JAR {native['sha256']} into client and debug inputs")
-        print(f"Added Windows CMM resource fix {model_fix['sha256']}")
+        print("Added Windows client resourcepacks " + ", ".join(
+            Path(row["path"]).name + "=" + row["sha256"] for row in client_assets["resourcepacks"]))
     else:
         ap.error("choose --stage or --release")
 

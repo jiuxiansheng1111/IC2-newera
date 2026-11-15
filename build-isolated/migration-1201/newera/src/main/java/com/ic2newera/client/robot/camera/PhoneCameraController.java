@@ -4,6 +4,7 @@ import com.ic2newera.robot.IndustrialPhoneItem;
 import com.ic2newera.field.camera.PhoneCameraView;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.CameraType;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.core.GlobalPos;
@@ -24,6 +25,7 @@ public final class PhoneCameraController {
     private static CameraType previousCamera;
     private static boolean previousGuiHidden;
     private static boolean active;
+    private static Screen returnScreen;
     private static volatile String serverWorldIdentity;
     private static Consumer<CaptureRequest> shutterRequest;
     private static Consumer<UUID> captureSaved;
@@ -42,10 +44,15 @@ public final class PhoneCameraController {
 
     /** Opens a real Minecraft viewfinder; the caller should first charge the phone on the server. */
     public static boolean open() {
+        return open(null);
+    }
+    /** Opens the viewfinder and restores the caller's screen when the user exits. */
+    public static boolean open(Screen parent) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || active || !IndustrialPhoneItem.hasCarriedPhone(mc.player)) return false;
         previousCamera = mc.options.getCameraType();
         previousGuiHidden = mc.options.hideGui;
+        returnScreen = parent;
         active = true;
         mc.setScreen(null);
         mc.options.hideGui = true;
@@ -53,7 +60,7 @@ public final class PhoneCameraController {
         return true;
     }
 
-    static boolean active() { return active; }
+    public static boolean active() { return active; }
 
     static void cycleView() {
         Minecraft mc = Minecraft.getInstance();
@@ -64,16 +71,33 @@ public final class PhoneCameraController {
     }
 
     static void close() {
-        if (!active) return;
+        if (active) Minecraft.getInstance().setScreen(finishViewfinder());
+    }
+    /** Restore the world view once. Callers can return to the phone without opening nested screens. */
+    static Screen finishViewfinder() {
+        if (!active) return null;
         Minecraft mc = Minecraft.getInstance();
         active = false;
         mc.options.setCameraType(previousCamera == null ? CameraType.FIRST_PERSON : previousCamera);
         mc.options.hideGui = previousGuiHidden;
+        Screen parent = returnScreen;
+        returnScreen = null;
+        return mc.player != null && mc.level != null
+                && (mc.player.getMainHandItem().getItem() instanceof IndustrialPhoneItem
+                    || mc.player.getOffhandItem().getItem() instanceof IndustrialPhoneItem) ? parent : null;
     }
 
     static void restoreIfWorldClosed() {
-        if (active && (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null)) close();
+        if (active && (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null)) finishViewfinder();
         if (Minecraft.getInstance().player == null || Minecraft.getInstance().level == null) serverWorldIdentity = null;
+    }
+
+    static void openGalleryFromViewfinder() {
+        Minecraft mc = Minecraft.getInstance();
+        Screen parent = finishViewfinder();
+        if (mc.player != null && mc.level != null && IndustrialPhoneItem.hasCarriedPhone(mc.player))
+            mc.setScreen(new PhoneGalleryScreen(parent));
+        else mc.setScreen(null);
     }
 
     /** Optional network hook: server validates phone power, selected target and viewpoint before approving. */

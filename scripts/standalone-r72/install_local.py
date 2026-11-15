@@ -75,6 +75,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--client-mods", type=Path, required=True)
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--native-only", action="store_true",
+                        help="Update just New Era in an existing r72 profile, preserving its current quest and player files")
     args = parser.parse_args()
     receipt = next((OLD / "existing-forge-backups/1.20.1-Forge_47.4.28").glob("*/install-receipt.json"))
     old = json.loads(receipt.read_bytes())
@@ -104,6 +106,8 @@ def main():
         if history.get("state") == "installed":
             r72_installed = set(targets) == {p.name for p in mods.glob("*.jar")}
             camera_migrated |= history.get("cameraBindingsMigrated", False)
+    if args.native_only and not r72_installed:
+        raise ValueError("A native-only update requires an installed r72 mod set")
     instance = inside(WORK, "local-install/" + uuid.uuid4().hex)
     stage = inside(instance, "new")
     backup = inside(instance, "previous")
@@ -118,17 +122,19 @@ def main():
         changes["mods"] = stage / "mods"
     else:
         for name, source in targets.items():
+            if args.native_only and name != OWN:
+                continue
             if sha(source) != sha(mods / name):
                 changes["mods/" + name] = source
     installed_chapters = inside(profile, QUESTS)
     chapters = {p.relative_to(chapter_src): sha(p) for p in chapter_src.rglob("*") if p.is_file()}
     active = {p.relative_to(installed_chapters): sha(p) for p in installed_chapters.rglob("*") if p.is_file()}
-    if chapters != active:
+    if not args.native_only and chapters != active:
         changes[QUESTS] = stage / QUESTS
-    if not inside(profile, AI).is_file() or sha(inside(profile, AI)) != sha(overlay / AI):
+    if not args.native_only and (not inside(profile, AI).is_file() or sha(inside(profile, AI)) != sha(overlay / AI)):
         changes[AI] = overlay / AI
     options = inside(profile, "options.txt")
-    if not camera_migrated and options.exists():
+    if not args.native_only and not camera_migrated and options.exists():
         data = upgraded_camera_keys(options)
         if data != options.read_bytes():
             dest = inside(stage, "options.txt")
@@ -212,10 +218,11 @@ def main():
             op["state"] = "installed"
         if set(p.name for p in mods.glob("*.jar")) != set(targets):
             raise RuntimeError("Installed mod set differs")
-        if any(sha(mods / name) != sha(source) for name, source in targets.items()):
+        checked = {OWN: own} if args.native_only else targets
+        if any(sha(mods / name) != sha(source) for name, source in checked.items()):
             raise RuntimeError("Installed mod bytes differ")
         record["modCount"] = len(targets)
-        record["cameraBindingsMigrated"] = True
+        record["cameraBindingsMigrated"] = camera_migrated if args.native_only else True
         record["nativeSha256"] = sha(mods / OWN)
         record["state"] = "installed"
         save()

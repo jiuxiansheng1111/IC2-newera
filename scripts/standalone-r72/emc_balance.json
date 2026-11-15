@@ -1,0 +1,225 @@
+{
+  "revision": "r72-runtime-export-cycle-closures-2",
+  "minecraft": "1.20.1",
+  "forge": "47.4.28",
+  "projecte": "1.0.1",
+  "projecteJarSha256": "F51F387E56307E7CDA26915CA0C789760D85E97A8B40B8BFA0988BE66371D018",
+  "recipeJarSha256s": {
+    "tacz-forge-1.20.1-1.2.0.jar": "1C2F2915F76908D396A0DA577665C977564C279CCB89D459A00A29225AA45A92",
+    "Re-Avaritia-forge-1.20.1-1.4.2-release.jar": "E8C1E6DB0448E450EE21ACFD1FABFD9E9BE8D1A95BBB46268CA2F8A98B172475",
+    "TConstruct-1.20.1-3.11.2.166.jar": "653B49D73481A1325BA78ADC7273DEE6C765A51BAFDF264A7510576D6EF91C43",
+    "ic2-forge-2.10.33-ex120.jar": "9C2BAABD51F6E5EECC0E75F9B0DC8474DD6D2A3DD701B1000924253D3ACA110F",
+    "create-1201-6.0.8.jar": "6FBB910C367DBCE8E4FC7E5BF64B6EDD4DE980906ED00AF8E47E4AF843C0D9B0"
+  },
+  "minecraftJarSha256": "56B71336D2B4FDFFD197F56595B0DA93E32A946F78F382A299B8F4B92758BB0F",
+  "sourceLogSha256": "BDBED8194AF3E060DC639572C92BE27B94AA2316F8B6DC69CB0C4276C24E79A9",
+  "values": {
+    "minecraft:gunpowder": 43,
+    "minecraft:heart_of_the_sea": 6640,
+    "minecraft:echo_shard": 16,
+    "minecraft:sniffer_egg": 94,
+    "minecraft:sculk_catalyst": 448,
+    "minecraft:iron_ingot": 252,
+    "minecraft:iron_block": 2268,
+    "minecraft:gold_ingot": 2016,
+    "minecraft:gold_block": 18144,
+    "minecraft:copper_ingot": 126,
+    "minecraft:copper_block": 1134,
+    "minecraft:diamond": 8064,
+    "minecraft:diamond_block": 72576,
+    "minecraft:emerald": 16128,
+    "minecraft:emerald_block": 145152,
+    "minecraft:ender_pearl": 1008,
+    "minecraft:ender_eye": 1520,
+    "minecraft:netherite_scrap": 12285,
+    "minecraft:netherite_ingot": 28602,
+    "minecraft:netherite_block": 257418,
+    "ic2:iron_dust": 252,
+    "ic2:gold_dust": 2016,
+    "ic2:copper_dust": 126,
+    "ic2:small_iron_dust": 28,
+    "ic2:small_gold_dust": 224,
+    "ic2:small_copper_dust": 14,
+    "ic2:iron_plate": 252,
+    "ic2:gold_plate": 2016,
+    "ic2:copper_plate": 126,
+    "ic2:dense_iron_plate": 2268,
+    "ic2:dense_gold_plate": 18144,
+    "ic2:dense_copper_plate": 1134,
+    "create:iron_sheet": 252,
+    "create:golden_sheet": 2016,
+    "create:copper_sheet": 126,
+    "ad_astra:iron_plate": 252,
+    "minecraft:trident": 8944,
+    "minecraft:soul_soil": 1,
+    "minecraft:soul_sand": 49,
+    "minecraft:quartz": 94,
+    "minecraft:gold_nugget": 224,
+    "minecraft:iron_nugget": 28,
+    "create:copper_nugget": 14,
+    "minecraft:sentry_armor_trim_smithing_template": 56449,
+    "ic2:industrial_diamond": 8064,
+    "create:andesite_alloy": 44,
+    "create:andesite_alloy_block": 396
+  },
+  "evidence": [
+    {
+      "recipe": "tacz:gunpowder",
+      "inputs": "3 charcoal + 2 sugar + 1 flint",
+      "inputEmc": 130,
+      "output": "3 minecraft:gunpowder",
+      "oldOutputEmc": 192,
+      "newOutputEmc": 129
+    },
+    {
+      "recipe": "ic2:shaped/gunpowder",
+      "inputs": "5 redstone + 4 ic2:coal_dust (the latter is in the preserved EMC=0 intermediate list)",
+      "inputEmc": 592,
+      "output": "3 minecraft:gunpowder",
+      "newOutputEmc": 129
+    },
+    {
+      "recipe": "minecraft:heart_of_the_sea (Re-Avaritia shaped table)",
+      "inputs": "1 ender eye + 4 prismarine shards + 4 nautilus shells",
+      "inputEmc": 6640,
+      "output": "1 minecraft:heart_of_the_sea",
+      "oldOutputEmc": 32768,
+      "newOutputEmc": 6640,
+      "previousR72OutputEmc": 6896
+    },
+    {
+      "recipe": "minecraft:echo_shard (Re-Avaritia table) and reverse 4 echo shards -> sculk",
+      "inputs": "1 sculk",
+      "inputEmc": 16,
+      "output": "1 minecraft:echo_shard",
+      "oldOutputEmc": 192,
+      "newOutputEmc": 16
+    },
+    {
+      "recipe": "minecraft:sniffer_egg (Re-Avaritia shaped table)",
+      "inputEmc": 94,
+      "output": "1 minecraft:sniffer_egg",
+      "oldOutputEmc": 2048,
+      "newOutputEmc": 94
+    },
+    {
+      "recipe": "minecraft:sculk_catalyst (Re-Avaritia shaped table)",
+      "inputEmc": 448,
+      "output": "1 minecraft:sculk_catalyst",
+      "oldOutputEmc": 8040,
+      "newOutputEmc": 448
+    },
+    {
+      "recipe": "minecraft:iron_ingot <-> 9 iron nuggets; 8 iron ingots <-> 1 gold ingot; iron/copper exchange; 4 gold -> diamond",
+      "invariant": "iron=252; copper=126; gold=min(9*224,8*252)=2016; diamond=min(8064,4*2016)=8064; emerald=2*8064=16128; ender pearl=min(existing 1024,4*252)=1008; ender eye=1008+512=1520"
+    },
+    {
+      "recipe": "Actual runtime recipe: 2 gold + 2 netherite scrap -> 1 netherite ingot; then 9 ingots -> block",
+      "invariant": "Before this correction the runtime EMC output was ingot=57204, block=514836. Actual recipe cost=2*2016+2*12285=28602; final ingot=28602 and block=9*28602=257418."
+    },
+    {
+      "recipe": "Runtime tag clamp and conversions",
+      "invariant": "forge:ingots/iron=252, forge:ingots/gold=2016, forge:ingots/copper=126; forge:gems/diamond=8064, forge:gems/emerald=16128, forge:gems/quartz=94; forge:nuggets/gold=224, forge:nuggets/iron=28, forge:nuggets/copper=14. The copper nugget tag has exactly create:copper_nugget and tconstruct:copper_nugget; both are 14. All matching items are fixed. This runtime price map is the 2,507-entry pass2-record export."
+    },
+    {
+      "recipe": "2 gold + 2 netherite scrap -> netherite ingot",
+      "inputEmc": 28602,
+      "output": "1 minecraft:netherite_ingot",
+      "newOutputEmc": 28602,
+      "previousR72OutputEmc": 57204
+    },
+    {
+      "recipe": "Heart of the Sea and trident",
+      "invariant": "Heart of the Sea final value=1520+4*256+4*1024=6640 (previous runtime value 6896). Trident final cost=6640+1024+256+2*512=8944 (previous runtime output 16398)."
+    },
+    {
+      "recipe": "Avaritia armor trim duplication",
+      "invariant": "Sentry template material cost=7*8064+1 cobblestone=56449; clamp template to 56449. The other 16 templates are below their material input cost."
+    },
+    {
+      "recipe": "Create haunting/soul_soil and Avaritia soul_sand",
+      "invariant": "dirt=1 -> soul soil=1 is exactly value-neutral. Keep soul_sand=49. Root separately changes only the Avaritia soul_sand recipe to 2 soul soil +2 sand +1 quartz ->2 soul sand, cost/output=98; preserve Create haunting and washing."
+    },
+    {
+      "recipe": "Active Re-Avaritia minecraft:music_disc_5 override; recipe ID replaces vanilla same-ID recipe",
+      "inputs": "4 avaritia:record_fragment (1,024 each) + 1 minecraft:echo_shard (16)",
+      "inputEmc": 4112,
+      "output": "1 minecraft:music_disc_5 (2,048)",
+      "netEmc": -2064,
+      "finding": "No price change. The vanilla 9×disc_fragment_5 recipe is not active because Re-Avaritia overrides data/minecraft/recipes/music_disc_5.json."
+    },
+    {
+      "recipe": "Create andesite-derived stonecutting outputs; active Create 6.0.8 and vanilla 1.20.1 recipes",
+      "invariant": "At current prices, one andesite→polished andesite/stairs/wall and Create cut/pillar/brick singles are 16→16. Single input→two slab outputs are 16→2×8. These paths remain neutral when vanilla andesite crafting becomes 1 input-value (16) output; do not lower stonecutting or Create decorative EMC."
+    },
+    {
+      "recipe": "Create mixing/andesite_alloy.json; separate alloy path identified during audit",
+      "inputs": "1 minecraft:andesite (16) +1 forge:nuggets/iron (28)",
+      "inputEmc": 44,
+      "output": "1 create:andesite_alloy (88)",
+      "netEmc": 44,
+      "finding": "Recorded separately from the requested vanilla workbench correction. Root instructed to retain alloy EMC in this patch; do not claim this separate mixer route was closed."
+    },
+    {
+      "recipe": "minecraft:andesite; actual Forge 47.4.28 vanilla recipe",
+      "inputEmc": 17,
+      "inputs": "1 minecraft:cobblestone (1 EMC) + 1 minecraft:diorite (16 EMC)",
+      "output": "2 minecraft:andesite",
+      "previousRuntimeItemEmc": 16,
+      "previousTotalOutputEmc": 32,
+      "previousNetEmc": 15,
+      "agreedMinimalRecipeChange": "Change only this crafting recipe result count from 2 to 1. New total output EMC=16, below input cost17; retain andesite EMC16 and all polished/stonecutting/Create variant prices."
+    },
+    {
+      "recipe": "Active Re-Avaritia minecraft:music_disc_5 override; same ID as vanilla recipe",
+      "inputs": "4 avaritia:record_fragment (1,024 each) + 1 minecraft:echo_shard (16)",
+      "inputEmc": 4112,
+      "output": "1 minecraft:music_disc_5 (2,048)",
+      "netEmc": -2064,
+      "finding": "No price change. Re-Avaritia overrides data/minecraft/recipes/music_disc_5.json; the vanilla 9×disc_fragment_5 recipe is not active."
+    },
+    {
+      "recipe": "Avaritia avaritia:record_fragment; four fragments from a music disc",
+      "inputs": "1 music disc (2,048) + 4 avaritia:neutron_pile (512 each)",
+      "inputEmc": 4096,
+      "output": "4 avaritia:record_fragment (1,024 each)",
+      "outputEmc": 4096,
+      "netEmc": 0
+    },
+    {
+      "recipe": "Create andesite-derived stonecutting outputs; Create 6.0.8 and vanilla 1.20.1",
+      "invariant": "At current prices, andesite→polished-andesite/stairs/wall and Create cut/pillar/brick singles are 16→16. One block→two slab outputs is 16→2×8. These remain neutral after the vanilla andesite crafting output is 1. Do not lower stonecutting or Create decorative EMC."
+    },
+    {
+      "recipe": "Create mixing/andesite_alloy.json; separate mixer route identified in audit",
+      "inputs": "1 minecraft:andesite (16) + 1 forge:nuggets/iron (28)",
+      "inputEmc": 44,
+      "output": "1 create:andesite_alloy (44)",
+      "netEmc": 0,
+      "finding": "Clamp alloy to verified mixing input cost44. Then 9 alloys (396) <-> 1 andesite alloy block (396) is neutral; preserve Create mixer, crafting, and stonecutting recipes."
+    },
+    {
+      "recipe": "create:andesite_alloy_block.json and create:andesite_alloy_from_block.json",
+      "inputs": "9 create:andesite_alloy (9×44)",
+      "inputEmc": 396,
+      "output": "1 create:andesite_alloy_block (396); reverse yields 9 alloys (9×44)",
+      "outputEmc": 396,
+      "netEmc": 0,
+      "finding": "Explicit after-table clamps only alloy and its 9:1 block, preserving neutral compression/decompression without changing Create recipes."
+    }
+  ],
+  "preserve": [
+    "minecraft:quartz",
+    "minecraft:soul_sand",
+    "ic2newera controlled-intermediate EMC=0 registrations",
+    "all washing recipes and unrelated custom EMC entries",
+    "minecraft:quartz=94 and quartz washing (0.5*94 + 0.02*224 = 51.48; divided by soul_sand 49 gives +5.06%)",
+    "minecraft:soul_sand=49; Create haunting conversions and all washing recipes",
+    "71 controlled intermediate EMC=0 registrations and unrelated user custom entries"
+  ],
+  "runtimeMapSha256": "CE06BA0161828F6EC8553FF4120EE6908FC8E0BBF8D564E5BAC29F4DC576CAD0",
+  "runtimeMapEntries": 2507,
+  "runtimeConversionResource": "data/ic2newera/pe_custom_conversions/r72_runtime_cycle_closures.json",
+  "runtimeConversionResourceSha256": "3CEA1738B3621BFCDD024936D1DC4DA10A03470B9EBE9DAC3BD5195BD8C9890E",
+  "runtimeMapSourcePath": "build-isolated/player-packaging/20261114-r72-standalone/W2/emc-runtime/pass2-record.json"
+}

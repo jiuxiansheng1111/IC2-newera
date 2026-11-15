@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,7 +37,7 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
 
     private final Object energyLock = new Object();
     private final AtomicBoolean energyDirty = new AtomicBoolean();
-    private int storedEU;
+    private double storedEU;
     /** Purchased service ticks remaining, including the current tick, in [0, 12]. */
     private int paidTicks;
     private long lastTickGameTime = Long.MIN_VALUE;
@@ -68,7 +69,7 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
     /** Public task board: nearby valid players work only on their own records. */
     public boolean canUse(ServerPlayer player) { return player != null && !isRemoved(); }
     public boolean isPowered() { return powered; }
-    public int storedEU() { synchronized (energyLock) { return storedEU; } }
+    public int storedEU() { synchronized (energyLock) { return (int) storedEU; } }
     public int remainingPeriodTicks() { return paidTicks; }
 
     @Override public Component getDisplayName() { return Component.translatable("block.ic2newera.field_notice_board"); }
@@ -78,7 +79,10 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
 
     @Override public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide) registerEnergy();
+        if (level instanceof ServerLevel server) {
+            registerEnergy();
+            syncLitState(server);
+        }
     }
     private void registerEnergy() {
         if (!registered && level != null && !level.isClientSide && EnergyNet.instance != null) {
@@ -112,16 +116,17 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
         lastTickGameTime = gameTime;
         boolean oldPower = powered;
         if (paidTicks == 0) {
+            boolean hasEnergy;
             synchronized (energyLock) {
-                if (storedEU < EU_PER_PERIOD) {
-                    powered = false;
-                    if (oldPower) {
-                        setChanged();
-                        server.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-                    }
-                    return;
-                }
-                storedEU -= EU_PER_PERIOD;
+                hasEnergy = storedEU >= EU_PER_PERIOD;
+                if (hasEnergy) storedEU -= EU_PER_PERIOD;
+            }
+            if (!hasEnergy) {
+                powered = false;
+                if (oldPower) setChanged();
+                boolean stateUpdated = syncLitState(server);
+                if (oldPower && !stateUpdated) sendClientDataUpdate(server);
+                return;
             }
             paidTicks = PERIOD_TICKS;
             EnergyThreading.markChanged(this, energyDirty);
@@ -130,12 +135,33 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
         // consume exactly 100 EU, including the final paid tick.
         paidTicks--;
         powered = true;
-        if (oldPower != powered || paidTicks == 0) {
-            server.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-        }
+        boolean stateUpdated = syncLitState(server);
+        // The UI reads storedEU directly from its client-side block entity. Refresh
+        // that snapshot once per paid period, or on a power edge, without a second
+        // client update when the LIT blockstate already sent this tick's update.
+        if ((oldPower != powered || paidTicks == 0) && !stateUpdated) sendClientDataUpdate(server);
         // Persist the paid service remainder while active so chunk reloads cannot
         // repeat paid ticks. An idle, unpowered board performs no dirty writes.
         setChanged();
+    }
+
+    /** The blockstate is the single client-visible source for the display's power lamp. */
+    private boolean syncLitState(ServerLevel server) {
+        BlockState state = server.getBlockState(worldPosition);
+        if (state.getBlock() != FieldBoardContent.FIELD_NOTICE_BOARD.get()
+                || !state.hasProperty(FieldBoardBlock.LIT)
+                || state.getValue(FieldBoardBlock.LIT) == powered) return false;
+        // Change the visual property without neighbor callbacks, then send exactly one
+        // client update carrying both the new state and this block entity's live EU.
+        BlockState updated = state.setValue(FieldBoardBlock.LIT, powered);
+        if (!server.setBlock(worldPosition, updated, 0)) return false;
+        server.sendBlockUpdated(worldPosition, state, updated, Block.UPDATE_CLIENTS);
+        setChanged();
+        return true;
+    }
+    private void sendClientDataUpdate(ServerLevel server) {
+        BlockState state = server.getBlockState(worldPosition);
+        server.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
     }
 
     @Override public int getSinkTier() { return SINK_TIER; }
@@ -148,9 +174,11 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
         // tier 1 maps to 32 EU per packet through EnergyNetGlobal.getPowerFromTier.
         if (level == null || level.isClientSide || !Double.isFinite(amount) || amount <= 0
                 || !Double.isFinite(voltage) || voltage > getSinkTier() || EnergyNet.instance == null) return amount;
-        int accepted;
+        double accepted;
         synchronized (energyLock) {
-            accepted = (int) Math.min(Math.floor(amount), CAPACITY - storedEU);
+            // IC2 can offer fractional EU after cable losses. Several small deliveries
+            // must be able to buy a full service period without forcing a grid rebuild.
+            accepted = Math.min(amount, CAPACITY - storedEU);
             storedEU += accepted;
         }
         if (accepted > 0) EnergyThreading.markChanged(this, energyDirty);
@@ -164,7 +192,7 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
     @Override public int addEnergy(int amount) {
         int accepted;
         synchronized (energyLock) {
-            accepted = Math.min(Math.max(0, amount), CAPACITY - storedEU);
+            accepted = Math.min(Math.max(0, amount), (int) (CAPACITY - storedEU));
             storedEU += accepted;
         }
         if (accepted > 0) EnergyThreading.markChanged(this, energyDirty);
@@ -177,14 +205,16 @@ public final class BoardBlockEntity extends BlockEntity implements IEnergySink, 
 
     @Override protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
-        tag.putInt(ENERGY_KEY, storedEU());
+        synchronized (energyLock) { tag.putDouble(ENERGY_KEY, storedEU); }
         tag.putInt(PERIOD_KEY, paidTicks);
         tag.putLong(LAST_TICK_KEY, lastTickGameTime);
         tag.putBoolean(POWERED_KEY, powered);
     }
     @Override public void load(CompoundTag tag) {
         super.load(tag);
-        synchronized (energyLock) { storedEU = Math.max(0, Math.min(CAPACITY, tag.getInt(ENERGY_KEY))); }
+        // Numeric NBT also reads the integer used by existing worlds.
+        double saved = tag.getDouble(ENERGY_KEY);
+        synchronized (energyLock) { storedEU = Double.isFinite(saved) ? Math.max(0, Math.min(CAPACITY, saved)) : 0; }
         paidTicks = Math.max(0, Math.min(PERIOD_TICKS, tag.getInt(PERIOD_KEY)));
         lastTickGameTime = tag.contains(LAST_TICK_KEY) ? tag.getLong(LAST_TICK_KEY) : Long.MIN_VALUE;
         // A paid period's final tick is still powered. This is also the tick sent

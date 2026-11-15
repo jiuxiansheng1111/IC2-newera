@@ -1,0 +1,10 @@
+allprojects {
+    tasks.register('printCompatClasspath') {
+        dependsOn 'createMcpToSrg'
+        doLast {
+            def out = new File(project.findProperty('compatClasspathFile') ?: new File(System.getProperty('java.io.tmpdir'), 'r72-vs-compile-classpath.txt').absolutePath)
+            out.text = sourceSets.main.compileClasspath.asPath
+            println("Saved compile classpath to ${out}")
+        }
+    }
+}

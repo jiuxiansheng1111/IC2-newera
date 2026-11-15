@@ -156,6 +156,13 @@ public final class PhoneGalleryScreen extends Screen {
         localPlace = PhoneCameraStorage.metadataSummary(selectedId(), localWorld, localFingerprint);
     }
     @Override public void tick() {
+        var mc = Minecraft.getInstance();
+        if (mc.player == null || !(mc.player.getMainHandItem().is(com.ic2newera.robot.RobotRegistry.PHONE.get())
+                || mc.player.getOffhandItem().is(com.ic2newera.robot.RobotRegistry.PHONE.get()))) {
+            if (activeScreen == this) activeScreen = null;
+            mc.setScreen(null);
+            return;
+        }
         if (mode == 0 && !Objects.equals(localWorld, PhoneCameraController.serverWorldIdentity())) updateLocalPlace();
     }
 

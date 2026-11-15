@@ -2,6 +2,7 @@ package com.ic2newera.field.board;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,20 +24,37 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 
 public final class FieldBoardBlock extends BaseEntityBlock {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    private static final VoxelShape NORTH_SHAPE = Shapes.or(
+            // Display panel: the front plane faces north at z=4.
+            net.minecraft.world.level.block.Block.box(0.5, 4.4, 4.0, 15.5, 13.4, 4.4),
+            // Enclosure behind the display, ending at z=7.7.
+            net.minecraft.world.level.block.Block.box(0.5, 4.0, 4.4, 15.5, 13.8, 7.7),
+            // Floor base, central support, and wall mounting plate.
+            net.minecraft.world.level.block.Block.box(3.6, 0.0, 4.1, 12.4, 0.7, 11.8),
+            net.minecraft.world.level.block.Block.box(7.0, 0.7, 8.0, 9.0, 7.7, 11.5),
+            net.minecraft.world.level.block.Block.box(5.0, 6.0, 9.0, 11.0, 12.0, 11.5));
+    private static final java.util.Map<Direction, VoxelShape> SHAPES = java.util.Map.of(
+            Direction.NORTH, NORTH_SHAPE, Direction.EAST, rotateFromNorth(Direction.EAST),
+            Direction.SOUTH, rotateFromNorth(Direction.SOUTH), Direction.WEST, rotateFromNorth(Direction.WEST));
 
     public FieldBoardBlock(Properties properties) {
         super(properties);
-        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
+        registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
     @Override public RenderShape getRenderShape(BlockState state) { return RenderShape.MODEL; }
     @Override protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
     @Override public BlockState getStateForPlacement(BlockPlaceContext context) {
         return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
@@ -46,6 +64,29 @@ public final class FieldBoardBlock extends BaseEntityBlock {
     }
     @Override public BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+    @Override public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPES.get(state.getValue(FACING));
+    }
+    @Override public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        return SHAPES.get(state.getValue(FACING));
+    }
+    @Override public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+        return Shapes.empty();
+    }
+    private static VoxelShape rotateFromNorth(Direction facing) {
+        VoxelShape rotated = Shapes.empty();
+        for (var box : NORTH_SHAPE.toAabbs()) {
+            double minX, minZ, maxX, maxZ;
+            switch (facing) {
+                case EAST -> { minX = 1.0 - box.maxZ; maxX = 1.0 - box.minZ; minZ = box.minX; maxZ = box.maxX; }
+                case SOUTH -> { minX = 1.0 - box.maxX; maxX = 1.0 - box.minX; minZ = 1.0 - box.maxZ; maxZ = 1.0 - box.minZ; }
+                case WEST -> { minX = box.minZ; maxX = box.maxZ; minZ = 1.0 - box.maxX; maxZ = 1.0 - box.minX; }
+                default -> { return NORTH_SHAPE; }
+            }
+            rotated = Shapes.or(rotated, Shapes.box(minX, box.minY, minZ, maxX, box.maxY, maxZ));
+        }
+        return rotated;
     }
     @Override public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new BoardBlockEntity(pos, state);
