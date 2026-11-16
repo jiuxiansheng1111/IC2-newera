@@ -26,7 +26,7 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
         UiButton settings = addRenderableWidget(new UiButton(leftPos + 12, topPos + 30, buttonWidth, 20,
                 UiText.fit(font, Component.literal("模型设置"), buttonWidth - 8),
                 button -> minecraft.setScreen(new LLMSettingsScreen(this))));
-        settings.setTooltip(Tooltip.create(Component.literal("设置模型服务地址、模型 ID、密钥和检索选项；也可保存后打开测试对话。")));
+        settings.setTooltip(Tooltip.create(Component.literal("选择助手、机器人和蓝图共用的 API、模型及授权方式。")));
         UiButton chat = addRenderableWidget(new UiButton(leftPos + 16 + buttonWidth, topPos + 30, buttonWidth, 20,
                 UiText.fit(font, Component.literal("与 AI 对话"), buttonWidth - 8),
                 button -> minecraft.setScreen(new LLMChatScreen(this))));
@@ -53,12 +53,15 @@ public final class AssistantScreen extends AbstractContainerScreen<AssistantMenu
     }
     @Override protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(font, Component.literal("新纪元 · AI 助手"), 12, 12, IndustrialPalette.TEXT, false);
-        LLMConfig config = LLMConfig.current();
+        LLMConfig config = LLMConfig.current(LLMConfig.Feature.ASSISTANT);
         List<Component> paragraphs = List.of(
                 Component.literal("新纪元里程碑已移至「进度」中的「IC2：新纪元」分页。也可按进度快捷键或从暂停菜单打开。"),
-                Component.literal("当前模型：" + (config.model().isBlank() ? "尚未设置" : config.model())),
+                Component.literal("助手问答模型：" + (config.model().isBlank() ? "尚未选择" : config.model())),
                 Component.translatable(config.enabled() ? "screen.ic2newera.settings.ai_enabled" : "screen.ic2newera.settings.ai_disabled"),
-                Component.literal(config.apiKey().isBlank() ? "未保存 API Key；需要认证的接口请先在模型设置中填写。" : "API Key 已保存在本机。"),
+                Component.literal(LLMConfig.SUBSCRIPTION_PROVIDER.equals(config.provider())
+                        ? "模型授权方式为本机 QQ Cat Robot 的 ChatGPT 登录。"
+                        : LLMConfig.OLLAMA_PROVIDER.equals(config.provider()) ? "当前通过 Ollama 连接模型服务。"
+                        : config.apiKey().isBlank() ? "如服务商要求密钥，可在模型设置中填写。" : "此服务的 API 密钥已保存在本机。"),
                 Component.literal("可以询问所有已安装模组；回答会区分本机模组资料与网页检索结果。"),
                 Component.literal("联网检索：" + (config.webSearchEnabled() ? "开启" : "关闭")
                         + "；本机模组资料：" + (config.modInspectionEnabled() ? "开启" : "关闭")

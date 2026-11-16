@@ -76,8 +76,6 @@ public final class IC2NewEra {
                 "ic2newera-field-places-server.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.ic2newera.media.NativeMediaConfig.SPEC,
                 "ic2newera-media-common.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, com.ic2newera.media.SongModel.SPEC,
-                "ic2newera-song-model-common.toml");
         NetworkHandler.register();
         com.ic2newera.robot.RobotPackets.register();
         com.ic2newera.field.FieldJournal.register();

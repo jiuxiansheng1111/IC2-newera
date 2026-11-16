@@ -9,12 +9,14 @@ import java.net.URI;
 public final class NativeMediaConfig {
     private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     private static final ForgeConfigSpec.BooleanValue ENABLED;
-    private static final ForgeConfigSpec.ConfigValue<String> BASE_URL, API_KEY, MODEL, VOICE_URL, MUSIC_LOGIN_OWNER_UUID;
+    private static final ForgeConfigSpec.ConfigValue<String> PROVIDER, BASE_URL, API_KEY, MODEL, VOICE_URL, MUSIC_LOGIN_OWNER_UUID;
     private static final ForgeConfigSpec.IntValue TIMEOUT, MAX_TOKENS;
     public static final ForgeConfigSpec SPEC;
     static {
         BUILDER.comment("Dedicated-server model settings. Never synced through game packets. Singleplayer reuses the existing client AI settings.").push("server_ai");
         ENABLED = BUILDER.define("enabled", false);
+        PROVIDER = BUILDER.comment("openai_compatible, openai, anthropic, ollama, deepseek or chatgpt_subscription")
+                .define("provider", LLMConfig.API_PROVIDER);
         BASE_URL = BUILDER.define("baseUrl", "");
         MODEL = BUILDER.define("model", "");
         API_KEY = BUILDER.comment("Administrator-owned credential. Never share this file with players.").define("apiKey", "");
@@ -30,9 +32,9 @@ public final class NativeMediaConfig {
         SPEC = BUILDER.build();
     }
     private NativeMediaConfig() { }
-    public static LLMConfig modelFor(MinecraftServer server) {
-        if (!server.isDedicatedServer()) return LLMConfig.current();
-        return new LLMConfig(ENABLED.get(), "openai_compatible", BASE_URL.get(), API_KEY.get(), MODEL.get(),
+    public static LLMConfig modelFor(MinecraftServer server, LLMConfig.Feature feature) {
+        if (!server.isDedicatedServer()) return LLMConfig.current(feature);
+        return new LLMConfig(ENABLED.get(), PROVIDER.get(), BASE_URL.get(), API_KEY.get(), MODEL.get(),
                 TIMEOUT.get(), MAX_TOKENS.get(), false, false, false);
     }
     public static URI voiceEndpoint() {

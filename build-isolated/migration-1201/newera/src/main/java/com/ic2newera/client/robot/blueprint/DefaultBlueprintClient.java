@@ -46,7 +46,7 @@ public final class DefaultBlueprintClient implements BlueprintClientBridge {
     }
     @Override public void planImageLocally(Path file,UUID robot,boolean remote,int workers,String description,Consumer<String> status,Consumer<Result> done){
         status.accept("正在读取图片；图片将发送至你配置的视觉模型，生成三维外观方案……");
-        LLMConfig config=LLMConfig.current();
+        LLMConfig config=LLMConfig.current(LLMConfig.Feature.BLUEPRINT);
         var connection=Minecraft.getInstance().getConnection();
         CompletableFuture.supplyAsync(()->image(readFile(file)),FILES)
                 .thenCompose(data->LLMTransport.blueprint(config,SYSTEM,prompt(description),data))
@@ -56,7 +56,7 @@ public final class DefaultBlueprintClient implements BlueprintClientBridge {
         if(description==null || description.isBlank()){done.accept(Result.failure("请先描述外观、尺寸和配色。"));return;}
         status.accept("正在由你配置的AI规划方块外观，完成后仅生成预览……");
         var connection=Minecraft.getInstance().getConnection();
-        LLMTransport.blueprint(LLMConfig.current(),SYSTEM,prompt(description),null)
+        LLMTransport.blueprint(LLMConfig.current(LLMConfig.Feature.BLUEPRINT),SYSTEM,prompt(description),null)
                 .whenComplete((json,error)->Minecraft.getInstance().execute(()->finishAI(json,error,robot,remote,workers,status,done,connection)));
     }
     private static String prompt(String text){return "请设计可由多名机器人逐块施工的三维建筑。外观优先，内部留空。要求："+(text==null || text.isBlank()?"还原参考图的外形、颜色和比例，尺寸适合约15×15格建筑。":text.substring(0,Math.min(1200,text.length())));}

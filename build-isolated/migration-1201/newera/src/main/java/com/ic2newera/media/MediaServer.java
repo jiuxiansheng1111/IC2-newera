@@ -74,6 +74,7 @@ public final class MediaServer {
     private record ActiveSong(MusicTrack track, SongConversation.Listening listening, long expires) { }
     private static final class Job {
         final long started = System.nanoTime();
+        final ServerPlayer owner;
         final int operation;
         final long replyRevision;
         final LLMConfig model;
@@ -87,6 +88,12 @@ public final class MediaServer {
         volatile InputStream input;
         volatile Future<?> future;
         volatile CompletableFuture<String> modelFuture;
+        volatile CompletableFuture<String> delegatedModelFuture;
+        final UUID ticket;
+        final boolean personalModel;
+        final boolean songRecall;
+        int modelSequence, modelRequestCount;
+        volatile int pendingModelSequence = -1;
         volatile String remoteCoverId;
         private Audio stagedAudio;
         volatile MusicTrack preparedTrack;
@@ -95,19 +102,43 @@ public final class MediaServer {
         SongConversation.Context songRecallContext;
         volatile String songReply = "";
         volatile NetEaseMusicProvider.PublicComments publicComments = new NetEaseMusicProvider.PublicComments(List.of(), "");
-        Job(int operation, long replyRevision, ServerPlayer player, UUID target, String character, long likedAuthorizationRevision) {
-            this.operation = operation; this.replyRevision = replyRevision;
-            this.target = target; this.character = character;
+        Job(MediaPackets.Request request, long replyRevision, ServerPlayer player, String character,
+            long likedAuthorizationRevision, boolean songRecall) {
+            owner = player;
+            this.ticket = request.ticket();
+            this.operation = request.operation();
+            this.replyRevision = replyRevision;
+            this.target = request.target();
+            this.character = character;
+            this.songRecall = songRecall;
+            var feature = MediaPackets.modelFeature(operation, songRecall);
+            this.personalModel = request.personalModel() && feature != null;
             dedicated = player.server.isDedicatedServer();
             ownerMusicSession = NativeMediaConfig.musicLoginOwner(player);
             musicSessionRevision = NetEaseLoginService.sessionRevision(player);
             this.likedAuthorizationRevision = likedAuthorizationRevision;
-            model = MediaPackets.isChat(operation) || MediaPackets.isSongChat(operation) || operation == MediaPackets.SMART_SEARCH ? NativeMediaConfig.modelFor(player.server) : null;
+            model = feature != null && !personalModel ? NativeMediaConfig.modelFor(player.server, feature) : null;
         }
         void cancel() {
             Audio staged;
-            synchronized (this) { canceled = true; staged = stagedAudio; stagedAudio = null; }
-            discard(staged); close(input); if (modelFuture != null) modelFuture.cancel(true); if (future != null) future.cancel(true);
+            CompletableFuture<String> delegated;
+            int sequence;
+            synchronized (this) {
+                canceled = true;
+                staged = stagedAudio;
+                stagedAudio = null;
+                delegated = delegatedModelFuture;
+                sequence = pendingModelSequence;
+            }
+            discard(staged);
+            close(input);
+            var local = modelFuture;
+            if (local != null) local.cancel(true);
+            if (delegated != null) delegated.cancel(true);
+            var worker = future;
+            if (worker != null) worker.cancel(true);
+            if (sequence >= 0 && !owner.hasDisconnected())
+                MediaPackets.CHANNEL.send(PacketDistributor.PLAYER.with(() -> owner), new MediaPackets.ModelCancel(ticket, operation, sequence));
             String remote = remoteCoverId;
             if (remote != null) { Thread cleanup = new Thread(() -> deleteCover(remote), "IC2-NewEra-Cover-Cleanup"); cleanup.setDaemon(true); cleanup.start(); }
         }
@@ -384,8 +415,9 @@ public final class MediaServer {
         }
         final Session active = session;
         final String character = robot == null ? text(body, "character", 32) : robot.character().id;
-        Job job = new Job(operation, session.replyRevision, player, request.target(), character,
-                body.has("liked_revision") ? body.get("liked_revision").getAsLong() : Long.MIN_VALUE); session.jobs.put(request.ticket(), job);
+        Job job = new Job(request, session.replyRevision, player, character,
+                body.has("liked_revision") ? body.get("liked_revision").getAsLong() : Long.MIN_VALUE, songRecallContext != null);
+        session.jobs.put(request.ticket(), job);
         job.songRecallContext = songRecallContext;
         try {
             job.future = executor.submit(() -> perform(active, request, body, character, job));
@@ -433,7 +465,7 @@ public final class MediaServer {
         if (!robot.allowChat(player)) { error(player, request.ticket(), "机器人电量不足 2000 EU，或聊天过快。"); return; }
         IndustrialPhoneItem.consumeHeld(player, IndustrialPhoneItem.COMMAND_COST); player.getInventory().setChanged();
         session.replyRevision++;
-        Job job = new Job(MediaPackets.SONG_CHAT, session.replyRevision, player, request.target(), robot.character().id, Long.MIN_VALUE);
+        Job job = new Job(request, session.replyRevision, player, robot.character().id, Long.MIN_VALUE, false);
         job.songContext = SongConversation.context(player, robot, active.track(), active.listening());
         session.jobs.put(request.ticket(), job);
         try {
@@ -448,9 +480,7 @@ public final class MediaServer {
                     }
                     job.publicComments = fetched;
                     String prompt = request.messages().get(request.messages().size() - 1).content();
-                    NativeMediaLlm.Completion completion = (modelPrompt, history) -> SongModel.complete(job.model,
-                            job.songContext, modelPrompt, history, () -> job.canceled,
-                            () -> completeModel(job, modelPrompt, history));
+                    NativeMediaLlm.Completion completion = (modelPrompt, history) -> completeModel(job, modelPrompt, history);
                     job.songReply = SongConversation.answer(job.songContext, prompt, fetched.excerpts(), fetched.status(), completion);
                     player.server.execute(() -> {
                         if (!valid(session, request, job)) return;
@@ -494,7 +524,7 @@ public final class MediaServer {
             error(player, request.ticket(), IndustrialPhoneItem.EMPTY_MESSAGE); return;
         }
         IndustrialPhoneItem.consumeHeld(player, IndustrialPhoneItem.COMMAND_COST); player.getInventory().setChanged();
-        Job job = new Job(MediaPackets.SONG_COMMENTS, session.replyRevision, player, MediaPackets.NONE, "", Long.MIN_VALUE);
+        Job job = new Job(request, session.replyRevision, player, "", Long.MIN_VALUE, false);
         session.jobs.put(request.ticket(), job);
         try {
             job.future = WORK.submit(() -> {
@@ -639,8 +669,7 @@ public final class MediaServer {
             }
             NativeMediaLlm.Completion completion = (prompt, history) -> {
                 if (MediaPackets.isChat(op) && job.songRecallContext != null)
-                    return SongModel.complete(job.model, job.songRecallContext, prompt, history,
-                            () -> job.canceled, () -> completeModel(job, prompt, history));
+                    return completeModel(job, prompt, history);
                 return completeModel(job, MediaPackets.isChat(op)
                         ? withRobotCompanionshipPrompt(prompt, body.getAsJsonObject("context")) : prompt, history);
             };
@@ -809,6 +838,7 @@ public final class MediaServer {
     }
     private static String completeModel(Job job, String prompt, List<LLMTransport.Message> history) throws Exception {
         if (job.canceled || Thread.currentThread().isInterrupted()) throw new InterruptedException();
+        if (job.personalModel) return delegatedModel(job, prompt, history);
         if (job.model == null || !job.model.enabled()) throw new IOException(job.dedicated
                 ? "服主尚未启用模型，请在 ic2newera-media-common.toml 的 server_ai 中配置。"
                 : "请先在助手的模型设置中启用并保存 AI 连接。");
@@ -823,6 +853,49 @@ public final class MediaServer {
         } catch (TimeoutException timeout) {
             throw new IOException("模型请求超时，请重试。", timeout);
         } finally { if (!future.isDone()) future.cancel(true); job.modelFuture = null; }
+    }
+
+    private static String delegatedModel(Job job, String prompt, List<LLMTransport.Message> history) throws Exception {
+        if (job.ticket == null || job.canceled || System.nanoTime() - job.started > TimeUnit.SECONDS.toNanos(180))
+            throw new InterruptedException("媒体请求已失效。");
+        final int sequence;
+        CompletableFuture<String> result = new CompletableFuture<>();
+        synchronized (job) {
+            if (job.canceled || job.modelRequestCount >= 8 || job.pendingModelSequence >= 0)
+                throw new IOException("个人模型请求次数或并发超出限制。");
+            sequence = job.modelSequence++;
+            job.modelRequestCount++; job.pendingModelSequence = sequence; job.delegatedModelFuture = result;
+        }
+        try {
+            var entries = history.stream().map(m -> new MediaPackets.Message(m.role(), m.content())).toList();
+            var packet = new MediaPackets.ModelRequest(job.ticket, job.operation, sequence, job.songRecall, prompt, entries);
+            MediaPackets.CHANNEL.send(PacketDistributor.PLAYER.with(() -> job.owner), packet);
+            long remaining = job.started + TimeUnit.SECONDS.toNanos(180) - System.nanoTime();
+            return result.get(Math.max(0, remaining), TimeUnit.NANOSECONDS);
+        }
+        catch (TimeoutException timeout) { throw new IOException("个人模型请求超时，请重试。", timeout); }
+        catch (ExecutionException failed) { throw new IOException("个人模型调用失败；未切换到其他账号。", failed.getCause()); }
+        finally {
+            if (!result.isDone() && !job.canceled && !job.owner.hasDisconnected())
+                MediaPackets.CHANNEL.send(PacketDistributor.PLAYER.with(() -> job.owner), new MediaPackets.ModelCancel(job.ticket, job.operation, sequence));
+            synchronized (job) { if (job.pendingModelSequence == sequence) job.pendingModelSequence = -1; job.delegatedModelFuture = null; }
+        }
+    }
+
+    public static void modelReply(ServerPlayer player, MediaPackets.ModelReply reply) {
+        Session session = SESSIONS.get(player.getUUID());
+        if (session == null || session.player != player) return;
+        Job job = session.jobs.get(reply.ticket());
+        if (job == null || !job.personalModel || job.operation != reply.operation()) return;
+        CompletableFuture<String> result;
+        synchronized (job) {
+            if (job.canceled || job.pendingModelSequence != reply.sequence()) return;
+            result = job.delegatedModelFuture;
+        }
+        if (result == null) return;
+        if (!reply.error().isBlank()) result.completeExceptionally(new IOException("客户端模型调用失败，请检查助手中的接口、模型和授权。"));
+        else if (reply.text().isBlank()) result.completeExceptionally(new IOException("个人模型未返回文字答复。"));
+        else result.complete(reply.text());
     }
 
     private static String withRobotCompanionshipPrompt(String prompt, JsonObject context) {

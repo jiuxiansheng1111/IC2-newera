@@ -8,359 +8,490 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import java.util.ArrayList;
-import java.util.List;
 
-/** Local-only configuration for an OpenAI-compatible chat endpoint. */
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.net.URI;
+import java.util.Objects;
+
+/** Draft editor for the shared model connection and optional per-feature model overrides. */
 public final class LLMSettingsScreen extends Screen {
-    private static final int CONTENT_TOP = 50;
+    private static final int CONTENT_TOP = 42;
+    private static final int ROW_GAP = 8;
+    private static final int PROVIDER_COUNT = 5;
+    private final Screen parent;
     private final List<FormRow> rows = new ArrayList<>();
     private final List<AbstractWidget> fixedWidgets = new ArrayList<>();
-    private int panelWidth, left, footerY, viewportBottom, formHeight;
-    private record FormRow(AbstractWidget widget, Component label, Component detail,
-                           int x, int width, int y, int labelHeight) { }
-    private final Screen parent;
-    private UiEditBox baseUrl;
-    private UiEditBox model;
-    private UiEditBox apiKey;
-    private UiEditBox timeout;
-    private Button enabledButton;
-    private Button webSearchButton;
-    private Button modInspectionButton;
-    private Button codeInspectionButton;
-    private Button presetButton;
+    private final List<UiEditBox> editBoxes = new ArrayList<>();
+    private final Map<LLMConfig.Feature, String> featureDrafts = new EnumMap<>(LLMConfig.Feature.class);
+    private final Map<LLMConfig.Feature, UiEditBox> featureFields = new EnumMap<>(LLMConfig.Feature.class);
+    private int providerIndex;
+    private boolean subscriptionAuth;
+    private boolean enabled, webSearch, modInspection, codeInspection;
+    private int panelWidth, left, footerY, viewportBottom, formHeight, scroll;
+    private UiEditBox baseUrl, model, apiKey, timeout;
+    private Button providerButton, authButton, enabledButton, webSearchButton, modInspectionButton, codeInspectionButton;
     private Button clearKeyButton;
-    private boolean enabled;
-    private boolean webSearch;
-    private boolean modInspection;
-    private boolean codeInspection;
+    private String keyDraftOrigin = "";
     private Component status = Component.translatable("screen.ic2newera.llm.ready");
     private boolean statusError;
-    private int scroll;
+
+    private record FormRow(List<AbstractWidget> widgets, Component label, Component detail,
+                           int y, int labelHeight, int detailHeight) { }
 
     public LLMSettingsScreen(Screen parent) {
         super(Component.translatable("screen.ic2newera.llm.title"));
         this.parent = parent;
-        this.enabled = LLMConfig.current().enabled();
         LLMConfig config = LLMConfig.current();
+        this.providerIndex = providerIndex(config.provider());
+        this.subscriptionAuth = LLMConfig.SUBSCRIPTION_PROVIDER.equals(config.provider());
+        this.enabled = config.enabled();
         this.webSearch = config.webSearchEnabled();
         this.modInspection = config.modInspectionEnabled();
         this.codeInspection = config.codeInspectionEnabled();
+        this.featureDrafts.putAll(LLMConfig.overrides());
     }
+
+    private static int providerIndex(String provider) {
+        String service = LLMConfig.SUBSCRIPTION_PROVIDER.equals(provider) ? LLMConfig.OPENAI_PROVIDER : provider;
+        for (int i = 0; i < PROVIDER_COUNT; i++) if (service.equals(providerAt(i))) return i;
+        return indexOf(LLMConfig.API_PROVIDER);
+    }
+
+    private static int indexOf(String provider) {
+        for (int i = 0; i < PROVIDER_COUNT; i++) if (provider.equals(providerAt(i))) return i;
+        return 0;
+    }
+
+    private static String providerAt(int index) {
+        return switch (index) {
+            case 0 -> LLMConfig.OPENAI_PROVIDER;
+            case 1 -> LLMConfig.OLLAMA_PROVIDER;
+            case 2 -> LLMConfig.CLAUDE_PROVIDER;
+            case 3 -> LLMConfig.DEEPSEEK_PROVIDER;
+            default -> LLMConfig.API_PROVIDER;
+        };
+    }
+
+    private String serviceProvider() { return providerAt(providerIndex); }
+    private String activeProvider() { return subscriptionAuth ? LLMConfig.SUBSCRIPTION_PROVIDER : serviceProvider(); }
 
     @Override
     protected void init() {
-        String urlDraft = baseUrl == null ? LLMConfig.current().baseUrl() : baseUrl.getValue();
-        String modelDraft = model == null ? LLMConfig.current().model() : model.getValue();
+        LLMConfig current = LLMConfig.current();
+        String urlDraft = baseUrl == null ? current.baseUrl() : baseUrl.getValue();
+        String modelDraft = model == null ? current.model() : model.getValue();
         String keyDraft = apiKey == null ? "" : apiKey.getValue();
-        String timeoutDraft = timeout == null ? Integer.toString(LLMConfig.current().timeoutSeconds()) : timeout.getValue();
-        int focusedIndex = -1;
-        for (int i = 0; i < rows.size(); i++) if (rows.get(i).widget().isFocused()) focusedIndex = i;
-        int[] carets = {baseUrl == null ? urlDraft.length() : baseUrl.getCursorPosition(),
-                model == null ? modelDraft.length() : model.getCursorPosition(),
-                apiKey == null ? keyDraft.length() : apiKey.getCursorPosition(),
-                timeout == null ? timeoutDraft.length() : timeout.getCursorPosition()};
-        rows.clear();
-        fixedWidgets.clear();
-        panelWidth = Math.max(40, Math.min(680, width - 24));
+        String timeoutDraft = timeout == null ? Integer.toString(current.timeoutSeconds()) : timeout.getValue();
+        int focused = -1;
+        for (int i = 0; i < rows.size(); i++) if (!rows.get(i).widgets().isEmpty() && rows.get(i).widgets().get(0).isFocused()) focused = i;
+
+        rows.clear(); fixedWidgets.clear(); editBoxes.clear(); featureFields.clear();
+        panelWidth = Math.max(220, Math.min(680, width - 24));
         left = (width - panelWidth) / 2;
         footerY = height - 48;
-        viewportBottom = Math.max(CONTENT_TOP, footerY - statusCapacity() * font.lineHeight - 12);
-        presetButton = fixed(new UiButton(left, 25, panelWidth, 20,
-                Component.translatable("screen.ic2newera.llm.preset_zhipu_free"), button -> applyZhipuFreePreset()));
-        presetButton.setTooltip(Tooltip.create(Component.literal("填入智谱免费快速模型的示例地址、模型 ID 和 60 秒超时，并开启 AI 服务；不会填写或更改 API 密钥。")));
-        baseUrl = field("screen.ic2newera.llm.base_url", urlDraft, 512);
-        baseUrl.setPlaceholder(Component.literal("https://api.example.com/v1"));
-        baseUrl.setTooltip(Tooltip.create(Component.literal("填写兼容 OpenAI Chat Completions 的 API 根地址。远程地址须使用 HTTPS；HTTP 仅允许 localhost、127.0.0.1 或本机回环地址。")));
-        model = field("screen.ic2newera.llm.model", modelDraft, 128);
-        model.setPlaceholder(Component.literal("服务商提供的模型 ID"));
-        model.setTooltip(Tooltip.create(Component.literal("按服务商文档填写模型 ID，需与地址和账户权限匹配；留空时不能开启并保存。")));
-        apiKey = field("screen.ic2newera.llm.api_key", keyDraft, 512);
-        apiKey.setTooltip(Tooltip.create(Component.literal("密钥保存在当前玩家客户端配置，只用于连接 AI 服务，不发送给游戏服务器或其他玩家。留空会保留已保存密钥；用下方“清除密钥”按钮删除。")));
-        updateKeyHint();
-        apiKey.setFormatter((value, cursor) -> Component.literal("•".repeat(value.length())).getVisualOrderText());
-        timeout = field("请求超时（秒，1–600）", timeoutDraft, 3);
-        timeout.setTooltip(Tooltip.create(Component.literal("每次准备资料和请求 AI 的总等待上限，允许 1–600 秒。超时后可检查网络和服务状态，或适当延长此值。")));
-        enabledButton = new UiButton(0, 0, 1, 20, enabledLabel(), button -> {
-            enabled = !enabled; button.setMessage(enabledLabel());
-            updateToggleTooltips();
-        });
-        enabledButton.setTooltip(Tooltip.create(Component.literal("当前：" + (enabled ? "开启。" : "关闭。")
-                + "点击" + (enabled ? "关闭" : "开启") + " AI 服务。关闭时聊天不会发送请求。")));
-        webSearchButton = new UiButton(0, 0, 1, 20, webSearchLabel(), button -> {
-            webSearch = !webSearch; button.setMessage(webSearchLabel());
-            updateToggleTooltips();
-        });
-        webSearchButton.setTooltip(Tooltip.create(Component.literal("当前：" + (webSearch ? "开启。" : "关闭。")
-                + "点击" + (webSearch ? "关闭" : "开启") + "公开网页检索；开启后问题及相关检索词会发送给网页搜索服务。")));
-        modInspectionButton = new UiButton(0, 0, 1, 20, modInspectionLabel(), button -> {
-            modInspection = !modInspection; button.setMessage(modInspectionLabel());
-            codeInspectionButton.setMessage(codeInspectionLabel());
-            codeInspectionButton.active = modInspection;
-            updateToggleTooltips();
-        });
-        modInspectionButton.setTooltip(Tooltip.create(Component.literal("当前：" + (modInspection ? "开启。" : "关闭。")
-                + "点击" + (modInspection ? "关闭" : "开启") + "本机模组资料读取；开启时会整理已安装模组和与问题相关的公开注册表、配方资料。")));
-        codeInspectionButton = new UiButton(0, 0, 1, 20, codeInspectionLabel(), button -> {
-            codeInspection = !codeInspection; button.setMessage(codeInspectionLabel());
-            updateToggleTooltips();
-        });
-        codeInspectionButton.active = modInspection;
-        codeInspectionButton.setTooltip(Tooltip.create(Component.literal("当前：" + (codeInspection ? "开启。" : "关闭。")
-                + (modInspection ? "点击" + (codeInspection ? "关闭" : "开启") + "只读静态代码检索；不会执行代码。" : "需先开启本机模组资料读取，再启用此项。"))));
-        clearKeyButton = new UiButton(0, 0, 1, 20,
-                Component.translatable("screen.ic2newera.llm.clear_key"), button -> clearKey());
-        clearKeyButton.setTooltip(Tooltip.create(Component.literal("立即删除此客户端配置中已保存的 AI 密钥；不会更改地址、模型或其他选项。")));
+        viewportBottom = Math.max(CONTENT_TOP + 20, footerY - statusCapacity() * font.lineHeight - 10);
+        int y = 0;
 
-        int columns = panelWidth >= 560 ? 2 : 1;
-        int cellWidth = (panelWidth - (columns - 1) * 12) / columns;
-        AbstractWidget[] controls = {baseUrl, model, apiKey, timeout, enabledButton, webSearchButton,
-                modInspectionButton, codeInspectionButton, clearKeyButton};
-        String[] labels = {"screen.ic2newera.llm.base_url", "screen.ic2newera.llm.model",
-                "screen.ic2newera.llm.api_key", "请求超时（秒，1–600）", "", "", "", "", ""};
-        String[] details = {"远程地址必须为 HTTPS；HTTP 仅允许本机回环地址。",
-                "填写服务商支持且账户可访问的模型 ID。",
-                "只保存在当前玩家客户端；留空保留已保存密钥。",
-                "每次请求的等待上限，范围 1–600 秒。", "",
-                "开启后，问题和相关检索词会发送给公开网页搜索服务。",
-                "开启后读取已安装模组版本，以及与问题相关的注册 ID、配方和手册资料。",
-                "只读扫描相关模组 JAR 类信息，不执行代码；必须先开启本机模组资料。", ""};
-        int rowY = 3;
-        for (int i = 0; i < controls.length; i += columns) {
-            int rowHeight = 0;
-            for (int column = 0; column < columns && i + column < controls.length; column++) {
-                int index = i + column;
-                Component label = Component.translatable(labels[index]);
-                Component detail = Component.literal(details[index]);
-                int labelHeight = labels[index].isEmpty() ? 0 : font.split(label, cellWidth).size() * font.lineHeight + 4;
-                int detailHeight = details[index].isEmpty() ? 0 : font.split(detail, cellWidth).size() * font.lineHeight + 4;
-                rows.add(new FormRow(addWidget(controls[index]), label, detail,
-                        left + column * (cellWidth + 12), cellWidth, rowY, labelHeight));
-                rowHeight = Math.max(rowHeight, labelHeight + 20 + detailHeight + 10);
-            }
-            rowY += rowHeight;
+        providerButton = new UiButton(0, 0, 1, 20, providerLabel(), button -> cycleProvider());
+        providerButton.setTooltip(Tooltip.create(Component.translatable("screen.ic2newera.llm.provider_hint")));
+        y = addRow(providerButton, null, Component.translatable("screen.ic2newera.llm.provider"),
+                Component.translatable("screen.ic2newera.llm.provider_detail"), y);
+
+        baseUrl = field("screen.ic2newera.llm.base_url", urlDraft, 512);
+        baseUrl.setPlaceholder(Component.translatable("screen.ic2newera.llm.url_placeholder"));
+        baseUrl.setResponder(this::addressDraftChanged);
+        y = addRow(baseUrl, null, Component.translatable("screen.ic2newera.llm.base_url"),
+                Component.translatable("screen.ic2newera.llm.endpoint_hint"), y);
+
+        if (isOpenAiService()) {
+            authButton = new UiButton(0, 0, 1, 20, authLabel(), button -> toggleAuth());
+            authButton.setTooltip(Tooltip.create(Component.translatable("screen.ic2newera.llm.auth_hint")));
+            y = addRow(authButton, null, Component.translatable("screen.ic2newera.llm.authorization"),
+                    Component.translatable("screen.ic2newera.llm.auth_detail"), y);
+        } else authButton = null;
+
+        if (!subscriptionAuth) {
+            apiKey = field("screen.ic2newera.llm.api_key", keyDraft, 512);
+            apiKey.setFormatter((value, cursor) -> Component.literal("•".repeat(value.length())).getVisualOrderText());
+            apiKey.setPlaceholder(Component.translatable("screen.ic2newera.llm.key_placeholder"));
+            apiKey.setResponder(value -> {
+                if (!value.isBlank() && keyDraftOrigin.isBlank()) keyDraftOrigin = originOf(baseUrl.getValue());
+                if (value.isBlank()) keyDraftOrigin = "";
+            });
+            clearKeyButton = new UiButton(0, 0, 1, 20, Component.translatable("screen.ic2newera.llm.clear_key"), button -> clearSavedKey());
+            clearKeyButton.active = LLMConfig.savedKeyMatches(activeProvider(), baseUrl.getValue());
+            clearKeyButton.setTooltip(Tooltip.create(Component.translatable("screen.ic2newera.llm.clear_key_hint")));
+            y = addRow(apiKey, clearKeyButton, Component.translatable("screen.ic2newera.llm.api_key"),
+                    Component.translatable("screen.ic2newera.llm.key_detail"), y);
+        } else { apiKey = null; clearKeyButton = null; }
+
+        int modelSection = y;
+        model = field("screen.ic2newera.llm.model", modelDraft, 128);
+        model.setPlaceholder(Component.translatable("screen.ic2newera.llm.model_placeholder"));
+        Button catalogButton = new UiButton(0, 0, 1, 20, Component.translatable("screen.ic2newera.llm.get_models"), button -> openCatalog());
+        catalogButton.setTooltip(Tooltip.create(Component.translatable("screen.ic2newera.llm.get_models_hint")));
+        y = addRow(model, catalogButton, Component.translatable("screen.ic2newera.llm.model"),
+                Component.translatable("screen.ic2newera.llm.model_detail"), y);
+
+        for (LLMConfig.Feature feature : LLMConfig.Feature.values()) {
+            String draft = featureDrafts.getOrDefault(feature, "");
+            UiEditBox override = field("screen.ic2newera.llm.feature_override", draft, 128);
+            override.setResponder(value -> {
+                String cleaned = value.trim();
+                if (cleaned.isEmpty()) featureDrafts.remove(feature); else featureDrafts.put(feature, cleaned);
+            });
+            featureFields.put(feature, override);
+            Button followDefault = new UiButton(0, 0, 1, 20,
+                    Component.translatable("screen.ic2newera.llm.follow_default"), button -> {
+                override.setValue(""); featureDrafts.remove(feature); status = Component.translatable("screen.ic2newera.llm.default_restored"); statusError = false;
+            });
+            Button selectOverride = new UiButton(0, 0, 1, 20, Component.translatable("screen.ic2newera.llm.choose_model"),
+                    button -> openCatalog(feature, override));
+            y = addRow(override, selectOverride, followDefault, featureLabel(feature),
+                    Component.translatable("screen.ic2newera.llm.feature_detail"), y);
         }
-        formHeight = rowY + font.split(Component.translatable("screen.ic2newera.llm.warning"), panelWidth).size() * font.lineHeight + 8;
-        int half = (panelWidth - 6) / 2;
-        fixed(new UiButton(left, footerY, half, 20,
+
+        int optionsSection = y;
+        timeout = field("screen.ic2newera.llm.timeout", timeoutDraft, 3);
+        y = addRow(timeout, null, Component.translatable("screen.ic2newera.llm.timeout"),
+                Component.translatable("screen.ic2newera.llm.timeout_detail"), y);
+        enabledButton = toggle("screen.ic2newera.llm.enabled", enabled,
+                () -> { enabled = !enabled; refreshToggles(); });
+        y = addRow(enabledButton, null, Component.translatable("screen.ic2newera.llm.enabled_label"),
+                Component.translatable("screen.ic2newera.llm.enabled_detail"), y);
+        webSearchButton = toggle("screen.ic2newera.llm.web_search", webSearch,
+                () -> { webSearch = !webSearch; refreshToggles(); });
+        y = addRow(webSearchButton, null, Component.translatable("screen.ic2newera.llm.web_search"),
+                Component.translatable("screen.ic2newera.llm.web_search_detail"), y);
+        modInspectionButton = toggle("screen.ic2newera.llm.mod_inspection", modInspection,
+                () -> { modInspection = !modInspection; refreshToggles(); });
+        y = addRow(modInspectionButton, null, Component.translatable("screen.ic2newera.llm.mod_inspection"),
+                Component.translatable("screen.ic2newera.llm.mod_inspection_detail"), y);
+        codeInspectionButton = toggle("screen.ic2newera.llm.code_inspection", codeInspection,
+                () -> { codeInspection = !codeInspection; refreshToggles(); });
+        codeInspectionButton.active = modInspection;
+        y = addRow(codeInspectionButton, null, Component.translatable("screen.ic2newera.llm.code_inspection"),
+                Component.translatable("screen.ic2newera.llm.code_inspection_detail"), y);
+        formHeight = y;
+
+        int gap = 6, buttonWidth = (panelWidth - 2 * gap) / 3;
+        addFixed(new UiButton(left, 20, buttonWidth, 18, Component.translatable("screen.ic2newera.llm.section_connection"),
+                button -> jumpTo(0)));
+        addFixed(new UiButton(left + buttonWidth + gap, 20, buttonWidth, 18, Component.translatable("screen.ic2newera.llm.section_models"),
+                button -> jumpTo(modelSection)));
+        addFixed(new UiButton(left + 2 * (buttonWidth + gap), 20, panelWidth - 2 * (buttonWidth + gap), 18,
+                Component.translatable("screen.ic2newera.llm.section_options"), button -> jumpTo(optionsSection)));
+        addFixed(new UiButton(left, footerY, buttonWidth, 20,
                 Component.translatable("screen.ic2newera.llm.save"), button -> saveSettings()));
-        fixedWidgets.get(fixedWidgets.size() - 1).setTooltip(Tooltip.create(Component.literal("保存地址、模型、超时和检索开关。密钥输入框留空时保留现有密钥。")));
-        fixed(new UiButton(left + half + 6, footerY, panelWidth - half - 6, 20,
+        addFixed(new UiButton(left + buttonWidth + gap, footerY, buttonWidth, 20,
                 Component.translatable("screen.ic2newera.llm.test"), button -> {
-                    if (!enabled) {
-                        status = Component.literal("请先开启 AI 服务，再进入测试对话。"); statusError = true;
-                    } else if (saveSettings()) minecraft.setScreen(new LLMChatScreen(this));
-                }));
-        fixedWidgets.get(fixedWidgets.size() - 1).setTooltip(Tooltip.create(Component.literal("先验证并保存设置，再打开聊天页；不会自动发送问题。若 AI 未开启或必填项无效，请按状态提示修正。")));
-        fixed(new UiButton(left, height - 24, panelWidth, 20,
+            if (saveSettings()) minecraft.setScreen(new LLMChatScreen(this));
+        }));
+        addFixed(new UiButton(left + 2 * (buttonWidth + gap), footerY, panelWidth - 2 * (buttonWidth + gap), 20,
                 Component.translatable("gui.back"), button -> onClose()));
-        fixedWidgets.get(fixedWidgets.size() - 1).setTooltip(Tooltip.create(Component.literal("返回上一页；尚未保存的修改不会写入配置。")));
         updateWidgetPositions();
-        for (int i = 0; i < carets.length; i++) ((UiEditBox)controls[i]).moveCursorTo(carets[i]);
-        if (focusedIndex >= 0 && focusedIndex < rows.size()) {
-            setInitialFocus(rows.get(focusedIndex).widget());
-            revealFocused();
+        if (focused >= 0 && focused < rows.size() && !rows.get(focused).widgets().isEmpty()) {
+            setInitialFocus(rows.get(focused).widgets().get(0)); revealFocused();
         }
     }
+
+    private int addRow(AbstractWidget first, AbstractWidget second, Component label, Component detail, int y) {
+        return addRow(first, second, null, label, detail, y);
+    }
+
+    private int addRow(AbstractWidget first, AbstractWidget second, AbstractWidget third,
+                       Component label, Component detail, int y) {
+        int labelHeight = font.split(label, panelWidth).size() * font.lineHeight + 3;
+        int detailHeight = font.split(detail, panelWidth).size() * font.lineHeight + 3;
+        List<AbstractWidget> widgets = third != null ? List.of(first, second, third)
+                : second == null ? List.of(first) : List.of(first, second);
+        widgets.forEach(this::addRenderableWidget);
+        rows.add(new FormRow(widgets, label, detail, y, labelHeight, detailHeight));
+        int rowHeight = labelHeight + 20 + detailHeight + ROW_GAP;
+        return y + rowHeight;
+    }
+
+    private void addFixed(AbstractWidget widget) { fixedWidgets.add(widget); addRenderableWidget(widget); }
 
     private UiEditBox field(String label, String value, int maxLength) {
-        UiEditBox field = new UiEditBox(font, 0, 0, panelWidth, 20, Component.translatable(label));
-        field.setMaxLength(maxLength);
-        field.setValue(value);
-        return field;
+        UiEditBox box = new UiEditBox(font, 0, 0, panelWidth, 20, Component.translatable(label));
+        box.setMaxLength(maxLength);
+        box.setValue(value);
+        box.moveCursorTo(0);
+        editBoxes.add(box);
+        return box;
     }
 
-    private <T extends AbstractWidget> T fixed(T widget) {
-        fixedWidgets.add(widget);
-        return addWidget(widget);
+    private void jumpTo(int section) {
+        scroll = section;
+        updateWidgetPositions();
     }
 
-    private Component enabledLabel() {
-        return Component.literal("AI 服务：").append(Component.translatable(enabled
-                ? "screen.ic2newera.llm.enabled" : "screen.ic2newera.llm.disabled"));
+    private Button toggle(String translation, boolean value, Runnable action) {
+        return new UiButton(0, 0, 1, 20, Component.translatable(value
+                ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"), button -> {
+            action.run(); button.setMessage(Component.translatable(valueFor(translation)
+                    ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"));
+        });
     }
 
-    private Component webSearchLabel() { return Component.literal("联网检索：" + (webSearch ? "开启" : "关闭")); }
-    private Component modInspectionLabel() { return Component.literal("本机模组资料：" + (modInspection ? "开启" : "关闭")); }
-    private Component codeInspectionLabel() {
-        return Component.literal("静态代码资料：" + (modInspection ? (codeInspection ? "开启" : "关闭") : "需先开启本机模组资料"));
+    private boolean valueFor(String translation) {
+        return switch (translation) {
+            case "screen.ic2newera.llm.enabled" -> enabled;
+            case "screen.ic2newera.llm.web_search" -> webSearch;
+            case "screen.ic2newera.llm.mod_inspection" -> modInspection;
+            default -> codeInspection;
+        };
     }
 
-    private void updateToggleTooltips() {
-        enabledButton.setTooltip(Tooltip.create(Component.literal("当前：" + (enabled ? "开启。" : "关闭。")
-                + "点击" + (enabled ? "关闭" : "开启") + " AI 服务。关闭时聊天不会发送请求。")));
-        webSearchButton.setTooltip(Tooltip.create(Component.literal("当前：" + (webSearch ? "开启。" : "关闭。")
-                + "点击" + (webSearch ? "关闭" : "开启") + "公开网页检索；开启后问题及相关检索词会发送给网页搜索服务。")));
-        modInspectionButton.setTooltip(Tooltip.create(Component.literal("当前：" + (modInspection ? "开启。" : "关闭。")
-                + "点击" + (modInspection ? "关闭" : "开启") + "本机模组资料读取；开启时会整理已安装模组和与问题相关的公开注册表、配方资料。")));
-        codeInspectionButton.setTooltip(Tooltip.create(Component.literal("当前：" + (codeInspection ? "开启。" : "关闭。")
-                + (modInspection ? "点击" + (codeInspection ? "关闭" : "开启") + "只读静态代码检索；不会执行代码。" : "需先开启本机模组资料读取，再启用此项。"))));
+    private void refreshToggles() {
+        enabledButton.setMessage(Component.translatable(enabled ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"));
+        webSearchButton.setMessage(Component.translatable(webSearch ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"));
+        modInspectionButton.setMessage(Component.translatable(modInspection ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"));
+        codeInspectionButton.setMessage(Component.translatable(codeInspection ? "screen.ic2newera.llm.toggle_on" : "screen.ic2newera.llm.toggle_off"));
+        codeInspectionButton.active = modInspection;
     }
 
-    private void applyZhipuFreePreset() {
-        baseUrl.setValue("https://open.bigmodel.cn/api/paas/v4");
-        model.setValue("glm-4-flash-250414");
-        timeout.setValue("60");
-        enabled = true;
-        enabledButton.setMessage(enabledLabel());
-        updateToggleTooltips();
-        status = Component.translatable("screen.ic2newera.llm.preset_zhipu_free_applied");
-        statusError = false;
+    private Component providerLabel() { return Component.translatable(providerTranslation(serviceProvider())); }
+    private Component featureLabel(LLMConfig.Feature feature) {
+        String key = switch (feature) {
+            case ASSISTANT -> "assistant";
+            case ROBOT -> "robot";
+            case MUSIC -> "music";
+            case SMART_SEARCH -> "smart_search";
+            case BLUEPRINT -> "blueprint";
+        };
+        return Component.translatable("screen.ic2newera.llm.feature." + key, feature.label());
+    }
+    private static String providerTranslation(String provider) {
+        if (LLMConfig.OPENAI_PROVIDER.equals(provider)) return "screen.ic2newera.llm.provider.openai";
+        if (LLMConfig.OLLAMA_PROVIDER.equals(provider)) return "screen.ic2newera.llm.provider.ollama";
+        if (LLMConfig.CLAUDE_PROVIDER.equals(provider)) return "screen.ic2newera.llm.provider.claude";
+        if (LLMConfig.DEEPSEEK_PROVIDER.equals(provider)) return "screen.ic2newera.llm.provider.deepseek";
+        return "screen.ic2newera.llm.provider.custom";
+    }
+    private boolean isOpenAiService() { return LLMConfig.OPENAI_PROVIDER.equals(serviceProvider()); }
+    private Component authLabel() { return Component.translatable(subscriptionAuth
+            ? "screen.ic2newera.llm.auth.chatgpt" : "screen.ic2newera.llm.auth.api_key"); }
+
+    private void cycleProvider() {
+        providerIndex = (providerIndex + 1) % PROVIDER_COUNT;
+        subscriptionAuth = false;
+        String endpoint = LLMConfig.defaultEndpoint(serviceProvider());
+        baseUrl.setValue(endpoint == null ? "" : endpoint);
+        model.setValue("");
+        if (apiKey != null) apiKey.setValue("");
+        keyDraftOrigin = "";
+        featureDrafts.clear(); featureFields.values().forEach(box -> box.setValue(""));
+        status = Component.translatable("screen.ic2newera.llm.provider_changed"); statusError = false;
+        clearWidgets(); init();
+    }
+
+    private void toggleAuth() {
+        subscriptionAuth = !subscriptionAuth;
+        String endpoint = LLMConfig.defaultEndpoint(activeProvider());
+        baseUrl.setValue(endpoint == null ? "" : endpoint);
+        if (apiKey != null) apiKey.setValue("");
+        keyDraftOrigin = "";
+        status = Component.translatable("screen.ic2newera.llm.auth_changed"); statusError = false;
+        clearWidgets(); init();
+    }
+
+    private void openCatalog() { openCatalog(null, null); }
+
+    private void openCatalog(LLMConfig.Feature feature, UiEditBox overrideField) {
+        captureOverrides();
+        int seconds = parseTimeout(false);
+        if (seconds < 1) seconds = LLMConfig.current().timeoutSeconds();
+        LLMConfig draft;
+        try { draft = LLMConfig.preview(activeProvider(), baseUrl.getValue(), apiKey == null ? "" : apiKey.getValue(), seconds); }
+        catch (IllegalArgumentException failure) {
+            status = Component.translatable("screen.ic2newera.llm.preview_invalid"); statusError = true; return;
+        }
+        minecraft.setScreen(new LLMModelPickerScreen(this, draft, feature != null, picked -> {
+            if (feature == null) model.setValue(picked);
+            else {
+                overrideField.setValue(picked);
+                if (picked.isBlank()) featureDrafts.remove(feature); else featureDrafts.put(feature, picked);
+            }
+            status = Component.translatable(picked.isBlank() && feature != null
+                    ? "screen.ic2newera.llm.default_restored" : "screen.ic2newera.llm.model_selected"); statusError = false;
+        }));
+    }
+
+    private void addressDraftChanged(String address) {
+        if (apiKey != null && !apiKey.getValue().isBlank()) {
+            String nextOrigin = originOf(address);
+            if (!Objects.equals(keyDraftOrigin, nextOrigin)) {
+                apiKey.setValue(""); keyDraftOrigin = "";
+                status = Component.translatable("screen.ic2newera.llm.key_cleared_source"); statusError = false;
+            }
+        }
+        if (clearKeyButton != null) clearKeyButton.active = LLMConfig.savedKeyMatches(activeProvider(), address);
+    }
+
+    private static String originOf(String raw) {
+        try {
+            URI uri = URI.create(raw == null ? "" : raw.trim());
+            if (uri.getScheme() == null || uri.getHost() == null) return "";
+            return uri.getScheme().toLowerCase() + "://" + uri.getHost().toLowerCase() + (uri.getPort() < 0 ? "" : ":" + uri.getPort());
+        } catch (IllegalArgumentException invalid) { return ""; }
+    }
+
+    private void clearSavedKey() {
+        if (clearKeyButton == null || !LLMConfig.savedKeyMatches(activeProvider(), baseUrl.getValue())) return;
+        LLMConfig.clearApiKey();
+        apiKey.setValue(""); keyDraftOrigin = "";
+        clearKeyButton.active = false;
+        status = Component.translatable("screen.ic2newera.llm.key_cleared"); statusError = false;
+    }
+
+    private void captureOverrides() {
+        for (var entry : featureFields.entrySet()) {
+            String value = entry.getValue().getValue().trim();
+            if (value.isEmpty()) featureDrafts.remove(entry.getKey()); else featureDrafts.put(entry.getKey(), value);
+        }
     }
 
     private boolean saveSettings() {
-        if (enabled && model.getValue().isBlank()) {
-            status = Component.translatable("screen.ic2newera.llm.need_model"); statusError = true; return false;
+        captureOverrides();
+        int timeoutSeconds = parseTimeout(true);
+        if (timeoutSeconds < 1) return false;
+        String address = baseUrl.getValue().trim();
+        String selectedModel = model.getValue().trim();
+        if (enabled && address.isBlank()) { status = Component.translatable("screen.ic2newera.llm.need_endpoint"); statusError = true; return false; }
+        if (enabled && selectedModel.isBlank()) { status = Component.translatable("screen.ic2newera.llm.need_model"); statusError = true; return false; }
+        if (!address.isBlank()) {
+            try { LLMConfig.parseBaseUrl(address); }
+            catch (IllegalArgumentException invalid) { status = Component.translatable("screen.ic2newera.llm.endpoint_invalid"); statusError = true; return false; }
         }
-        if (enabled && baseUrl.getValue().isBlank()) {
-            status = Component.translatable("screen.ic2newera.llm.need_endpoint"); statusError = true; return false;
-        }
-        if (!baseUrl.getValue().isBlank()) {
-            try { LLMConfig.parseBaseUrl(baseUrl.getValue()); }
-            catch (IllegalArgumentException invalidUrl) {
-                status = Component.translatable("screen.ic2newera.llm.endpoint_invalid"); statusError = true; return false;
-            }
-        }
-        int timeoutSeconds;
         try {
-            timeoutSeconds = Integer.parseInt(timeout.getValue());
-            if (timeoutSeconds < 1 || timeoutSeconds > 600) throw new NumberFormatException();
-        } catch (NumberFormatException invalidTimeout) {
-            status = Component.literal("请求超时需为 1 到 600 秒。"); statusError = true; return false;
+            LLMConfig.save(enabled, activeProvider(), address, selectedModel, apiKey == null ? "" : apiKey.getValue(),
+                    timeoutSeconds, webSearch, modInspection, codeInspection, featureDrafts);
+        } catch (IllegalArgumentException invalid) {
+            status = Component.literal(invalid.getMessage()); statusError = true; return false;
         }
-        LLMConfig.save(enabled, baseUrl.getValue(), model.getValue(), apiKey.getValue(), timeoutSeconds,
-                webSearch, modInspection, codeInspection);
-        apiKey.setValue("");
-        updateKeyHint();
+        if (apiKey != null) apiKey.setValue("");
+        keyDraftOrigin = "";
+        if (clearKeyButton != null) clearKeyButton.active = LLMConfig.savedKeyMatches(activeProvider(), address);
         status = Component.translatable("screen.ic2newera.llm.saved"); statusError = false;
         return true;
     }
 
-    private void clearKey() {
-        LLMConfig.clearApiKey();
-        apiKey.setValue("");
-        updateKeyHint();
-        status = Component.translatable("screen.ic2newera.llm.key_cleared"); statusError = false;
+    private int parseTimeout(boolean report) {
+        try {
+            int value = Integer.parseInt(timeout.getValue());
+            if (value < 1 || value > 600) throw new NumberFormatException();
+            return value;
+        } catch (NumberFormatException invalid) {
+            if (report) { status = Component.translatable("screen.ic2newera.llm.timeout_invalid"); statusError = true; }
+            return -1;
+        }
     }
 
     private void updateWidgetPositions() {
         scroll = Math.max(0, Math.min(scroll, maxScroll()));
         for (FormRow row : rows) {
-            row.widget().setX(row.x());
-            row.widget().setY(CONTENT_TOP + row.y() + row.labelHeight() - scroll);
-            row.widget().setWidth(row.width());
+            int y = CONTENT_TOP + row.y() + row.labelHeight() - scroll;
+            int count = row.widgets().size();
+            int gap = count > 1 ? 4 : 0;
+            int secondaryWidth = count == 2 ? Math.min(100, panelWidth / 3) : count == 3 ? Math.min(76, panelWidth / 4) : 0;
+            int tertiaryWidth = count == 3 ? Math.min(76, panelWidth / 4) : 0;
+            row.widgets().get(0).setX(left);
+            row.widgets().get(0).setY(y);
+            row.widgets().get(0).setWidth(panelWidth - secondaryWidth - tertiaryWidth - gap * (count - 1));
+            if (count > 1) {
+                AbstractWidget second = row.widgets().get(1);
+                second.setX(left + panelWidth - secondaryWidth - (count == 3 ? tertiaryWidth + gap : 0));
+                second.setY(y); second.setWidth(secondaryWidth);
+            }
+            if (count == 3) {
+                AbstractWidget third = row.widgets().get(2);
+                third.setX(left + panelWidth - tertiaryWidth); third.setY(y); third.setWidth(tertiaryWidth);
+            }
         }
-    }
-
-    private void updateKeyHint() {
-        apiKey.setPlaceholder(Component.translatable(LLMConfig.current().apiKey().isBlank()
-                ? "screen.ic2newera.llm.key_empty" : "screen.ic2newera.llm.key_saved"));
     }
 
     private int maxScroll() { return Math.max(0, formHeight - (viewportBottom - CONTENT_TOP)); }
     private int statusCapacity() { return height >= 300 ? 2 : 1; }
 
     private void revealFocused() {
-        for (FormRow row : rows) if (getFocused() == row.widget()) {
-            if (row.widget().getY() < CONTENT_TOP + 1) scroll = row.y();
-            else if (row.widget().getY() + 21 > viewportBottom) scroll += row.widget().getY() + 21 - viewportBottom;
-            updateWidgetPositions();
-            break;
+        for (FormRow row : rows) if (row.widgets().stream().anyMatch(w -> w == getFocused())) {
+            AbstractWidget widget = row.widgets().stream().filter(w -> w == getFocused()).findFirst().orElse(row.widgets().get(0));
+            if (widget.getY() < CONTENT_TOP) scroll = row.y();
+            else if (widget.getY() + widget.getHeight() > viewportBottom) scroll += widget.getY() + widget.getHeight() - viewportBottom;
+            updateWidgetPositions(); break;
         }
     }
 
-    @Override
-    public void tick() {
-        baseUrl.tick(); model.tick(); apiKey.tick(); timeout.tick();
-    }
+    @Override public void tick() { editBoxes.forEach(UiEditBox::tick); }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        // Scroll content cannot receive clicks through the fixed header or footer.
         List<AbstractWidget> targets = mouseY >= CONTENT_TOP && mouseY < viewportBottom
-                ? rows.stream().map(FormRow::widget).toList() : fixedWidgets;
-        for (AbstractWidget widget : targets) {
-            if (widget.mouseClicked(mouseX, mouseY, button)) {
-                GuiEventListener previous = getFocused();
-                if (previous != widget && previous instanceof UiEditBox field) field.setFocused(false);
-                setFocused(widget);
-                if (button == 0) setDragging(true);
-                return true;
-            }
+                ? rows.stream().flatMap(row -> row.widgets().stream()).toList() : fixedWidgets;
+        for (AbstractWidget widget : targets) if (widget.mouseClicked(mouseX, mouseY, button)) {
+            if (getFocused() instanceof UiEditBox field && getFocused() != widget) field.setFocused(false);
+            setFocused(widget); if (button == 0) setDragging(true); return true;
         }
         return false;
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (mouseX >= left && mouseX < left + panelWidth + 6
-                && mouseY >= CONTENT_TOP && mouseY < viewportBottom && delta != 0) {
-            scroll -= (int)(delta * 24);
-            updateWidgetPositions();
-            if (getFocused() instanceof AbstractWidget widget
-                    && (widget.getY() < CONTENT_TOP || widget.getY() + widget.getHeight() > viewportBottom)) {
-                if (widget instanceof UiEditBox field) field.setFocused(false);
-                else widget.setFocused(true);
-                setFocused(null);
+        if (mouseX >= left && mouseX < left + panelWidth + 6 && mouseY >= CONTENT_TOP && mouseY < viewportBottom && delta != 0) {
+            scroll -= (int)(delta * 24); updateWidgetPositions();
+            if (getFocused() instanceof AbstractWidget widget && (widget.getY() < CONTENT_TOP || widget.getY() + widget.getHeight() > viewportBottom)) {
+                if (widget instanceof UiEditBox field) field.setFocused(false); setFocused(null);
             }
             return true;
         }
         return super.mouseScrolled(mouseX, mouseY, delta);
     }
 
-    @Override
-    public boolean keyPressed(int key, int scanCode, int modifiers) {
+    @Override public boolean keyPressed(int key, int scanCode, int modifiers) {
         boolean handled = super.keyPressed(key, scanCode, modifiers);
         if (key == 258) { revealFocused(); return true; }
         return handled;
     }
 
     @Override
-    public void render(GuiGraphics pose, int mouseX, int mouseY, float partialTick) {
-        renderBackground(pose);
-        pose.fill( left - 6, 0, left + panelWidth + 6, height, IndustrialPalette.BACKGROUND);
-        pose.drawString(font, UiText.fit(font, title, panelWidth), left, 8, IndustrialPalette.TEXT, false);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics);
+        graphics.fill(left - 6, 0, left + panelWidth + 6, height, IndustrialPalette.BACKGROUND);
+        graphics.drawString(font, UiText.fit(font, title, panelWidth), left, 8, IndustrialPalette.TEXT, false);
         UiScissor.enable(minecraft, left - 1, CONTENT_TOP, left + panelWidth + 1, viewportBottom);
-        boolean hoverForm = mouseY >= CONTENT_TOP && mouseY < viewportBottom;
         for (FormRow row : rows) {
             int y = CONTENT_TOP + row.y() - scroll;
-            if (row.labelHeight() > 0) drawWrapped(pose, row.label(), row.x(), y, row.width(), IndustrialPalette.MUTED);
-            row.widget().render(pose, hoverForm ? mouseX : -1, hoverForm ? mouseY : -1, partialTick);
-            if (!row.detail().getString().isEmpty()) drawWrapped(pose, row.detail(), row.x(),
-                    row.widget().getY() + 24, row.width(), IndustrialPalette.MUTED);
+            drawWrapped(graphics, row.label(), left, y, panelWidth, IndustrialPalette.MUTED);
+            boolean hovered = mouseY >= CONTENT_TOP && mouseY < viewportBottom;
+            for (AbstractWidget widget : row.widgets()) widget.render(graphics, hovered ? mouseX : -1, hovered ? mouseY : -1, partialTick);
+            drawWrapped(graphics, row.detail(), left, row.widgets().get(0).getY() + 24,
+                    panelWidth, IndustrialPalette.MUTED);
         }
-        Component warning = Component.translatable("screen.ic2newera.llm.warning");
-        int warningHeight = font.split(warning, panelWidth).size() * font.lineHeight;
-        drawWrapped(pose, warning, left, CONTENT_TOP + formHeight - warningHeight - 8 - scroll, panelWidth, IndustrialPalette.ACCENT);
         RenderSystem.disableScissor();
         int viewportHeight = viewportBottom - CONTENT_TOP;
         if (maxScroll() > 0 && viewportHeight > 0) {
             int thumbHeight = Math.min(viewportHeight, Math.max(8, viewportHeight * viewportHeight / formHeight));
             int thumbY = CONTENT_TOP + scroll * (viewportHeight - thumbHeight) / maxScroll();
-            pose.fill( left + panelWidth + 3, CONTENT_TOP, left + panelWidth + 5, viewportBottom, IndustrialPalette.BORDER);
-            pose.fill( left + panelWidth + 3, thumbY, left + panelWidth + 5, thumbY + thumbHeight, IndustrialPalette.ACCENT);
+            graphics.fill(left + panelWidth + 3, CONTENT_TOP, left + panelWidth + 5, viewportBottom, IndustrialPalette.BORDER);
+            graphics.fill(left + panelWidth + 3, thumbY, left + panelWidth + 5, thumbY + thumbHeight, IndustrialPalette.ACCENT);
         }
-        var statusLines = font.split(status, panelWidth);
-        int shownLines = Math.min(statusCapacity(), statusLines.size());
-        int statusY = footerY - 6 - shownLines * font.lineHeight;
-        for (int i = 0; i < shownLines; i++) pose.drawString(font, statusLines.get(i), left, statusY + i * font.lineHeight,
+        var lines = font.split(status, panelWidth);
+        int shown = Math.min(statusCapacity(), lines.size());
+        int statusY = footerY - 6 - shown * font.lineHeight;
+        for (int i = 0; i < shown; i++) graphics.drawString(font, lines.get(i), left, statusY + i * font.lineHeight,
                 statusError ? 0xFF9B342B : IndustrialPalette.MUTED, false);
-        for (AbstractWidget widget : fixedWidgets) widget.render(pose, mouseX, mouseY, partialTick);
-        if (mouseX >= left && mouseX < left + panelWidth && mouseY >= statusY && mouseY < footerY - 2)
-            pose.renderTooltip(font, font.split(status, Math.min(300, panelWidth)), mouseX, mouseY);
+        fixedWidgets.forEach(widget -> widget.render(graphics, mouseX, mouseY, partialTick));
     }
 
-    private void drawWrapped(GuiGraphics pose, Component text, int x, int y, int availableWidth, int color) {
-        for (var line : font.split(text, availableWidth)) {
-            pose.drawString(font, line, x, y, color, false);
-            y += font.lineHeight;
-        }
+    private void drawWrapped(GuiGraphics graphics, Component text, int x, int y, int width, int color) {
+        for (var line : font.split(text, width)) { graphics.drawString(font, line, x, y, color, false); y += font.lineHeight; }
     }
 
-    @Override
-    public boolean isPauseScreen() { return false; }
-
-    @Override
-    public void onClose() { minecraft.setScreen(parent); }
+    @Override public boolean isPauseScreen() { return false; }
+    @Override public void onClose() { minecraft.setScreen(parent); }
 }

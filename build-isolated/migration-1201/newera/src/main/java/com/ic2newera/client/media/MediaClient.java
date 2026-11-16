@@ -3,6 +3,8 @@ package com.ic2newera.client.media;
 import com.google.gson.*;
 import com.ic2newera.IC2NewEra;
 import com.ic2newera.media.MediaPackets;
+import com.ic2newera.integration.llm.LLMConfig;
+import com.ic2newera.integration.llm.LLMTransport;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -24,6 +26,8 @@ public final class MediaClient {
     private static final class Pending {
         final UUID ticket;
         final int operation;
+        final boolean personalModel;
+        final long started = System.nanoTime();
         final long timeout;
         final CompletableFuture<Result> future = new CompletableFuture<>();
         volatile Path file;
@@ -35,20 +39,30 @@ public final class MediaClient {
         MessageDigest digest;
         boolean writing;
         int sequence;
-        Pending(UUID ticket, int operation) { this.ticket = ticket; this.operation = operation; timeout = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE || operation == MediaPackets.COVER ? 670_000_000_000L : 210_000_000_000L; }
+        int modelRequests;
+        final Map<Integer, CompletableFuture<String>> delegated = new HashMap<>();
+        Pending(UUID ticket, int operation, boolean personalModel) {
+            this.ticket = ticket;
+            this.operation = operation;
+            this.personalModel = personalModel;
+            timeout = operation == MediaPackets.VOICE || operation == MediaPackets.ASSISTANT_VOICE || operation == MediaPackets.COVER ? 670_000_000_000L : 210_000_000_000L;
+        }
     }
     private MediaClient() { }
     public static CompletableFuture<Result> request(int operation, UUID target, String value, List<MediaPackets.Message> messages) {
         Minecraft client = Minecraft.getInstance();
         if (client.getConnection() == null || client.player == null) return CompletableFuture.failedFuture(new IllegalStateException("未连接游戏服务器。"));
         if (PENDING.size() >= 4) return CompletableFuture.failedFuture(new IllegalStateException("请求过多，请等待或取消。"));
-        Pending pending = new Pending(UUID.randomUUID(), operation);
         MediaPackets.Request packet;
-        try { packet = new MediaPackets.Request(pending.ticket, operation, target, value, messages).fitTransport(); }
+        boolean modelOperation = MediaPackets.modelFeature(operation, false) != null;
+        boolean personalModel = modelOperation && LLMConfig.current().enabled();
+        Pending pending = new Pending(UUID.randomUUID(), operation, personalModel);
+        try { packet = new MediaPackets.Request(pending.ticket, operation, target, value, messages, personalModel).fitTransport(); }
         catch (RuntimeException oversized) { return CompletableFuture.failedFuture(new IllegalStateException("内容过长，请缩小歌单或消息后重试。")); }
         PENDING.put(pending.ticket, pending);
         pending.future.whenComplete((result, failure) -> {
             if (failure != null) client.execute(() -> cancel(pending));
+            else client.execute(() -> cancelModelRequests(pending));
         });
         try { MediaPackets.CHANNEL.sendToServer(packet); }
         catch (RuntimeException disconnected) { pending.future.completeExceptionally(new IllegalStateException("游戏连接已断开，请重新连接后重试。")); }
@@ -111,6 +125,35 @@ public final class MediaClient {
             });
         } catch (Exception error) { p.future.completeExceptionally(new IllegalStateException("媒体数据无效，已停止本次请求。")); }
     }
+    public static void modelRequest(MediaPackets.ModelRequest request) {
+        Pending p = PENDING.get(request.ticket());
+        if (p == null || !p.personalModel || p.future.isDone() || p.canceled || p.operation != request.operation()
+                || !p.delegated.isEmpty() || System.nanoTime() - p.started >= p.timeout
+                || !(MediaPackets.isChat(p.operation) || MediaPackets.isSongChat(p.operation) || p.operation == MediaPackets.SMART_SEARCH)
+                || p.modelRequests >= 8 || request.sequence() != p.modelRequests) return;
+        LLMConfig config = LLMConfig.current(MediaPackets.modelFeature(p.operation, request.songRecall()));
+        if (!config.enabled() || config.model().isBlank() || config.baseUrl().isBlank()) {
+            MediaPackets.CHANNEL.sendToServer(new MediaPackets.ModelReply(p.ticket, p.operation, request.sequence(), "", "个人模型设置不可用。")); return;
+        }
+        p.modelRequests++;
+        List<LLMTransport.Message> history = request.history().stream().map(m -> new LLMTransport.Message(m.role(), m.content())).toList();
+        CompletableFuture<String> future = LLMTransport.complete(config, history, request.prompt(), "", partial -> { });
+        p.delegated.put(request.sequence(), future);
+        future.whenComplete((answer, failure) -> Minecraft.getInstance().execute(() -> {
+            if (PENDING.get(p.ticket) != p || p.canceled || p.future.isDone() || p.operation != request.operation()
+                    || p.delegated.get(request.sequence()) != future) return;
+            p.delegated.remove(request.sequence());
+            String text = failure == null ? answer : "";
+            String error = failure == null ? "" : "个人模型调用失败；请检查助手模型设置。";
+            MediaPackets.CHANNEL.sendToServer(new MediaPackets.ModelReply(p.ticket, p.operation, request.sequence(), text, error));
+        }));
+    }
+    public static void modelCancel(MediaPackets.ModelCancel cancel) {
+        Pending p = PENDING.get(cancel.ticket());
+        if (p == null || p.operation != cancel.operation()) return;
+        CompletableFuture<String> call = p.delegated.remove(cancel.sequence());
+        if (call != null) call.cancel(true);
+    }
     private static JsonObject parse(String value) {
         // Bound nesting before Gson sees data from a remote game server.
         int depth = 0; boolean quoted = false, escaped = false;
@@ -130,9 +173,15 @@ public final class MediaClient {
     private static void fail(Pending p, String message) { Minecraft.getInstance().execute(() -> p.future.completeExceptionally(new IllegalStateException(message))); }
     private static void cancel(Pending p) {
         p.canceled = true;
+        cancelModelRequests(p);
         if (PENDING.remove(p.ticket, p) && Minecraft.getInstance().getConnection() != null)
             MediaPackets.CHANNEL.sendToServer(new MediaPackets.Cancel(p.ticket));
         DISK.execute(() -> delete(p.file));
+    }
+    private static void cancelModelRequests(Pending pending) {
+        var requests = List.copyOf(pending.delegated.values());
+        pending.delegated.clear();
+        requests.forEach(request -> request.cancel(true));
     }
     public static void delete(Path file) { if (file != null) try { Files.deleteIfExists(file); } catch (IOException ignored) { } }
     public static String transferStatus() {

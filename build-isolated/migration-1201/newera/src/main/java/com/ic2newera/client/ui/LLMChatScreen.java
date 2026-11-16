@@ -140,7 +140,7 @@ public final class LLMChatScreen extends Screen {
         if (waiting) return;
         String prompt = promptInput.getValue().trim();
         if (prompt.isEmpty()) return;
-        LLMConfig config = LLMConfig.current();
+        LLMConfig config = LLMConfig.current(LLMConfig.Feature.ASSISTANT);
         if (!config.enabled()) {
             status = Component.literal("AI 服务未开启。请到模型设置开启后再发送；问题已保留。");
             statusError = true;
@@ -345,6 +345,13 @@ public final class LLMChatScreen extends Screen {
                 || message.startsWith("智谱账户") || message.startsWith("AI接口返回HTTP")
                 || message.startsWith("AI响应格式") || message.startsWith("AI返回")
                 || message.startsWith("服务商额度"))) return message;
+        if (message != null && (message.startsWith("Responses") || message.startsWith("订阅模型")
+                || message.startsWith("本机订阅") || message.startsWith("无法读取本机订阅")
+                || message.startsWith("无法启动本机订阅") || message.startsWith("指定 QQ 工程")
+                || message.startsWith("ChatGPT 授权") || message.startsWith("Claude ")
+                || message.startsWith("Ollama ") || message.startsWith("AI API ")
+                || message.startsWith("AI 回复") || message.startsWith("兼容聊天接口")
+                || message.startsWith("聊天接口"))) return message;
         if (message != null && message.startsWith("工厂查询")) return message;
         return "AI请求失败（" + cause.getClass().getSimpleName()
                 + "）；检查网络、API地址、模型权限和服务商额度。密钥不会写入日志。";
