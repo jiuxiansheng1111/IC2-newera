@@ -37,6 +37,7 @@ public final class FieldRoutes {
     private static final int SEGMENT_RADIUS = 36, MAX_POINTS = 192, MAX_EXPANSIONS = 3000;
     private static final Map<ServerPlayer, Trip> trips = new WeakHashMap<>();
     private static final Map<net.minecraft.server.MinecraftServer, Long> lastSearch = new WeakHashMap<>();
+    private static final Set<UUID> clearAfterRespawn = new HashSet<>();
     private FieldRoutes() {}
 
     public record Snapshot(String dimension, BlockPos target, String label, String status, String next,
@@ -66,6 +67,11 @@ public final class FieldRoutes {
         var t = new Trip(destination, label, robot == null ? null : robot.getUUID());
         trips.put(p, t); update(p, t, true);
     }
+    /** Starts ordinary player navigation to a server-validated personal place. */
+    public static void startPersonal(ServerPlayer player, GlobalPos destination, String label) {
+        if (player == null || destination == null) return;
+        start(player, destination, label == null || label.isBlank() ? "个人地点" : label, null);
+    }
     static void stop(ServerPlayer p) {
         stopCompanion(p, trips.remove(p));
         FieldJournal.sendRoute(p, Snapshot.empty());
@@ -77,6 +83,23 @@ public final class FieldRoutes {
     }
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent e) {
         if (e.getEntity() instanceof ServerPlayer player) stopCompanion(player, trips.remove(player));
+    }
+    @SubscribeEvent public static void clonePlayer(PlayerEvent.Clone event) {
+        if (!event.isWasDeath() || !(event.getOriginal() instanceof ServerPlayer oldPlayer)
+                || !(event.getEntity() instanceof ServerPlayer newPlayer)) return;
+        Trip trip = trips.remove(oldPlayer);
+        if (trip == null) return;
+        if (trip.arrived) { clearAfterRespawn.add(newPlayer.getUUID()); return; }
+        trip.path = List.of(); trip.routeEnd = null; trip.complete = false; trip.adjacentGoal = false;
+        trip.arrived = false; trip.plannedInDimension = false; trip.previousPosition = null;
+        trip.previousDimension = ""; trip.previousVehicle = null; trip.recalculated = Long.MIN_VALUE;
+        trip.shown = Snapshot.empty(); trips.put(newPlayer, trip);
+    }
+    @SubscribeEvent public static void respawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        if (clearAfterRespawn.remove(player.getUUID())) { FieldJournal.sendRoute(player, Snapshot.empty()); return; }
+        Trip trip = trips.get(player);
+        if (trip != null) update(player, trip, true);
     }
     static void itinerary(ServerPlayer p, UUID stop) { var t=trips.get(p); if(t!=null)t.itineraryStop=stop; }
     static void tick(ServerPlayer p) {

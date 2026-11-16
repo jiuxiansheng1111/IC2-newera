@@ -77,6 +77,8 @@ def main():
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--native-only", action="store_true",
                         help="Update just New Era in an existing r72 profile, preserving its current quest and player files")
+    parser.add_argument("--native-artifact", type=Path,
+                        help="Use a later native build and its adjacent native-manifest.json for a native-only update")
     args = parser.parse_args()
     receipt = next((OLD / "existing-forge-backups/1.20.1-Forge_47.4.28").glob("*/install-receipt.json"))
     old = json.loads(receipt.read_bytes())
@@ -86,6 +88,14 @@ def main():
     mods = inside(profile, "mods")
     targets = {jar.name: jar.resolve() for jar in args.client_mods.glob("*.jar")}
     own = WORK / "native" / OWN
+    if args.native_artifact:
+        candidate = args.native_artifact.resolve(strict=True)
+        if not args.native_only or candidate.name != OWN:
+            raise ValueError("A native artifact is only valid for an existing profile in native-only mode")
+        manifest = json.loads((candidate.parent / "native-manifest.json").read_bytes())
+        if sha(candidate) != manifest["sha256"].lower():
+            raise ValueError("Requested native artifact does not match its build receipt")
+        own = candidate
     if OWN not in targets or len(targets) != 46 or not own.is_file():
         raise ValueError("The complete 46-JAR r72 client and its final native JAR are required")
     targets[OWN] = own

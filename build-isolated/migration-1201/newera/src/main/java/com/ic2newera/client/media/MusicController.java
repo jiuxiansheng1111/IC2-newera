@@ -19,6 +19,9 @@ public final class MusicController {
     private static volatile int generation;
     private static CompletableFuture<MediaClient.Result> metadata, preparing;
     private static String status = "选择音乐来源并搜索歌曲，或导入公开歌单。";
+    private static boolean originalNetEasePlayback;
+    private static boolean playbackBound, playbackStarting;
+    private static int bindingGeneration = -1;
     private MusicController() { }
     public static List<MusicTrack> playlist() { return playlist; }
     public static List<MusicTrack> candidates() { return candidates; }
@@ -35,7 +38,13 @@ public final class MusicController {
     public static String status() { String transfer = MediaClient.transferStatus(); return transfer.isBlank() ? status : transfer; }
     public static int revision() { return revision; }
     public static boolean busy() { return metadata != null || preparing != null; }
+    public static boolean preparing() { return preparing != null; }
     public static boolean paused() { return AUDIO.paused(); }
+    public static boolean activelyPlaying(MusicTrack track) {
+        return track != null && current != null && current.id().equals(track.id()) && originalNetEasePlayback && playbackBound
+                && (AUDIO.playing() || AUDIO.paused());
+    }
+    public static boolean playbackStarting() { return playbackStarting; }
     public static double seconds() { return AUDIO.positionSeconds(); }
     public static void load() { metadata(MediaPackets.PLAYLIST, ""); }
     public static void search(String query, boolean audius) {
@@ -102,6 +111,7 @@ public final class MusicController {
         List<MusicTrack> result = new ArrayList<>(); for (var element : array) result.add(MusicTrack.from(element.getAsJsonObject())); return List.copyOf(result);
     }
     public static void play(MusicTrack track, List<MusicTrack> source) {
+        signalPlayback("stop"); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; bindingGeneration = -1;
         cancelPreparation(); AUDIO.stop();
         queue = List.copyOf(source); index = queue.indexOf(track); current = track;
         final int ticket = ++generation;
@@ -113,13 +123,15 @@ public final class MusicController {
             if (failure != null) { status = message(failure); revision++; return; }
             if (result.audio() == null || !(result.mime().equals("audio/ogg") || result.mime().equals("audio/mpeg"))) { MediaClient.delete(result.audio()); status = "歌曲音频格式无效。"; revision++; return; }
             status = track.needsCatalogVerification() ? "旧版导入已通过歌曲目录核实，正在播放。" : "正在播放：" + track.title() + " — " + track.artist(); revision++;
+            originalNetEasePlayback = track.id().startsWith("netease:");
+            playbackStarting = originalNetEasePlayback; bindingGeneration = ticket;
             var client = Minecraft.getInstance();
             AUDIO.setVolume(client.options.getSoundSourceVolume(SoundSource.MASTER) * client.options.getSoundSourceVolume(SoundSource.MUSIC));
             AUDIO.play(result.audio(), result.mime(), () -> generation == ticket).whenComplete((done, error) -> client.execute(() -> {
                 if (generation != ticket) return;
-                if (error != null) { status = message(error); revision++; }
+                if (error != null) { signalPlayback("stop"); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; status = message(error); revision++; }
                 else if (index + 1 < queue.size()) next(1);
-                else { status = "歌单播放完毕。"; revision++; }
+                else { signalPlayback("stop"); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; bindingGeneration = -1; status = "歌单播放完毕。"; revision++; }
             }));
         }));
     }
@@ -131,6 +143,7 @@ public final class MusicController {
                 || Arrays.stream(RobotCharacter.values()).noneMatch(value -> value.id.equals(character))) {
             status = "请选择一首公开曲目和你有权限使用的机器人。"; revision++; return;
         }
+        signalPlayback("stop"); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; bindingGeneration = -1;
         cancelPreparation(); AUDIO.stop(); queue = List.copyOf(source); index = queue.indexOf(track); current = track;
         final int ticket = ++generation;
         status = "正在验证公开音源并排队生成翻唱……"; revision++;
@@ -162,13 +175,23 @@ public final class MusicController {
         AUDIO.setPaused(!AUDIO.paused()); status = AUDIO.paused() ? "已暂停，继续时保留播放位置。" : "继续播放。"; revision++;
     }
     private static void cancelPreparation() { if (preparing != null) { preparing.cancel(true); preparing = null; } }
-    public static void stop() { generation++; cancelPreparation(); AUDIO.stop(); status = "已停止播放。"; revision++; }
+    public static void stop() { signalPlayback("stop"); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; bindingGeneration = -1; generation++; cancelPreparation(); AUDIO.stop(); status = "已停止播放。"; revision++; }
     public static void cancel() { if (metadata != null) { metadata.cancel(true); metadata = null; } stop(); }
-    public static void reset() { cancel(); playlist = candidates = likedTracks = queue = List.of(); likedOffset = likedTotal = 0; likedHasMore = likedReady = false; current = null; index = -1; revision++; }
+    public static void reset() { cancel(); originalNetEasePlayback = false; playbackBound = false; playbackStarting = false; bindingGeneration = -1; playlist = candidates = likedTracks = queue = List.of(); likedOffset = likedTotal = 0; likedHasMore = likedReady = false; current = null; index = -1; revision++; }
+    private static void signalPlayback(String value) {
+        var client = Minecraft.getInstance();
+        if (client.getConnection() == null) return;
+        try { MediaPackets.CHANNEL.sendToServer(new MediaPackets.Request(UUID.randomUUID(), MediaPackets.SONG_PLAYBACK,
+                MediaPackets.NONE, value, List.of()).fitTransport()); } catch (RuntimeException ignored) { }
+    }
     public static void tick() {
         var client = Minecraft.getInstance();
         if (client.player == null || client.level == null) return;
         AUDIO.setVolume(client.options.getSoundSourceVolume(SoundSource.MASTER) * client.options.getSoundSourceVolume(SoundSource.MUSIC));
+        if (playbackStarting && !playbackBound && bindingGeneration == generation && current != null && originalNetEasePlayback
+                && AUDIO.playing() && AUDIO.positionSeconds() > 0) {
+            signalPlayback("start:" + current.id()); playbackBound = true; playbackStarting = false; revision++;
+        }
         if (AUDIO.playing() || AUDIO.paused()) client.getMusicManager().stopPlaying();
     }
     public static String message(Throwable error) {

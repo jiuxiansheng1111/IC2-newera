@@ -73,6 +73,29 @@ public final class NetEaseMusicProvider {
         return new SearchResult(List.copyOf(actual.values()), matches);
     }
 
+    /** Fetches a few short excerpts from the public song comment page. This endpoint never uses a login cookie. */
+    public PublicComments publicComments(String songId) throws IOException, InterruptedException {
+        if (songId == null || !songId.matches("[1-9][0-9]{0,19}"))
+            return new PublicComments(List.of(), "这不是已验证的网易云曲目编号，无法读取公开短评。");
+        URI uri = URI.create(MUSIC_ROOT + "/api/v1/resource/comments/R_SO_4_" + songId + "?limit=3&offset=0");
+        HttpRequest request = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(12))
+                .header("User-Agent", USER_AGENT).header("Referer", REFERER).GET().build();
+        JsonObject payload = requestJson(request, 256 * 1024, false);
+        if (integer(payload, "code", -1) != 200)
+            return new PublicComments(List.of(), "网易云当前未提供这首歌的公开短评；可以继续聊实际听感。");
+        JsonArray rows = array(payload, "comments");
+        List<String> excerpts = new ArrayList<>(3);
+        for (JsonElement row : rows) {
+            if (!row.isJsonObject()) continue;
+            String text = cleanText(string(row.getAsJsonObject(), "content"), 120);
+            if (!text.isBlank()) excerpts.add(text);
+            if (excerpts.size() == 3) break;
+        }
+        return excerpts.isEmpty()
+                ? new PublicComments(List.of(), "这首歌暂时没有可读取的公开短评；可以继续聊实际听感。")
+                : new PublicComments(excerpts, "已读取网易云公开短评（每条仅显示短摘录）。");
+    }
+
     /** Read-only heart catalog for an identity verified by the server's current login session. */
     public LikedPage likedTracks(NetEaseLoginService.OwnerAccount account, int offset, BooleanSupplier authorized)
             throws IOException, InterruptedException {
@@ -627,9 +650,13 @@ public final class NetEaseMusicProvider {
     }
 
     private JsonObject requestJson(HttpRequest request, int limit) throws IOException, InterruptedException {
+        return requestJson(request, limit, true);
+    }
+
+    private JsonObject requestJson(HttpRequest request, int limit, boolean allowAccountCookie) throws IOException, InterruptedException {
         checkThreadInterrupted();
         HttpRequest authenticated = request;
-        String cookie = cookieSupplier.get();
+        String cookie = allowAccountCookie ? cookieSupplier.get() : "";
         if (cookie != null && !cookie.isBlank() && MUSIC_HOST.equalsIgnoreCase(request.uri().getHost())) {
             authenticated = HttpRequest.newBuilder(request, (name, value) -> !name.equalsIgnoreCase("Cookie"))
                     .header("Cookie", cookie).build();
@@ -713,6 +740,9 @@ public final class NetEaseMusicProvider {
 
     public record SearchResult(List<MusicTrack> candidates, List<MusicTrack> playlistMatches) {
         public SearchResult { candidates = List.copyOf(candidates); playlistMatches = List.copyOf(playlistMatches); }
+    }
+    public record PublicComments(List<String> excerpts, String status) {
+        public PublicComments { excerpts = List.copyOf(excerpts); status = status == null ? "" : status; }
     }
     public record LikedPage(List<MusicTrack> tracks, int offset, boolean hasMore, int total, int skipped, String message) {
         public LikedPage { tracks = List.copyOf(tracks); }

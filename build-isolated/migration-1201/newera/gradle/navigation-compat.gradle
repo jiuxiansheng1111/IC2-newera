@@ -1,0 +1,68 @@
+// Compile-only navigation/VS compatibility APIs from the already locked local artifacts.
+// These artifacts must never be added to runtime configurations or Jar-in-Jar.
+def navigationCompatVsJar = file('../dependencies/valkyrienskies-120-2.4.11.jar')
+def navigationCompatXaeroJar = file('../dependencies/xaerominimap-forge-1.20.1-26.6.0.jar')
+def navigationCompatKotlinJar = file('../dependencies/kotlinforforge-4.11.0-all.jar')
+if (!navigationCompatVsJar.isFile()) {
+    throw new GradleException("Missing locked VS compile artifact: ${navigationCompatVsJar}")
+}
+if (!navigationCompatXaeroJar.isFile()) {
+    throw new GradleException("Missing locked Xaero compile artifact: ${navigationCompatXaeroJar}")
+}
+
+def navigationCompatOutputDir = layout.buildDirectory.dir('generated/navigation-compat-compile')
+def navigationCompatApiJar = navigationCompatOutputDir.map { it.file('vs-api-1.1.0-cf208d8b56.jar') }
+def navigationCompatMixinExtrasJar = navigationCompatOutputDir.map { it.file('mixinextras-0.4.1.jar') }
+def navigationCompatJomlJar = navigationCompatOutputDir.map { it.file('joml-primitives-1.10.0.jar') }
+
+def extractNavigationCompatApis = tasks.register('extractNavigationCompatCompileApis') {
+    inputs.file(navigationCompatVsJar)
+    outputs.files(navigationCompatApiJar, navigationCompatMixinExtrasJar, navigationCompatJomlJar)
+    doLast {
+        def apiOut = navigationCompatApiJar.get().asFile
+        def mixinExtrasOut = navigationCompatMixinExtrasJar.get().asFile
+        apiOut.parentFile.mkdirs()
+        mixinExtrasOut.parentFile.mkdirs()
+
+        def outer = new java.util.zip.ZipFile(navigationCompatVsJar)
+        try {
+            def apiEntry = outer.getEntry('META-INF/jars/api-1.1.0+cf208d8b56.jar')
+            def mixinExtrasEntry = outer.getEntry('META-INF/jars/mixinextras-forge-0.4.1.jar')
+            def jomlEntry = outer.getEntry('META-INF/jars/joml-primitives-1.10.0.jar')
+            if (apiEntry == null || mixinExtrasEntry == null || jomlEntry == null) {
+                throw new GradleException('Locked VS 2.4.11 artifact is missing a required nested compile API.')
+            }
+            outer.getInputStream(jomlEntry).withCloseable { input -> navigationCompatJomlJar.get().asFile.withOutputStream { output -> output << input } }
+            outer.getInputStream(apiEntry).withCloseable { input -> apiOut.withOutputStream { output -> output << input } }
+            byte[] nestedMixinExtras
+            outer.getInputStream(mixinExtrasEntry).withCloseable { input -> nestedMixinExtras = input.bytes }
+            def nested = new java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(nestedMixinExtras))
+            try {
+                java.util.zip.ZipEntry entry
+                boolean found = false
+                while ((entry = nested.nextEntry) != null) {
+                    if (entry.name == 'META-INF/jars/MixinExtras-0.4.1.jar') {
+                        mixinExtrasOut.withOutputStream { output -> output << nested }
+                        found = true
+                        break
+                    }
+                }
+                if (!found) throw new GradleException('Nested VS MixinExtras Forge jar lacks META-INF/jars/MixinExtras-0.4.1.jar.')
+            } finally {
+                nested.close()
+            }
+        } finally {
+            outer.close()
+        }
+    }
+}
+
+dependencies {
+    // The mod JAR is used only for compilation; runtime brings it through the pack separately.
+    compileOnly files(navigationCompatVsJar, navigationCompatXaeroJar, navigationCompatKotlinJar,
+            navigationCompatApiJar, navigationCompatMixinExtrasJar, navigationCompatJomlJar)
+}
+
+tasks.named('compileJava').configure {
+    dependsOn extractNavigationCompatApis
+}

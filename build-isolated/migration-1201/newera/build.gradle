@@ -6,6 +6,7 @@ plugins {
 
 version = mod_version
 apply from: 'gradle/process-recipes.gradle'
+apply from: 'gradle/navigation-compat.gradle'
 group = mod_group
 base { archivesName = mod_id }
 
@@ -173,7 +174,7 @@ jar {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.version,
                 'Implementation-Vendor'   : 'IC2: New Era',
-                'MixinConfigs'            : 'ic2newera.mixins.json,ic2newera.bulk-compat.mixins.json,ic2newera.jei-compat.mixins.json,ic2newera.spawn-compat.mixins.json'
+                'MixinConfigs'            : 'ic2newera.mixins.json,ic2newera.bulk-compat.mixins.json,ic2newera.jei-compat.mixins.json,ic2newera.spawn-compat.mixins.json,ic2newera.vs-respawn-compat.mixins.json,ic2newera.xaero-route.mixins.json'
         ])
     }
     finalizedBy 'reobfJar'

@@ -62,12 +62,16 @@ public final class MediaServer {
         long likedRevision = Long.MIN_VALUE;
         final LinkedHashMap<UUID, SpokenReply> spokenReplies = new LinkedHashMap<>();
         final LinkedHashMap<UUID, ChatReceipt> chatReceipts = new LinkedHashMap<>();
+        ReadySong readySong;
+        ActiveSong activeSong;
         long replyRevision;
         long nextAction, nextVoiceAction, nextSearch;
         Session(ServerPlayer player) { this.player = player; }
     }
     private record SpokenReply(UUID robot, String character, List<String> segments, long expires) { }
     private record ChatReceipt(MediaPackets.Request request, JsonObject reply, long expires) { }
+    private record ReadySong(MusicTrack track, SongConversation.Listening listening, long expires) { }
+    private record ActiveSong(MusicTrack track, SongConversation.Listening listening, long expires) { }
     private static final class Job {
         final long started = System.nanoTime();
         final int operation;
@@ -85,6 +89,12 @@ public final class MediaServer {
         volatile CompletableFuture<String> modelFuture;
         volatile String remoteCoverId;
         private Audio stagedAudio;
+        volatile MusicTrack preparedTrack;
+        volatile SongConversation.Listening listening;
+        SongConversation.Context songContext;
+        SongConversation.Context songRecallContext;
+        volatile String songReply = "";
+        volatile NetEaseMusicProvider.PublicComments publicComments = new NetEaseMusicProvider.PublicComments(List.of(), "");
         Job(int operation, long replyRevision, ServerPlayer player, UUID target, String character, long likedAuthorizationRevision) {
             this.operation = operation; this.replyRevision = replyRevision;
             this.target = target; this.character = character;
@@ -92,7 +102,7 @@ public final class MediaServer {
             ownerMusicSession = NativeMediaConfig.musicLoginOwner(player);
             musicSessionRevision = NetEaseLoginService.sessionRevision(player);
             this.likedAuthorizationRevision = likedAuthorizationRevision;
-            model = MediaPackets.isChat(operation) || operation == MediaPackets.SMART_SEARCH ? NativeMediaConfig.modelFor(player.server) : null;
+            model = MediaPackets.isChat(operation) || MediaPackets.isSongChat(operation) || operation == MediaPackets.SMART_SEARCH ? NativeMediaConfig.modelFor(player.server) : null;
         }
         void cancel() {
             Audio staged;
@@ -108,10 +118,14 @@ public final class MediaServer {
         final Path path;
         final long size;
         final int operation;
+        final MusicTrack preparedTrack;
+        final SongConversation.Listening listening;
         long lastAccess = System.nanoTime();
         int sequence;
         boolean reading;
-        Transfer(Path path, long size, int operation) { this.path = path; this.size = size; this.operation = operation; }
+        Transfer(Path path, long size, int operation, MusicTrack preparedTrack, SongConversation.Listening listening) {
+            this.path = path; this.size = size; this.operation = operation; this.preparedTrack = preparedTrack; this.listening = listening;
+        }
         void close() { delete(path); RESERVED.addAndGet(-size); }
     }
     private record Audio(Path path, long size, String sha, String mime, double durationSeconds) {
@@ -151,7 +165,7 @@ public final class MediaServer {
         if (player.hasDisconnected() || !player.isAlive()) return;
         NetEaseLoginService.observeOwner(player.server, NativeMediaConfig.musicLoginOwnerUuid(player));
         int operation = request.operation();
-        if (operation < 0 || operation > MediaPackets.NETEASE_LIKED || operation == 6 || (!MediaPackets.isChat(operation) && !request.messages().isEmpty())) return;
+        if (operation < 0 || operation > MediaPackets.SONG_COMMENTS || operation == 6 || (!(MediaPackets.isChat(operation) || MediaPackets.isSongChat(operation)) && !request.messages().isEmpty())) return;
         if (MediaPackets.isChat(operation) && !request.messages().isEmpty()) {
             MediaPackets.Message last = request.messages().get(request.messages().size() - 1);
             if (last.role().equals("user") && RobotTaskIntent.parse(last.content()) != null) {
@@ -162,6 +176,27 @@ public final class MediaServer {
         Session session = SESSIONS.computeIfAbsent(player.getUUID(), id -> new Session(player));
         if (session.player != player) { clear(session); session = new Session(player); SESSIONS.put(player.getUUID(), session); }
         refreshLikedSession(session);
+        if (operation == MediaPackets.SONG_PLAYBACK) {
+            if (request.value().equals("stop")) { invalidateActiveSong(session, "播放已停止或切换，歌曲对话已结束。"); session.readySong = null; return; }
+            long clock = System.nanoTime(); ReadySong ready = session.readySong;
+            String expected = ready == null ? "" : "start:" + ready.track().id();
+            if (!player.isAlive() || ready == null || ready.expires() < clock || !request.value().equals(expected)
+                    || !ready.track().id().startsWith("netease:") || !IndustrialMobileAccess.phoneOnline(player)) {
+                invalidateActiveSong(session, "播放绑定已失效，请重新播放歌曲。"); session.readySong = null; return;
+            }
+            invalidateActiveSong(session, "已切换歌曲，上一首对话已结束。");
+            session.activeSong = new ActiveSong(ready.track(), ready.listening(), clock + TimeUnit.MINUTES.toNanos(13));
+            session.readySong = null;
+            return;
+        }
+        if (operation == MediaPackets.SONG_CHAT) {
+            requestSongChat(player, session, request);
+            return;
+        }
+        if (operation == MediaPackets.SONG_COMMENTS) {
+            requestSongComments(player, session, request);
+            return;
+        }
         if (operation == MediaPackets.NETEASE_LIKED) {
             if (!NativeMediaConfig.musicLoginOwner(player)) { error(player, request.ticket(), "只有指定服主可以查看网易云我喜欢的音乐。"); return; }
             if (!request.target().equals(MediaPackets.NONE) || !request.value().matches("(?:0|[1-9][0-9]{0,4})")) {
@@ -206,6 +241,7 @@ public final class MediaServer {
         }
         JsonObject body = new JsonObject(); body.addProperty("protocol", 1);
         RobotEntity robot = null;
+        SongConversation.Context songRecallContext = null;
         if (operation == MediaPackets.ASSISTANT_VOICE) {
             if (!player.isAlive() || !request.target().equals(MediaPackets.NONE) || request.value().length() > 2048) return;
             try {
@@ -263,6 +299,17 @@ public final class MediaServer {
                 context.addProperty("robot_home_position", robot.homePos().toShortString());
                 context.addProperty("robot_movement_intent", robot.movementIntent().name());
                 context.addProperty("robot_wormhole_module", robot.getPersistentData().getBoolean("NewEraWormholeModule"));
+                SongConversation.ChatRecall listeningMemory = SongConversation.recallForChat(player, robot, request.messages());
+                if (listeningMemory.requested() && listeningMemory.context() == null) {
+                    String noMemory = switch (robot.companionship().language()) {
+                        case JA -> "思い返してみたけど、その曲を一緒に聴いて話した記録はまだないよ。";
+                        case EN -> "I don't have a memory of us listening to and talking about that song yet.";
+                        case ZH -> "我还没找到咱俩一起听这首歌、聊感想的记录。";
+                    };
+                    json(player, request.ticket(), robotReply(session, request, robot.character().id, noMemory, false, false));
+                    return;
+                }
+                songRecallContext = listeningMemory.context();
                 context.addProperty("cooking_available", ModList.get().isLoaded("farmersdelight"));
                 context.addProperty("smelting_available", true);
                 context.addProperty("farming_available", true);
@@ -288,6 +335,7 @@ public final class MediaServer {
                 }
                 robot = target;
             }
+            if (operation == MediaPackets.PREPARE) session.readySong = null;
             if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SEARCH_AUDIUS || operation == MediaPackets.SMART_SEARCH)
                     && (request.value().isBlank() || request.value().length() > 240)) return;
             if ((operation == MediaPackets.SEARCH || operation == MediaPackets.SEARCH_AUDIUS || operation == MediaPackets.SMART_SEARCH || operation == MediaPackets.NETEASE_LIKED
@@ -338,10 +386,149 @@ public final class MediaServer {
         final String character = robot == null ? text(body, "character", 32) : robot.character().id;
         Job job = new Job(operation, session.replyRevision, player, request.target(), character,
                 body.has("liked_revision") ? body.get("liked_revision").getAsLong() : Long.MIN_VALUE); session.jobs.put(request.ticket(), job);
+        job.songRecallContext = songRecallContext;
         try {
             job.future = executor.submit(() -> perform(active, request, body, character, job));
         } catch (RejectedExecutionException full) {
             session.jobs.remove(request.ticket()); error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。");
+        }
+    }
+
+    private static void requestSongChat(ServerPlayer player, Session session, MediaPackets.Request request) {
+        long now = System.nanoTime();
+        session.chatReceipts.entrySet().removeIf(entry -> entry.getValue().expires < now);
+        ChatReceipt receipt = session.chatReceipts.get(request.ticket());
+        if (receipt != null) {
+            if (receipt.request.equals(request)) json(player, request.ticket(), receipt.reply);
+            return;
+        }
+        if (session.jobs.containsKey(request.ticket())) return;
+        ActiveSong active = session.activeSong;
+        if (!player.isAlive() || active == null || active.expires() < System.nanoTime()
+                || !active.track().id().equals(request.value()) || !active.track().id().startsWith("netease:")
+                || !IndustrialMobileAccess.phoneOnline(player)) {
+            invalidateActiveSong(session, "歌曲对话已过期，请重新播放后再聊。");
+            error(player, request.ticket(), "当前没有可聊的网易云播放曲目；请重新播放或选择正在播放的歌曲。"); return;
+        }
+        RobotEntity robot = RobotContacts.resolve(player.server, request.target());
+        if (robot == null || !robot.isOwnedBy(player) || RobotCharacter.byId(robot.character().id) != robot.character()
+                || !phoneChatAccess(player, robot)) {
+            error(player, request.ticket(), "请选择已加载、在线且属于你的机器人，并保持手机网络可用。"); return;
+        }
+        if (request.messages().isEmpty() || request.messages().size() > 12
+                || !"user".equals(request.messages().get(request.messages().size() - 1).role())
+                || request.messages().stream().anyMatch(message -> message.content().isBlank() || message.content().length() > 1200)) {
+            error(player, request.ticket(), "请填写一条不超过 1200 字的有效问题。"); return;
+        }
+        if (session.jobs.size() >= 2 || session.jobs.values().stream().anyMatch(job -> MediaPackets.isSongChat(job.operation))) {
+            error(player, request.ticket(), "歌曲对话正在处理，请等待或取消。"); return;
+        }
+        WORK.purge();
+        if (WORK.isShutdown() || WORK.getQueue().remainingCapacity() == 0) {
+            error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。"); return;
+        }
+        if (!IndustrialPhoneItem.hasHeldCharge(player, IndustrialPhoneItem.COMMAND_COST)) {
+            error(player, request.ticket(), IndustrialPhoneItem.EMPTY_MESSAGE); return;
+        }
+        if (!robot.allowChat(player)) { error(player, request.ticket(), "机器人电量不足 2000 EU，或聊天过快。"); return; }
+        IndustrialPhoneItem.consumeHeld(player, IndustrialPhoneItem.COMMAND_COST); player.getInventory().setChanged();
+        session.replyRevision++;
+        Job job = new Job(MediaPackets.SONG_CHAT, session.replyRevision, player, request.target(), robot.character().id, Long.MIN_VALUE);
+        job.songContext = SongConversation.context(player, robot, active.track(), active.listening());
+        session.jobs.put(request.ticket(), job);
+        try {
+            job.future = WORK.submit(() -> {
+                try {
+                    NetEaseMusicProvider.PublicComments fetched;
+                    try { fetched = new NetEaseMusicProvider(input -> { job.input = input; if (job.canceled) close(input); })
+                            .publicComments(active.track().id().substring("netease:".length())); }
+                    catch (InterruptedException canceled) { Thread.currentThread().interrupt(); return; }
+                    catch (Exception unavailable) {
+                        fetched = new NetEaseMusicProvider.PublicComments(List.of(), "公开短评暂时无法读取；回答只依据实际听感和你们的共同回忆。");
+                    }
+                    job.publicComments = fetched;
+                    String prompt = request.messages().get(request.messages().size() - 1).content();
+                    NativeMediaLlm.Completion completion = (modelPrompt, history) -> SongModel.complete(job.model,
+                            job.songContext, modelPrompt, history, () -> job.canceled,
+                            () -> completeModel(job, modelPrompt, history));
+                    job.songReply = SongConversation.answer(job.songContext, prompt, fetched.excerpts(), fetched.status(), completion);
+                    player.server.execute(() -> {
+                        if (!valid(session, request, job)) return;
+                        SongConversation.remember(player, robot, job.songContext, prompt, job.songReply);
+                        session.jobs.remove(request.ticket(), job);
+                        JsonObject reply = robotReply(session, request, robot.character().id, job.songReply, false, false);
+                        reply.addProperty("song_id", active.track().id());
+                        reply.addProperty("song_title", active.track().title());
+                        reply.addProperty("comment_status", job.publicComments.status());
+                        JsonArray excerpts = new JsonArray(); job.publicComments.excerpts().forEach(excerpts::add); reply.add("comments", excerpts);
+                        session.chatReceipts.put(request.ticket(), new ChatReceipt(request, reply, System.nanoTime() + 600_000_000_000L));
+                        json(player, request.ticket(), reply);
+                    });
+                } catch (Exception failure) {
+                    player.server.execute(() -> {
+                        if (session.jobs.remove(request.ticket(), job) && !job.canceled)
+                            error(player, request.ticket(), failure instanceof IOException || failure instanceof IllegalStateException
+                                    ? MusicTrack.bound(failure.getMessage(), 240) : "歌曲对话暂时无法完成，请稍后重试。");
+                    });
+                }
+            });
+        } catch (RejectedExecutionException full) {
+            session.jobs.remove(request.ticket()); error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。");
+        }
+    }
+
+    private static void requestSongComments(ServerPlayer player, Session session, MediaPackets.Request request) {
+        long now = System.nanoTime();
+        session.chatReceipts.entrySet().removeIf(entry -> entry.getValue().expires < now);
+        ChatReceipt receipt = session.chatReceipts.get(request.ticket());
+        if (receipt != null) { if (receipt.request.equals(request)) json(player, request.ticket(), receipt.reply); return; }
+        ActiveSong active = session.activeSong;
+        if (!request.target().equals(MediaPackets.NONE) || !request.messages().isEmpty() || active == null || active.expires() < now
+                || !active.track().id().equals(request.value()) || !IndustrialMobileAccess.phoneOnline(player)) {
+            error(player, request.ticket(), "请保持这首网易云歌曲正在播放，并连接工业手机网络后再查看短评。"); return;
+        }
+        if (session.jobs.containsKey(request.ticket()) || session.jobs.size() >= 2 || WORK.isShutdown() || WORK.getQueue().remainingCapacity() == 0) {
+            error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。"); return;
+        }
+        if (!IndustrialPhoneItem.hasHeldCharge(player, IndustrialPhoneItem.COMMAND_COST)) {
+            error(player, request.ticket(), IndustrialPhoneItem.EMPTY_MESSAGE); return;
+        }
+        IndustrialPhoneItem.consumeHeld(player, IndustrialPhoneItem.COMMAND_COST); player.getInventory().setChanged();
+        Job job = new Job(MediaPackets.SONG_COMMENTS, session.replyRevision, player, MediaPackets.NONE, "", Long.MIN_VALUE);
+        session.jobs.put(request.ticket(), job);
+        try {
+            job.future = WORK.submit(() -> {
+                NetEaseMusicProvider.PublicComments comments;
+                try { comments = new NetEaseMusicProvider(input -> { job.input = input; if (job.canceled) close(input); })
+                        .publicComments(active.track().id().substring("netease:".length())); }
+                catch (InterruptedException canceled) { Thread.currentThread().interrupt(); return; }
+                catch (Exception unavailable) {
+                    comments = new NetEaseMusicProvider.PublicComments(List.of(), "网易云公开短评暂时无法读取；没有生成或替代评论。");
+                }
+                NetEaseMusicProvider.PublicComments result = comments;
+                player.server.execute(() -> {
+                    if (!valid(session, request, job)) return;
+                    session.jobs.remove(request.ticket(), job);
+                    JsonObject response = new JsonObject(); response.addProperty("song_id", active.track().id());
+                    response.addProperty("song_title", active.track().title()); response.addProperty("comment_status", result.status());
+                    JsonArray rows = new JsonArray(); result.excerpts().forEach(rows::add); response.add("comments", rows);
+                    session.chatReceipts.put(request.ticket(), new ChatReceipt(request, response, System.nanoTime() + 600_000_000_000L));
+                    json(player, request.ticket(), response);
+                });
+            });
+        } catch (RejectedExecutionException full) {
+            session.jobs.remove(request.ticket()); error(player, request.ticket(), "服务器媒体任务繁忙，请稍后重试。");
+        }
+    }
+
+
+    private static void invalidateActiveSong(Session session, String message) {
+        session.activeSong = null;
+        var jobs = session.jobs.entrySet().iterator();
+        while (jobs.hasNext()) {
+            var item = jobs.next(); Job job = item.getValue();
+            if (!MediaPackets.isSongChat(job.operation) && job.operation != MediaPackets.SONG_COMMENTS) continue;
+            jobs.remove(); job.cancel(); error(session.player, item.getKey(), message);
         }
     }
     private static MusicTrack find(Session session, List<MusicTrack> playlist, String id) {
@@ -442,11 +629,21 @@ public final class MediaServer {
             if (op == MediaPackets.PREPARE) {
                 MusicTrack track = MusicTrack.from(body.getAsJsonObject("track"));
                 audio = prepareMusic(provider, audius, track, job);
+                job.preparedTrack = track;
+                if (track.id().startsWith("netease:") && "audio/mpeg".equals(audio.mime)) {
+                    try { job.listening = SongConversation.observe(audio.path, audio.durationSeconds, () -> job.canceled || Thread.currentThread().isInterrupted()); }
+                    catch (Exception ignored) { job.listening = null; }
+                }
                 Audio completed = audio; audio = null;
                 completeAudio(session, request, job, completed); return;
             }
-            NativeMediaLlm.Completion completion = (prompt, history) -> completeModel(job,
-                    MediaPackets.isChat(op) ? withRobotCompanionshipPrompt(prompt, body.getAsJsonObject("context")) : prompt, history);
+            NativeMediaLlm.Completion completion = (prompt, history) -> {
+                if (MediaPackets.isChat(op) && job.songRecallContext != null)
+                    return SongModel.complete(job.model, job.songRecallContext, prompt, history,
+                            () -> job.canceled, () -> completeModel(job, prompt, history));
+                return completeModel(job, MediaPackets.isChat(op)
+                        ? withRobotCompanionshipPrompt(prompt, body.getAsJsonObject("context")) : prompt, history);
+            };
             final String reply;
             final NativeMediaLlm.ChatReply chat;
             final NativeMediaLlm.Search found;
@@ -455,9 +652,11 @@ public final class MediaServer {
             final boolean importedTruncated;
             if (MediaPackets.isChat(op)) {
                 String latestText = request.messages().isEmpty() ? "" : request.messages().get(request.messages().size() - 1).content();
-                chat = com.ic2newera.wormhole.WormholeIntent.parse(latestText) != null
-                        ? new NativeMediaLlm.ChatReply("", null)
-                        : NativeMediaLlm.chat(completion, character, request.messages(), body.getAsJsonObject("context"));
+                chat = job.songRecallContext != null
+                        ? new NativeMediaLlm.ChatReply(SongConversation.answerRecall(job.songRecallContext, latestText, completion), null)
+                        : com.ic2newera.wormhole.WormholeIntent.parse(latestText) != null
+                            ? new NativeMediaLlm.ChatReply("", null)
+                            : NativeMediaLlm.chat(completion, character, request.messages(), body.getAsJsonObject("context"));
                 reply = chat.text();
                 found = null; importedTracks = null; importedMessage = ""; importedTruncated = false;
             } else if (op == MediaPackets.SMART_SEARCH) {
@@ -493,9 +692,10 @@ public final class MediaServer {
                 if (MediaPackets.isChat(op)) {
                     String spoken = reply;
                     String latest = request.messages().get(request.messages().size() - 1).content();
-                    boolean buildCommand = com.ic2newera.robot.building.RobotBuildService.isCommand(latest);
+                    boolean musicRecall = job.songRecallContext != null;
+                    boolean buildCommand = !musicRecall && com.ic2newera.robot.building.RobotBuildService.isCommand(latest);
                     boolean fixedReply = false;
-                    var wormholeIntent = com.ic2newera.wormhole.WormholeIntent.parse(latest);
+                    var wormholeIntent = musicRecall ? null : com.ic2newera.wormhole.WormholeIntent.parse(latest);
                     if (wormholeIntent != null) {
                         RobotEntity target = chatRobot(session.player, request.target(), op);
                         var language = target == null ? com.ic2newera.robot.companionship.RobotReplyLanguage.ZH : target.companionship().language();
@@ -511,7 +711,7 @@ public final class MediaServer {
                                     });
                             return;
                         }
-                    } else if (chat.movement() != null && chat.movement() != com.ic2newera.robot.RobotMovementIntent.NONE) {
+                    } else if (!musicRecall && chat.movement() != null && chat.movement() != com.ic2newera.robot.RobotMovementIntent.NONE) {
                         RobotEntity target = chatRobot(session.player, request.target(), op);
                         var outcome = com.ic2newera.robot.RobotMovementOrders.apply(session.player, target,
                                 op == MediaPackets.PHONE_CHAT, chat.movement());
@@ -522,7 +722,7 @@ public final class MediaServer {
                         RobotEntity target = chatRobot(session.player, request.target(), op);
                         spoken = com.ic2newera.robot.building.RobotBuildService.chat(session.player, target, op == MediaPackets.PHONE_CHAT, latest);
                         if (op == MediaPackets.CHAT && target != null) RobotPackets.open(session.player, target, -1);
-                    } else if (RobotChatCommands.parseCooking(latest) != null) {
+                    } else if (!musicRecall && RobotChatCommands.parseCooking(latest) != null) {
                         fixedReply = true;
                         var order = RobotChatCommands.parseCooking(latest);
                         RobotEntity target = chatRobot(session.player, request.target(), op);
@@ -535,7 +735,7 @@ public final class MediaServer {
                             spoken = outcome.message();
                             if (outcome.accepted() && op == MediaPackets.CHAT) RobotPackets.open(session.player, target, -1);
                         }
-                    } else if (chat.order() != null) {
+                    } else if (!musicRecall && chat.order() != null) {
                         fixedReply = true;
                         var parsed = chat.order();
                         if (parsed.work() != null) {
@@ -675,12 +875,21 @@ public final class MediaServer {
             session.jobs.remove(request.ticket()); job.cancel(); refreshLikedSession(session);
             error(session.player, request.ticket(), "网易云会话或服主权限已改变，请重新加载我喜欢的音乐。"); return false;
         }
-        if (MediaPackets.isChat(job.operation) && job.replyRevision != session.replyRevision) {
+        if ((MediaPackets.isChat(job.operation) || MediaPackets.isSongChat(job.operation)) && job.replyRevision != session.replyRevision) {
             session.jobs.remove(request.ticket()); job.cancel(); error(session.player, request.ticket(), "已开始新对话，旧回复已取消。"); return false;
         }
         RobotEntity currentRobot = MediaPackets.isChat(request.operation()) ? chatRobot(session.player, request.target(), request.operation()) : null;
+        if (MediaPackets.isSongChat(request.operation())) currentRobot = RobotContacts.resolve(session.player.server, request.target());
         RobotEntity coverRobot = request.operation() == MediaPackets.COVER ? chatRobot(session.player, request.target(), MediaPackets.PHONE_CHAT) : null;
         boolean authorized = request.operation() == MediaPackets.ASSISTANT_VOICE || request.operation() == MediaPackets.VOICE ? session.player.isAlive()
+                : MediaPackets.isSongChat(request.operation())
+                ? session.player.isAlive() && session.activeSong != null && session.activeSong.expires() >= System.nanoTime()
+                    && session.activeSong.track().id().equals(request.value()) && currentRobot != null
+                    && currentRobot.character().id.equals(job.character) && currentRobot.isOwnedBy(session.player)
+                    && phoneChatAccess(session.player, currentRobot) && IndustrialMobileAccess.phoneOnline(session.player)
+                : request.operation() == MediaPackets.SONG_COMMENTS
+                ? session.player.isAlive() && session.activeSong != null && session.activeSong.expires() >= System.nanoTime()
+                    && session.activeSong.track().id().equals(request.value()) && IndustrialMobileAccess.phoneOnline(session.player)
                 : MediaPackets.isChat(request.operation())
                 ? session.player.isAlive() && currentRobot != null && currentRobot.character().id.equals(job.character)
                     && (request.operation() == MediaPackets.PHONE_CHAT ? phoneChatAccess(session.player, currentRobot) : currentRobot.canManage(session.player))
@@ -857,7 +1066,9 @@ public final class MediaServer {
             if (staged == null) return;
             if (!valid(session, request, job)) { discard(staged); return; }
             session.jobs.remove(request.ticket());
-            session.transfers.put(request.ticket(), new Transfer(staged.path, staged.size, request.operation()));
+            MusicTrack track = request.operation() == MediaPackets.PREPARE ? job.preparedTrack : null;
+            SongConversation.Listening listening = request.operation() == MediaPackets.PREPARE ? job.listening : null;
+            session.transfers.put(request.ticket(), new Transfer(staged.path, staged.size, request.operation(), track, listening));
             JsonObject info = new JsonObject(); info.addProperty("size", staged.size); info.addProperty("sha256", staged.sha); info.addProperty("mime", staged.mime);
             send(session.player, new MediaPackets.Reply(request.ticket(), MediaPackets.AUDIO, info.toString(), 0, false, new byte[0]));
         }); } catch (RuntimeException rejected) { discard(job.takeAudio()); throw rejected; }
@@ -883,7 +1094,14 @@ public final class MediaServer {
                     boolean last = (long)(transfer.sequence + 1) * MediaPackets.CHUNK_SIZE >= transfer.size;
                     send(player, new MediaPackets.Reply(packet.ticket(), MediaPackets.CHUNK, "", transfer.sequence++, last, bytes));
                     transfer.reading = false;
-                    if (last) { session.transfers.remove(packet.ticket()); transfer.close(); }
+                    if (last) {
+                        if (session.transfers.get(packet.ticket()) == transfer && !player.hasDisconnected()
+                                && transfer.operation == MediaPackets.PREPARE && transfer.preparedTrack != null
+                                && transfer.preparedTrack.id().startsWith("netease:"))
+                            session.readySong = new ReadySong(transfer.preparedTrack, transfer.listening,
+                                    System.nanoTime() + TimeUnit.MINUTES.toNanos(5));
+                        session.transfers.remove(packet.ticket()); transfer.close();
+                    }
                 });
             });
         } catch (RejectedExecutionException busy) {
@@ -925,6 +1143,7 @@ public final class MediaServer {
     private static void delete(Path path) { if (path != null) try { Files.deleteIfExists(path); } catch (IOException ignored) { } }
     private static void clear(Session session) {
         session.jobs.values().forEach(Job::cancel); session.jobs.clear(); session.transfers.values().forEach(Transfer::close); session.transfers.clear();
+        session.readySong = null; session.activeSong = null;
         session.spokenReplies.clear(); session.chatReceipts.clear(); session.likedPages.clear(); session.pinnedLikedPage = List.of(); session.likedRevision = Long.MIN_VALUE;
     }
     @SubscribeEvent public static void logout(PlayerEvent.PlayerLoggedOutEvent event) { Session session = SESSIONS.remove(event.getEntity().getUUID()); if (session != null) clear(session); }
@@ -963,6 +1182,10 @@ public final class MediaServer {
         for (Session session : SESSIONS.values()) {
             NetEaseLoginService.observeOwner(session.player.server, NativeMediaConfig.musicLoginOwnerUuid(session.player));
             refreshLikedSession(session);
+            if (session.activeSong != null && (session.activeSong.expires() < now || !session.player.isAlive()
+                    || !IndustrialMobileAccess.phoneOnline(session.player)))
+                invalidateActiveSong(session, "歌曲对话已过期，请重新播放后再聊。");
+            if (session.readySong != null && session.readySong.expires() < now) session.readySong = null;
             var jobs = session.jobs.entrySet().iterator();
             while (jobs.hasNext()) { var item = jobs.next();
                 Job job = item.getValue();
@@ -972,10 +1195,14 @@ public final class MediaServer {
                         ? job.musicSessionRevision : job.likedAuthorizationRevision))) {
                     jobs.remove(); job.cancel(); error(session.player, item.getKey(), "网易云会话或服主权限已改变，请重新加载目录。"); continue;
                 }
-                RobotEntity currentRobot = job.operation == MediaPackets.PHONE_CHAT ? RobotContacts.resolve(session.player.server, job.target) : null;
-                if (job.operation == MediaPackets.PHONE_CHAT && session.player.level().getGameTime() % 20 == 0
+                RobotEntity currentRobot = job.operation == MediaPackets.PHONE_CHAT || MediaPackets.isSongChat(job.operation)
+                        ? RobotContacts.resolve(session.player.server, job.target) : null;
+                if ((job.operation == MediaPackets.PHONE_CHAT || MediaPackets.isSongChat(job.operation)) && session.player.level().getGameTime() % 20 == 0
                         && (currentRobot == null || !currentRobot.character().id.equals(job.character) || !phoneChatAccess(session.player, currentRobot))) {
                     jobs.remove(); job.cancel(); error(session.player, item.getKey(), "手机、目标或权限已改变，本次远程聊天已取消。"); continue;
+                }
+                if (MediaPackets.isSongChat(job.operation) && (session.activeSong == null || session.activeSong.expires() < now)) {
+                    jobs.remove(); job.cancel(); error(session.player, item.getKey(), "歌曲已停止或切换，本次对话已取消。"); continue;
                 }
                 RobotEntity coverRobot = job.operation == MediaPackets.COVER ? RobotContacts.resolve(session.player.server, job.target) : null;
                 if (job.operation == MediaPackets.COVER && session.player.level().getGameTime() % 20 == 0

@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.ic2newera.compat.vs",
+  "plugin": "com.ic2newera.compat.vs.OptionalVsRespawnMixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "MixinVSClientShipWorldAccess",
+    "MixinDuplicateShipCreateIdempotence"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+

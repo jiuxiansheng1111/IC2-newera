@@ -35,6 +35,12 @@ public final class PhoneMusicScreen extends Screen {
         case PLAYLIST -> MusicController.playlist(); case RESULTS -> MusicController.candidates(); case LIKED -> MusicController.likedTracks();
     }; }
     private MusicTrack selected() { return list().stream().filter(t -> t.id().equals(selected)).findFirst().orElse(null); }
+    private MusicTrack songForChat() {
+        MusicTrack playing = MusicController.current();
+        if (playing != null && MusicController.activelyPlaying(playing)) return playing;
+        MusicTrack choice = selected();
+        return choice != null && choice.id().startsWith("netease:") ? choice : null;
+    }
     private boolean selectionReady() { return selected() != null && (view != View.LIKED || MusicController.likedReady()); }
     private int lastPage() { return Math.max(0, (list().size() - 1) / rows); }
 
@@ -99,7 +105,7 @@ public final class PhoneMusicScreen extends Screen {
                 ? "读取下一批 100 首云端红心曲目。" : "前往本视图下一页。")));
 
         IndustrialMobileAccess.Device robot = selectedRobot();
-        int sideWidth = Math.min(94, (panelWidth - 8) / 3), voiceWidth = panelWidth - 2 * sideWidth - 8;
+        int sideWidth = Math.min(94, (panelWidth - 12) / 3), voiceWidth = panelWidth - 3 * sideWidth - 12;
         var voiceButton = addRenderableWidget(new UiButton(left, height - 92, voiceWidth, 18,
                 Component.literal(robot == null ? "声线：无机器人" : "声线：" + RobotCharacter.byId(robot.character()).chineseName), b -> cycleVoice()));
         voiceButton.active = !robots.isEmpty();
@@ -116,6 +122,19 @@ public final class PhoneMusicScreen extends Screen {
                 : selected().needsCatalogVerification() ? "旧版手工条目尚未核实为真实曲目；重新导入并核实后才能翻唱。"
                 : robot == null ? "没有可用机器人。" : MusicController.busy() ? "媒体请求处理中，请先停止或等待。"
                 : "使用所选机器人声线生成并播放翻唱；需要可用的语音运行时及翻唱资源。")));
+        MusicTrack talkTrack = songForChat();
+        int chatX = left + voiceWidth + 4 + 2 * (sideWidth + 4);
+        var chatButton = addRenderableWidget(new UiButton(chatX, height - 92, sideWidth, 18,
+                Component.literal("聊这首歌"), b -> {
+            if (talkTrack != null)
+                minecraft.setScreen(new SongChatScreen(this, robots, talkTrack, list(), coverRobot));
+        }));
+        chatButton.active = talkTrack != null && talkTrack.id().startsWith("netease:");
+        chatButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.literal(talkTrack == null
+                ? "先选择一首歌曲，或开始播放一首网易云歌曲。"
+                : selectedRobot() == null ? "可直接查看公开短评；选择机器人后才能发送对话。"
+                : MusicController.activelyPlaying(talkTrack) ? "让所选机器人结合真实听感、共同回忆和同曲网易云公开短评回应。"
+                : "打开所选歌曲对话；发送问题前先实际播放这首网易云歌曲。")));
         var favoriteButton = addRenderableWidget(new UiButton(left + panelWidth - sideWidth, height - 92, sideWidth, 18,
                 Component.literal(view == View.PLAYLIST ? "移出歌单" : "加入歌单"), b -> {
             if (selectionReady()) { if (view == View.PLAYLIST) MusicController.remove(selected); else MusicController.favorite(selected); }

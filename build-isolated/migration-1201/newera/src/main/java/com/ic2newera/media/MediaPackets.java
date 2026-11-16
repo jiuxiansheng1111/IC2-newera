@@ -15,14 +15,15 @@ public final class MediaPackets {
     public static final int SEARCH = 0, IMPORT = 1, PREPARE = 2, PLAYLIST = 3, ADD = 4, REMOVE = 5, CHAT = 7, VOICE = 8,
             SMART_SEARCH = 9, ASSISTANT_VOICE = 10, PHONE_CHAT = 11, SEARCH_AUDIUS = 12, IMPORT_AUDIUS = 13,
             COVER = 14, NETEASE_LOGIN_BEGIN = 15, NETEASE_LOGIN_POLL = 16, NETEASE_LOGIN_LOGOUT = 17, NETEASE_LOGIN_FORGET = 18,
-            NETEASE_LIKED = 19;
+            NETEASE_LIKED = 19, SONG_CHAT = 20, SONG_PLAYBACK = 21, SONG_COMMENTS = 22;
     public static final int JSON = 0, ERROR = 1, AUDIO = 2, CHUNK = 3, STATUS = 4, CHUNK_SIZE = 32768;
     public static final UUID NONE = new UUID(0, 0);
     public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
-            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "media"), () -> "7", "7"::equals, "7"::equals);
+            new net.minecraft.resources.ResourceLocation(IC2NewEra.MOD_ID, "media"), () -> "8", "8"::equals, "8"::equals);
     public record Message(String role, String content) { }
     private MediaPackets() { }
     public static boolean isChat(int operation) { return operation == CHAT || operation == PHONE_CHAT; }
+    public static boolean isSongChat(int operation) { return operation == SONG_CHAT; }
     public static void register() {
         CHANNEL.registerMessage(0, Request.class, Request::encode, Request::decode, Request::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
         CHANNEL.registerMessage(1, Reply.class, Reply::encode, Reply::decode, Reply::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
